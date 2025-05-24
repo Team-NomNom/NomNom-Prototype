@@ -5,35 +5,53 @@ public class TestTankController : MonoBehaviour
 {
     public float moveSpeed = 5f;
     public float rotateSpeed = 100f;
+
+    // Position of player camera
     [SerializeField]
     public Transform cameraTransform;
-    [SerializeField]
 
+    // Apparently this is the replacement for Unity's input system
+    [SerializeField]
     private InputSystem_Actions input;
 
+
+    // These don't need to be separate materials, we should fix this
     [SerializeField]
     public Material redMaterial;
 
     [SerializeField]
     public Material blueMaterial;
 
+    // Spawn locations for both sides
     [SerializeField]
     public Transform redStartingLocation;
 
     [SerializeField]
     public Transform blueStartingLocation;
+    
     private Vector2 moveInput;
 
+    
+
+    [SerializeField]
+    public Constants.Colors teamColor = Constants.Colors.Red;
+
+    private Renderer renderer;
 
     void Start()
     {
-    
+        // Changes color and spawn location depending on team color
+        renderer = GetComponent<Renderer>();
+        renderer.sharedMaterial = teamColor == Constants.Colors.Red ? redMaterial : blueMaterial;
+        transform.position = teamColor == Constants.Colors.Red ? redStartingLocation.position : blueStartingLocation.position;
+        transform.rotation = teamColor == Constants.Colors.Red ? redStartingLocation.rotation : blueStartingLocation.rotation;
     }
     void Awake()
     {
         input = new InputSystem_Actions();
     }
 
+    // Updates input vector whenever input action is read
     void OnEnable()
     {
         input.Enable();
