@@ -46,7 +46,8 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
   - {fileID: -4256343132872579409}
-  m_RendererFeatureMap: 
+  - {fileID: 6459838644650198491}
+  m_RendererFeatureMap: db45b78805f5a559
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -72,3 +73,18 @@ MonoBehaviour:
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &6459838644650198491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72e8cb50ea238f44888970d8f3490b58, type: 3}
+  m_Name: DeNorSobOutlineRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Material: {fileID: 0}
+  InjectionPoint: 450
