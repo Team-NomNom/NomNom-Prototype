@@ -1,0 +1,525 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7375930549452374635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a864f588276bab54f97335821add48a7, type: 3}
+  m_Name: LimSSR
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  Settings:
+    tracingMode: 0
+    stepStrideLength: 0.13
+    scaleHorizon: 0.62
+    maxSteps: 256
+    downSample: 0
+    minSmoothness: 0.57
+    reflectSky: 1
+    SSR_Instance: {fileID: 0}
+    SSRShader: {fileID: 4800000, guid: 03f5601bba0a8034aa526644e8b9aaeb, type: 3}
+    useUnsafePass: 1
+--- !u!114 &-6690937385703312665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c67f6268f93723438ad241803cf70cb, type: 3}
+  m_Name: OutlineFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    outlineMaterial: {fileID: 2100000, guid: 4136c0e84c07e594191e2c3e386a6ec9, type: 2}
+  renderPassEvent: 400
+--- !u!114 &-5423591869078884618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b423c041a16c1d42b01cd0f708cc201, type: 3}
+  m_Name: OutlineFeatureGIBLION
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    outlineMaterial: {fileID: 2100000, guid: d2ad7f0ee3f083c42b3f77371bd3412a, type: 2}
+    painterlyMaterial: {fileID: 2100000, guid: bd5392213ce6bb94cb104287c0d46c03, type: 2}
+  renderPassEvent: 550
+--- !u!114 &-5407645617230448976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1614fc811f8f184697d9bee70ab9fe5, type: 3}
+  m_Name: DecalRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  m_Settings:
+    technique: 1
+    maxDrawDistance: 1000
+    decalLayers: 1
+    dBufferSettings:
+      surfaceData: 2
+    screenSpaceSettings:
+      normalBlend: 0
+--- !u!114 &-5323627762025817789
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 348d6637fcd83cb4d90b1f4ec86a6486, type: 3}
+  m_Name: Sharp
+  m_EditorClassIdentifier: 
+  _active: 0
+  _shader: {fileID: 4800000, guid: b0d56a688251e6f4bb8863a12ff07dec, type: 3}
+  _response:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0.03
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _filter: []
+--- !u!114 &-5304751590377724117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f61da571db4a6b499443747826c2c3e, type: 3}
+  m_Name: VolFxBuffers
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  _list:
+    m_List: []
+--- !u!114 &-5115446243929177035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4268db87361095c4ca643764150c94d6, type: 3}
+  m_Name: DepthPyramid
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  depthPyramidShader: {fileID: 7200000, guid: b2ead2c2a0fb2bc4d8ff715cbf4b0403, type: 3}
+  settings:
+    ShowDebug: 0
+    DebugSlice: 0
+--- !u!114 &-4630341742701194220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4494be8b918c47f49a1381b36598f2cf, type: 3}
+  m_Name: DeferredLightsFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    ResolutionMultiplier: 1
+    DeferredPassOn: 1
+    UseMRT: 1
+    DebugMode: 0
+    DebugModeInSceneView: 0
+    ShowInSceneView: 0
+--- !u!114 &-4504370346014452672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c67f6268f93723438ad241803cf70cb, type: 3}
+  m_Name: OutlineFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    outlineMaterial: {fileID: 2100000, guid: baf5e305b3c58534b883cd37359a8e5f, type: 2}
+  renderPassEvent: 400
+--- !u!114 &-700850943551966398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2df16983cdbc45e59623974172f2908b, type: 3}
+  m_Name: VolFxProc
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  _event: 550
+  _format:
+    enabled: 1
+    value: 0
+  _volumeMask:
+    enabled: 0
+    value:
+      serializedVersion: 2
+      m_Bits: 0
+  _source:
+    _source: 0
+    _sourceTex: _inputTex
+    _renderTex: {fileID: 0}
+    _buffer: {fileID: 0}
+    _render:
+      serializedVersion: 2
+      m_Bits: 0
+    _output: 0
+    _screenOutput: 0
+    _outputTex: _outputTex
+  _passes:
+    m_List:
+    - {fileID: 8438954097655826795}
+    - {fileID: -5323627762025817789}
+  _blitShader: {fileID: 4800000, guid: a8a709d9db2241741ab3032b946ef258, type: 3}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
+  m_Name: New Custom Universal Renderer Data LUMINA New SSRP FORWARD PLUS 2 GBUFFER
+    TEMPORAL GRAPH
+  m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
+    hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
+    probeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 53626a513ea68ce47b59dc1299fe3959, type: 3}
+  probeVolumeResources:
+    probeVolumeDebugShader: {fileID: 0}
+    probeVolumeFragmentationDebugShader: {fileID: 0}
+    probeVolumeOffsetDebugShader: {fileID: 0}
+    probeVolumeSamplingDebugShader: {fileID: 0}
+    probeSamplingDebugMesh: {fileID: 0}
+    probeSamplingDebugTexture: {fileID: 0}
+    probeVolumeBlendStatesCS: {fileID: 0}
+  m_RendererFeatures:
+  - {fileID: 259915994194202721}
+  - {fileID: 7928493985365365209}
+  - {fileID: 1140019286622526282}
+  - {fileID: -7375930549452374635}
+  - {fileID: -5115446243929177035}
+  - {fileID: -5407645617230448976}
+  - {fileID: 4331284509547906760}
+  m_RendererFeatureMap: 6150633938689b03d91186d145ab076e4adb3a488029d20f957df09f3e6ea39935c4fe72be4802b9b0f6c749f62ef4b4c846c13450d01b3c
+  m_UseNativeRenderPass: 0
+  xrSystemData: {fileID: 0}
+  postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  m_AssetVersion: 2
+  m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_TransparentLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_DefaultStencilState:
+    overrideStencilState: 0
+    stencilReference: 0
+    stencilCompareFunction: 8
+    passOperation: 2
+    failOperation: 0
+    zFailOperation: 0
+  m_ShadowTransparentReceive: 1
+  m_RenderingMode: 2
+  m_DepthPrimingMode: 0
+  m_CopyDepthMode: 0
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
+  m_AccurateGbufferNormals: 0
+  m_IntermediateTextureMode: 1
+--- !u!114 &259915994194202721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ad88aed6de14e459d620efdf5de02b, type: 3}
+  m_Name: VolumetricLightedSEGI
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  _settings:
+    resolutionScale: 0.5
+    intensity: 1
+    blurWidth: 0.85
+    fadeRange: 0.85
+    numSamples: 100
+    noiseSpeed: {x: 0.5, y: 0.5}
+    noiseScale: 1
+    noiseStrength: 0.6
+    eventA: 550
+--- !u!114 &577391522953063394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2427abb1d59f9cb42bdf68866b41cea8, type: 3}
+  m_Name: DeferredLightsFeatureRG
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    m_LayerMask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    m_MaskShader: {fileID: 0}
+    m_MaskMaterial: {fileID: 0}
+    ResolutionMultiplier: 1
+    DeferredPassOn: 1
+    UseMRT: 1
+    DebugMode: 0
+    DebugModeInSceneView: 0
+    ShowInSceneView: 0
+--- !u!114 &1140019286622526282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b49db325366a51e408a57f6588940f70, type: 3}
+  m_Name: TemporalAAFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  renderOrder: 550
+  TemporalFade: 0.92
+  MovementBlending: 10
+  UseFlipUV: 0
+  ForceFlipUV: 0
+  TAAMaterial: {fileID: 2100000, guid: 2b9d611108abd0047abdd27d7ca47e21, type: 2}
+  JitterSpread: 0
+  HaltonLength: 5
+  useOptimizedMode: 0
+--- !u!114 &2344189841048271394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaad5c85f2c809042933d794a0ae6d8c, type: 3}
+  m_Name: MobileSSPRRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  Settings:
+    ShouldRenderSSPR: 1
+    HorizontalReflectionPlaneHeightWS: 0.01
+    FadeOutScreenBorderWidthVerticle: 0.084
+    FadeOutScreenBorderWidthHorizontal: 0.128
+    ScreenLRStretchIntensity: 7.65
+    ScreenLRStretchThreshold: 0.82
+    TintColor: {r: 1, g: 1, b: 1, a: 1}
+    RT_height: 512
+    UseHDR: 1
+    ApplyFillHoleFix: 1
+    ShouldRemoveFlickerFinalControl: 1
+    EnablePerPlatformAutoSafeGuard: 1
+    unity2022Compatible: 0
+--- !u!114 &4331284509547906760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bacb9cc07d2131b4faa2d7ac89c7fdb8, type: 3}
+  m_Name: ScreenSpacePathTracingGBuffers
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_PathTracingMaterial: {fileID: 2100000, guid: cd8a7e146cf6df847860faf5ad7a5f17, type: 2}
+  accurateThickness: 0
+  refraction: 0
+  progressBar: 1
+  spatialDenoise: 1
+--- !u!114 &7682409486568031353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8be7ae391cd30034abfbedf97530c341, type: 3}
+  m_Name: VolumetricLightScattering
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  _settings:
+    resolutionScale: 0.567
+    intensity: 0.972
+    blurWidth: 0.228
+    fadeRange: 0.105
+    numSamples: 110
+    noiseSpeed: {x: 0.1, y: 0.1}
+    noiseScale: 3
+    noiseStrength: 1
+--- !u!114 &7928493985365365209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5495f09a19ba864e961d11903d4c606, type: 3}
+  m_Name: TAA
+  m_EditorClassIdentifier: 
+  m_Active: 1
+--- !u!114 &8438954097655826795
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2760c97ddaa8fdf46a0ae8ddeea31002, type: 3}
+  m_Name: Painterly Vol Fx
+  m_EditorClassIdentifier: 
+  _active: 1
+  _shader: {fileID: 4800000, guid: 2062078932eb6d44f90b7623ef0d3667, type: 3}
+  _samples: 7
+  _scatter:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.8594513
+      inSlope: 0
+      outSlope: 0.16878475
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0
+      outWeight: 0.9040921
+    - serializedVersion: 3
+      time: 1
+      value: 2.1807241
+      inSlope: 7.4170947
+      outSlope: 1.3360401
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0.060102284
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _mode: 0
+  _flicker:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 0.77
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 1
+    m_RotationOrder: 4
+  _flickerPeriod: 7
+  _EyeAdaptOnly: 0
+  cloudsSpeed: {x: 1, y: 1, z: 1, w: 1}
+--- !u!114 &8516246477723070303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53f8f22c3df675e4ebb7549527109555, type: 3}
+  m_Name: FPVolumetricFog
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  config: {fileID: 11400000, guid: 72d14b34c3fb57a4d9df2c4a39d45bea, type: 2}
+  passeEvent: 550
