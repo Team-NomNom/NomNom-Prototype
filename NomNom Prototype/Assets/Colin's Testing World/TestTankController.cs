@@ -14,14 +14,6 @@ public class TestTankController : MonoBehaviour
     [SerializeField]
     private InputSystem_Actions input;
 
-
-    // These don't need to be separate materials, we should fix this
-    [SerializeField]
-    public Material redMaterial;
-
-    [SerializeField]
-    public Material blueMaterial;
-
     // Spawn locations for both sides
     [SerializeField]
     public Transform redStartingLocation;
@@ -42,7 +34,7 @@ public class TestTankController : MonoBehaviour
     {
         // Changes color and spawn location depending on team color
         renderer = GetComponent<Renderer>();
-        renderer.sharedMaterial = teamColor == Constants.Colors.Red ? redMaterial : blueMaterial;
+        renderer.sharedMaterial = teamColor == Constants.Colors.Red ? Constants.redMaterial : Constants.blueMaterial;
         transform.position = teamColor == Constants.Colors.Red ? redStartingLocation.position : blueStartingLocation.position;
         transform.rotation = teamColor == Constants.Colors.Red ? redStartingLocation.rotation : blueStartingLocation.rotation;
     }

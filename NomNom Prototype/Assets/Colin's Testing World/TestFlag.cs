@@ -10,7 +10,10 @@ public class TestFlag : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        // Sets flag cloth color to team color
+        transform.GetChild(0).GetComponent<Renderer>().sharedMaterial = color == Constants.Colors.Red ? Constants.redMaterial : Constants.blueMaterial;
+        // Sets light color to team color
+        transform.GetChild(2).GetComponent<Light>().color = transform.GetChild(0).GetComponent<Renderer>().material.color;
     }
 
     // Update is called once per frame
