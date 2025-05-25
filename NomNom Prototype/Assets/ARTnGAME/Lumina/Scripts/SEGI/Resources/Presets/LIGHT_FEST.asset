@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9df9b1888f7ce364099541044ed46df5, type: 3}
+  m_Name: LIGHT_FEST
+  m_EditorClassIdentifier: 
+  voxelResolution: 256
+  voxelAA: 1
+  innerOcclusionLayers: 2
+  infiniteBounces: 1
+  temporalBlendWeight: 0.848
+  useBilateralFiltering: 0
+  halfResolution: 0
+  stochasticSampling: 1
+  doReflections: 1
+  cones: 29
+  coneTraceSteps: 5
+  coneLength: 1.02
+  coneWidth: 2.48
+  coneTraceBias: 0.4
+  occlusionStrength: 0.59
+  nearOcclusionStrength: 0.21
+  occlusionPower: 1.77
+  nearLightGain: 2.4
+  giGain: 7.4
+  secondaryBounceGain: 12.6
+  reflectionSteps: 36
+  reflectionOcclusionPower: 0.7
+  skyReflectionIntensity: 0.375
+  gaussianMipFilter: 1
+  farOcclusionStrength: 0.77
+  farthestOcclusionStrength: 0.9
+  secondaryCones: 14
+  secondaryOcclusionStrength: 0.2
+  contrastA: 0.96
+  ReflectControl: {x: 1, y: 1, z: 0, w: 0}

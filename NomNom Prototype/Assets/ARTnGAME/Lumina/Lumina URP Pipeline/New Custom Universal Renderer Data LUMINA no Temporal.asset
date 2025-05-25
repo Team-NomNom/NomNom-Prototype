@@ -1,0 +1,173 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-546581774500855097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a864f588276bab54f97335821add48a7, type: 3}
+  m_Name: LimSSR
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  Settings:
+    tracingMode: 0
+    stepStrideLength: 0.09
+    scaleHorizon: 1.24
+    maxSteps: 264
+    downSample: 2
+    minSmoothness: 0.04
+    reflectSky: 1
+    SSR_Instance: {fileID: 0}
+    SSRShader: {fileID: 4800000, guid: 03f5601bba0a8034aa526644e8b9aaeb, type: 3}
+    useUnsafePass: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
+  m_Name: New Custom Universal Renderer Data LUMINA no Temporal
+  m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
+      type: 3}
+    hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
+    probeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 53626a513ea68ce47b59dc1299fe3959,
+      type: 3}
+  probeVolumeResources:
+    probeVolumeDebugShader: {fileID: 0}
+    probeVolumeFragmentationDebugShader: {fileID: 0}
+    probeVolumeOffsetDebugShader: {fileID: 0}
+    probeVolumeSamplingDebugShader: {fileID: 0}
+    probeSamplingDebugMesh: {fileID: 0}
+    probeSamplingDebugTexture: {fileID: 0}
+    probeVolumeBlendStatesCS: {fileID: 0}
+  m_RendererFeatures:
+  - {fileID: 259915994194202721}
+  - {fileID: 5917885510941870454}
+  - {fileID: -546581774500855097}
+  m_RendererFeatureMap: 6150633938689b0376091f95848d2052c7822ca2c5266af8
+  m_UseNativeRenderPass: 0
+  xrSystemData: {fileID: 0}
+  postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  m_AssetVersion: 2
+  m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_TransparentLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_DefaultStencilState:
+    overrideStencilState: 0
+    stencilReference: 0
+    stencilCompareFunction: 8
+    passOperation: 2
+    failOperation: 0
+    zFailOperation: 0
+  m_ShadowTransparentReceive: 1
+  m_RenderingMode: 2
+  m_DepthPrimingMode: 0
+  m_CopyDepthMode: 0
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
+  m_AccurateGbufferNormals: 0
+  m_IntermediateTextureMode: 1
+--- !u!114 &259915994194202721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ad88aed6de14e459d620efdf5de02b, type: 3}
+  m_Name: VolumetricLightedSEGI
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  _settings:
+    resolutionScale: 0.5
+    intensity: 1
+    blurWidth: 0.85
+    fadeRange: 0.85
+    numSamples: 100
+    noiseSpeed: {x: 0.5, y: 0.5}
+    noiseScale: 1
+    noiseStrength: 0.6
+    eventA: 500
+--- !u!114 &2344189841048271394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaad5c85f2c809042933d794a0ae6d8c, type: 3}
+  m_Name: MobileSSPRRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  Settings:
+    ShouldRenderSSPR: 1
+    HorizontalReflectionPlaneHeightWS: 0.01
+    FadeOutScreenBorderWidthVerticle: 0.084
+    FadeOutScreenBorderWidthHorizontal: 0.128
+    ScreenLRStretchIntensity: 7.65
+    ScreenLRStretchThreshold: 0.82
+    TintColor: {r: 1, g: 1, b: 1, a: 1}
+    RT_height: 512
+    UseHDR: 1
+    ApplyFillHoleFix: 1
+    ShouldRemoveFlickerFinalControl: 1
+    EnablePerPlatformAutoSafeGuard: 1
+    unity2022Compatible: 1
+--- !u!114 &5917885510941870454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bacb9cc07d2131b4faa2d7ac89c7fdb8, type: 3}
+  m_Name: ScreenSpacePathTracingGBuffers
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_PathTracingMaterial: {fileID: 2100000, guid: cd8a7e146cf6df847860faf5ad7a5f17,
+    type: 2}
+  accurateThickness: 1
+  refraction: 0
+  progressBar: 1
+  spatialDenoise: 1
+--- !u!114 &7682409486568031353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8be7ae391cd30034abfbedf97530c341, type: 3}
+  m_Name: VolumetricLightScattering
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  _settings:
+    resolutionScale: 0.567
+    intensity: 0.972
+    blurWidth: 0.228
+    fadeRange: 0.105
+    numSamples: 110
+    noiseSpeed: {x: 0.1, y: 0.1}
+    noiseScale: 3
+    noiseStrength: 1

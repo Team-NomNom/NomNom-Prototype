@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9df9b1888f7ce364099541044ed46df5, type: 3}
+  m_Name: SECONDCAM
+  m_EditorClassIdentifier: 
+  voxelResolution: 256
+  voxelAA: 1
+  innerOcclusionLayers: 0
+  infiniteBounces: 1
+  temporalBlendWeight: 1
+  useBilateralFiltering: 0
+  halfResolution: 0
+  stochasticSampling: 1
+  doReflections: 0
+  cones: 18
+  coneTraceSteps: 22
+  coneLength: 1.05
+  coneWidth: 4
+  coneTraceBias: 0.51
+  occlusionStrength: 0.26
+  nearOcclusionStrength: 0.9
+  occlusionPower: 2.98
+  nearLightGain: 0.1
+  giGain: 2.4
+  secondaryBounceGain: 9
+  reflectionSteps: 107
+  reflectionOcclusionPower: 1.92
+  skyReflectionIntensity: 0.301
+  gaussianMipFilter: 1
+  farOcclusionStrength: 1.73
+  farthestOcclusionStrength: 2.32
+  secondaryCones: 12
+  secondaryOcclusionStrength: 3
+  contrastA: 0
+  ReflectControl: {x: 0.91, y: 1.04, z: 0.49, w: 0}
+  DitherControl: {x: 1, y: 1.24, z: 1.33, w: 1.08}
+  smoothNormals: 1
+  proxyNoGeom: 0
+  enableLocalLightGI: 0
+  shadowedLocalPower: 0
+  shadowlessLocalPower: 0
+  shadowlessLocalOcclusion: 0
+  cutoff: {x: 1, y: 1, z: 0.2}

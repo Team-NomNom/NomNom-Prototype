@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9df9b1888f7ce364099541044ed46df5, type: 3}
+  m_Name: HOUSE2C
+  m_EditorClassIdentifier: 
+  voxelResolution: 256
+  voxelAA: 1
+  innerOcclusionLayers: 1
+  infiniteBounces: 1
+  temporalBlendWeight: 1
+  useBilateralFiltering: 0
+  halfResolution: 0
+  stochasticSampling: 1
+  doReflections: 0
+  cones: 30
+  coneTraceSteps: 5
+  coneLength: 1.77
+  coneWidth: 6
+  coneTraceBias: 0.35
+  occlusionStrength: 0.41
+  nearOcclusionStrength: 1.26
+  occlusionPower: 3.42
+  nearLightGain: 0
+  giGain: 2
+  secondaryBounceGain: 3
+  reflectionSteps: 97
+  reflectionOcclusionPower: 1.96
+  skyReflectionIntensity: 0.522
+  gaussianMipFilter: 1
+  farOcclusionStrength: 1.8
+  farthestOcclusionStrength: 2.45
+  secondaryCones: 12
+  secondaryOcclusionStrength: 2.5
+  contrastA: 0.8
+  ReflectControl: {x: 1, y: 1, z: 0, w: 0}
+  DitherControl: {x: 1, y: 2, z: 1, w: 1}
+  smoothNormals: 1

@@ -1,0 +1,42 @@
+fileFormatVersion: 2
+guid: ae7db5497da221048a57ba23e2ba4083
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - preRenderers: {fileID: 2100000, guid: 7ecff14460b43eb468145b44fd891a92, type: 2}
+  - debugSceneColorMat: {instanceID: 0}
+  - sun: {instanceID: 0}
+  - followTransform: {instanceID: 0}
+  - material: {instanceID: 0}
+  - attachedCamera: {instanceID: 0}
+  - shadowCamTransform: {instanceID: 0}
+  - shadowCam: {instanceID: 0}
+  - shadowCamGameObject: {instanceID: 0}
+  - sunDepthShader: {instanceID: 0}
+  - sunDepthTexture: {instanceID: 0}
+  - previousGIResult: {instanceID: 0}
+  - previousCameraDepth: {instanceID: 0}
+  - integerVolume: {instanceID: 0}
+  - secondaryIrradianceVolume: {instanceID: 0}
+  - volumeTextureB: {instanceID: 0}
+  - activeVolume: {instanceID: 0}
+  - previousActiveVolume: {instanceID: 0}
+  - dummyVoxelTextureAAScaled: {instanceID: 0}
+  - dummyVoxelTextureFixed: {instanceID: 0}
+  - voxelizationShader: {instanceID: 0}
+  - voxelTracingShader: {instanceID: 0}
+  - clearCompute: {instanceID: 0}
+  - transferIntsCompute: {instanceID: 0}
+  - mipFilterCompute: {instanceID: 0}
+  - voxelCamera: {instanceID: 0}
+  - voxelCameraGO: {instanceID: 0}
+  - leftViewPoint: {instanceID: 0}
+  - topViewPoint: {instanceID: 0}
+  - savedCam: {instanceID: 0}
+  - gi1: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
