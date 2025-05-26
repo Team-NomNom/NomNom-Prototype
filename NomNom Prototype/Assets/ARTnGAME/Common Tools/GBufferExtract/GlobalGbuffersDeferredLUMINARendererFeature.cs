@@ -14,10 +14,6 @@ namespace Artngame.CommonTools
     {
         class GlobalGBuffersRenderPass : ScriptableRenderPass
         {
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-            {
-                // Do nothing (suppress warning)
-            }
             Material m_Material;
             string m_PassName = "Make gBuffer Components Global";
 

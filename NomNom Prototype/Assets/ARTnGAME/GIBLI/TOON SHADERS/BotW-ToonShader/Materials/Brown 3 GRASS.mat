@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8802169069213080590
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Brown 3 GRASS
+  m_Shader: {fileID: -6465566751694194690, guid: 5ef0780f977f6734d940427df2c35eef, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - HARD_SHADING_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - Texture2D_16FBC7B9:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_902A2DA5:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_94AFEDCF:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_E5287C6F:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AlbedoTex:
+        m_Texture: {fileID: 2800000, guid: 4f52f5fee08b1be48977f9b6b0ce8a67, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LightRamp:
+        m_Texture: {fileID: 2800000, guid: 9a2c464dc5ff79c4a8191f95246c3ce5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 47d205e70be7a1e41a8396a2d9e731bf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 2800000, guid: 3946e6f826c2d704e8d748db28ea51fc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionTex:
+        m_Texture: {fileID: 2800000, guid: 1b8d4b9ce7a0f6240ba2a27c672117ca, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SmoothnessTex:
+        m_Texture: {fileID: 2800000, guid: 875c9fe8f6eaa1446bf1a12d96e7cd4f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_AA6554C_Out_0:
+        m_Texture: {fileID: 2800000, guid: bf91a9f94ae4348b09a32bb9c02a7b4d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_E8C87502_Out_0:
+        m_Texture: {fileID: 2800000, guid: bf91a9f94ae4348b09a32bb9c02a7b4d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - Boolean_F4B9FD79: 1
+    - FRESNEL: 0
+    - HARD_SHADING: 1
+    - Vector1_1CE877A8: 0
+    - Vector1_1EF10E40: 1
+    - Vector1_1FE5E002: 0
+    - Vector1_3C316D74: 2.2
+    - Vector1_41FCC5C7: 0.5
+    - Vector1_4CECDFD0: 0.49
+    - Vector1_8183E3D7: 0
+    - Vector1_868BEE02: 0.1
+    - Vector1_962926F1: 0.84
+    - Vector1_A3ADAA29: 2
+    - Vector1_D781D57: 1
+    - _BacklightAmount: 1.48
+    - _DabsRotation: 15
+    - _DabsTiling: 18
+    - _HardShading: 1
+    - _NormalMult: 1
+    - _OcclusionMult: 0.836
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _RimStrength: 0.25
+    - _Smoothness: 0.133
+    m_Colors:
+    - Color_DF0B7C58: {r: 0.4339623, g: 0.35977748, b: 0.25178, a: 0}
+    - Vector2_45E88D1A: {r: 1, g: 1, b: 0, a: 0}
+    - Vector2_B15CFC8C: {r: 1, g: 1, b: 0, a: 0}
+    - _Color: {r: 0.38679248, g: 0.2798921, b: 0.20616768, a: 0}
+    - _Specular: {r: 0.4433962, g: 0.28310668, b: 0.1945087, a: 0}
+    - _TextureTiling: {r: 1, g: 1, b: 0, a: 0}
+    - _Tint: {r: 4, g: 2.670395, b: 0, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

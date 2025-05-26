@@ -1,0 +1,380 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-9146689433408673550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ded4ab62f435b340a05477d88d05080, type: 3}
+  m_Name: Diffusion
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 450
+    shader: {fileID: 4800000, guid: 1e5d32f2abcb28348a88eb63af4b3746, type: 3}
+--- !u!114 &-7379931178469932955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eadc27cc8a56ba4c880962453e388e8, type: 3}
+  m_Name: NewGrassBendingRTPrePass
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  eventA: 200
+--- !u!114 &-6304936236113211629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce8b63e34b906a04e8d0a9d68940868e, type: 3}
+  m_Name: Flare
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 550
+    shader: {fileID: 4800000, guid: 08a08896ba4da814a9fe49e0e3d48376, type: 3}
+--- !u!114 &-5390218420703771376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5feeaf91df014904886661340c1d615e, type: 3}
+  m_Name: NewPixelateFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    pixelateMaterial: {fileID: 2100000, guid: 80691ceb489eac7429148f99b2c1780a, type: 2}
+--- !u!114 &-4087376560932478269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5b3215120cef854db4d6de67b8a54d3, type: 3}
+  m_Name: DepthLine
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 550
+    shader: {fileID: 4800000, guid: ff5eb52cafa53d849a5201ab1743a7a2, type: 3}
+--- !u!114 &-2687998560349091810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce47b0ee843ce0b43b0a0d3236bd0f06, type: 3}
+  m_Name: NewPostProcessRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  config: {fileID: 11400000, guid: 1b81611e29ec8cc449ec49a563a8d956, type: 2}
+--- !u!114 &-2153136342259148940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0a108e5185fc44aa8a6f37f53d6464a, type: 3}
+  m_Name: NewSunShaftFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    passEvent: 550
+    sunShaftMaterial: {fileID: 2100000, guid: 44b46f49e391d4d46b15e54072331234, type: 2}
+    renderMode: 2
+    resolution: 2
+    blendMode: 0
+    depthThreshold: 0.018
+    opacity: 1
+    sunPosition: {x: 0, y: 0, z: 10}
+    radialBlurIterations: 2
+    sunColor: {r: 1, g: 1, b: 1, a: 1}
+    sunIntensity: 1.15
+    sunColorThreshold: {r: 0, g: 0, b: 0, a: 1}
+    sunBlurRadius: 2.5
+    maxRadius: 0.75
+--- !u!114 &-1781250597415798112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5b3215120cef854db4d6de67b8a54d3, type: 3}
+  m_Name: DepthLine
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 600
+    shader: {fileID: 4800000, guid: ff5eb52cafa53d849a5201ab1743a7a2, type: 3}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
+  m_Name: UniversalRenderPipelineAsset_RendererGIBLI
+  m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
+    hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
+    probeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 53626a513ea68ce47b59dc1299fe3959, type: 3}
+  probeVolumeResources:
+    probeVolumeDebugShader: {fileID: 0}
+    probeVolumeFragmentationDebugShader: {fileID: 0}
+    probeVolumeOffsetDebugShader: {fileID: 0}
+    probeVolumeSamplingDebugShader: {fileID: 0}
+    probeSamplingDebugMesh: {fileID: 0}
+    probeSamplingDebugTexture: {fileID: 0}
+    probeVolumeBlendStatesCS: {fileID: 0}
+  m_RendererFeatures:
+  - {fileID: -4087376560932478269}
+  - {fileID: 7097087355815797455}
+  - {fileID: -7379931178469932955}
+  - {fileID: -2687998560349091810}
+  - {fileID: 4201974860286250482}
+  - {fileID: 1579567356753983946}
+  - {fileID: -5390218420703771376}
+  - {fileID: 2801053702705032526}
+  - {fileID: -1781250597415798112}
+  - {fileID: -9146689433408673550}
+  - {fileID: -6304936236113211629}
+  - {fileID: 610436319283917294}
+  - {fileID: 389790805904429934}
+  - {fileID: 9086787040880287389}
+  - {fileID: 1024345604468833132}
+  m_RendererFeatureMap: c3a25c76acb846c7cf22511f59eb7d6265407898b13795991e88a10d8d4fb2daf2cd7b56df69503acab91f5e24c0eb1510452face71832b54ead86828057df26a03a14e504ba47e7f268dbea6b6e108113cffbf2e55d80a8ee31ea2099b478086e93a53aacd068059dde4a79abc01a7e6cfb9869e634370e
+  m_UseNativeRenderPass: 0
+  xrSystemData: {fileID: 0}
+  postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  m_AssetVersion: 2
+  m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_TransparentLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_DefaultStencilState:
+    overrideStencilState: 0
+    stencilReference: 0
+    stencilCompareFunction: 8
+    passOperation: 0
+    failOperation: 0
+    zFailOperation: 0
+  m_ShadowTransparentReceive: 0
+  m_RenderingMode: 0
+  m_DepthPrimingMode: 0
+  m_CopyDepthMode: 0
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
+  m_AccurateGbufferNormals: 0
+  m_IntermediateTextureMode: 1
+--- !u!114 &389790805904429934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b74e9a7bb399453594372c3d0f455279, type: 3}
+  m_Name: LightShaftPass
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    renderPassEvent: 550
+    shader: {fileID: 4800000, guid: fbe2fb8a28c74fa4b0c80dbbc0360d4e, type: 3}
+--- !u!114 &610436319283917294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43b5ecde360e82241b7c7b7cd0b0e3ed, type: 3}
+  m_Name: GradientFog
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 550
+    shader: {fileID: 4800000, guid: bc740dd5a7d89d048809a75fadc45455, type: 3}
+--- !u!114 &1024345604468833132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec6be0e5daf13724d80ef621c2a017f3, type: 3}
+  m_Name: NewStarGlowRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+--- !u!114 &1196515834069828644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b78ddc2f5553042c98baa7a44524aac8, type: 3}
+  m_Name: NewVolumeFogFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    Event: 300
+    volumeFogMaterial: {fileID: 2100000, guid: 1fd72a9d8a909454282ce9201632d3f9, type: 2}
+    volumeFogMaterialPassIndex: -1
+    destination: 0
+    textureId: _VolumeFogPassTexture
+    computeTexture: {fileID: 11400000, guid: acd766bdcc53644a18d7cf72a9ab5982, type: 2}
+--- !u!114 &1579567356753983946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a299cc821826a4408064ce580bab748, type: 3}
+  m_Name: Metaballs (2D)
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 600
+    outlineSize: 1
+    innerColor: {r: 1, g: 1, b: 1, a: 1}
+    outlineColor: {r: 0, g: 0, b: 0, a: 1}
+--- !u!114 &2801053702705032526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c67f6268f93723438ad241803cf70cb, type: 3}
+  m_Name: NewOutlineFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    outlineMaterial: {fileID: 2100000, guid: 5d7acea9ae22ad94789af5d47f610f9f, type: 2}
+  renderPassEvent: 450
+--- !u!114 &4201974860286250482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaad5c85f2c809042933d794a0ae6d8c, type: 3}
+  m_Name: NewMobileSSPRRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  Settings:
+    ShouldRenderSSPR: 1
+    HorizontalReflectionPlaneHeightWS: 0.01
+    FadeOutScreenBorderWidthVerticle: 0.25
+    FadeOutScreenBorderWidthHorizontal: 0.35
+    ScreenLRStretchIntensity: 4
+    ScreenLRStretchThreshold: 0.7
+    TintColor: {r: 1, g: 1, b: 1, a: 1}
+    RT_height: 512
+    UseHDR: 1
+    ApplyFillHoleFix: 1
+    ShouldRemoveFlickerFinalControl: 1
+    EnablePerPlatformAutoSafeGuard: 1
+    unity2022Compatible: 0
+--- !u!114 &4602534261712086007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d4aba805ee9a9a40aa91e2f349c972b, type: 3}
+  m_Name: NewDMCustomDepthFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  passSettings:
+    renderPassEvent: 250
+    TextureName: _TransparentDepth
+    LayerMask:
+      serializedVersion: 2
+      m_Bits: 0
+--- !u!114 &7097087355815797455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c112c19a3a69c4697b058198829075, type: 3}
+  m_Name: NewDepthNormalsFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+--- !u!114 &9086787040880287389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4d88633693a49e58a8c1044fc1db85b, type: 3}
+  m_Name: SimpleRaymarch
+  m_EditorClassIdentifier: 
+  m_Active: 0
+  settings:
+    renderPassEvent: 450
+    shader: {fileID: 4800000, guid: 3c74a60eaf9e4556b0fcb675c75f6bac, type: 3}

@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Cartoon_Water
+  m_Shader: {fileID: -6465566751694194690, guid: 1b45afbe1f0c4cb4f9e6a4a79613784d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap:
+    MotionVector: User
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - BOOLEAN_B7922ADA: 0
+    - ENUM_6B99C3BA: 0
+    - Vector1_3A4931B2: 124.5
+    - Vector1_A9532B28: 89.4
+    - Vector1_F1E786B1: 6.1
+    - _: 1
+    - _Caustic_Depth: 9.54
+    - _Depth: 0.5
+    - _Displacement_Multiplier: 0.34
+    - _Distance: 3.86
+    - _Edge_Amount: 2.2
+    - _Edge_Cutoff: 4.8
+    - _Edge_Scale: 52.83
+    - _Edge_Speed: 1
+    - _Metallic: 0.971
+    - _Normal_Strength: 1
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Refraction_Scale: 28.6
+    - _Refraction_Speed: 0.91
+    - _Refraction_Strength: 0.0064
+    - _Ripple_Density: 17.5
+    - _Ripple_Slimness: 15.7
+    - _Strength: 0.26
+    - _Water_Tiling_Speed: 1.87
+    m_Colors:
+    - Vector2_796F4A35: {r: 1, g: 1, b: 0, a: 0}
+    - Vector2_CFDAA394: {r: 0.05, g: 0, b: 0, a: 0}
+    - _Base_Color: {r: 0, g: 0, b: 0, a: 0.7529412}
+    - _Deep_Water_Color: {r: 0, g: 0.21389468, b: 0.48235294, a: 0.8156863}
+    - _Edge_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Radial_Shear: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _Ripple_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Shallow_Water_Color: {r: 0.08877714, g: 0.57617974, b: 0.8962264, a: 0.6313726}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &7940931029689613446
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9

@@ -1,0 +1,47 @@
+fileFormatVersion: 2
+guid: 199a77947db68624daec05eed6087e7e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - PostProcessOrderConfig: {fileID: 11400000, guid: 1b81611e29ec8cc449ec49a563a8d956,
+      type: 2}
+  - GIBLI_Effects_Volume_SOURCE: {fileID: 1742467121620420206, guid: b872e08f88b33ef4fbeca058252c4d2d,
+      type: 3}
+  - GIBLI_Effects_Volume: {instanceID: 0}
+  - depthLineShader: {fileID: 4800000, guid: ff5eb52cafa53d849a5201ab1743a7a2, type: 3}
+  - DiffusionShader: {fileID: 4800000, guid: 1e5d32f2abcb28348a88eb63af4b3746, type: 3}
+  - FlareShader: {fileID: 4800000, guid: 08a08896ba4da814a9fe49e0e3d48376, type: 3}
+  - GradientFogShader: {fileID: 4800000, guid: bc740dd5a7d89d048809a75fadc45455, type: 3}
+  - ShaftsShader: {fileID: 4800000, guid: fbe2fb8a28c74fa4b0c80dbbc0360d4e, type: 3}
+  - PixelateShader: {fileID: 2100000, guid: 80691ceb489eac7429148f99b2c1780a, type: 2}
+  - RaymarchShader: {fileID: 4800000, guid: 3c74a60eaf9e4556b0fcb675c75f6bac, type: 3}
+  - RippleShader: {fileID: 2100000, guid: 5562403e099c38e419ede49a902144f4, type: 2}
+  - OutlineShader: {fileID: 2100000, guid: 10126faba2f14c145a628b217e88288a, type: 2}
+  - riverSOURCE: {fileID: 1585450819858770194, guid: 19f2ff32265e9154c93ad73d5fc323b8,
+      type: 3}
+  - cloudSOURCE: {fileID: 2829312983662102622, guid: 8f617c5cbbec8db41b329350eb99a182,
+      type: 3}
+  - cloudMakerSOURCE: {fileID: 6605510986255161952, guid: 3047ff72993c24a4ab0e9dd9aaaacdf0,
+      type: 3}
+  - hatchSOURCE: {fileID: 1932134972883438578, guid: c24af3ab05d435943bda712d7a6a01df,
+      type: 3}
+  - treeMakerSOURCE: {fileID: 3692250931902565810, guid: 604000c0d75d40549a4d1d6faf83bb50,
+      type: 3}
+  - treeBlobMakerSOURCE: {fileID: 3566479553369814096, guid: 7b849e634c2972642abfa4739e778f0f,
+      type: 3}
+  - grassInstancedSOURCE: {fileID: 1577722190827572660, guid: 8ff1803222486db4589e6a21acab5c10,
+      type: 3}
+  - grassInstanced: {instanceID: 0}
+  - grassGeometrySOURCE: {instanceID: 0}
+  - cavitySOURCE: {fileID: 6157264807394121493, guid: 5a1e5690d87f26e4aa4cb94dda1a92d3,
+      type: 3}
+  - cavityController: {instanceID: 0}
+  - skyboxMaterial: {fileID: 2100000, guid: 2600e8f439106a44eb3ad343797b5679, type: 2}
+  - grassMaterial: {fileID: 2100000, guid: 3173cfffde28b0544bddbf5598d3fb04, type: 2}
+  - _BaseColorTexture: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

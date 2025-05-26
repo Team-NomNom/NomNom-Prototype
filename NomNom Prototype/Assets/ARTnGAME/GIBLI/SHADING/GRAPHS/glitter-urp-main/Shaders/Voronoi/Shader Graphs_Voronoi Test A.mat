@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-963868199145659117
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs_Voronoi Test A
+  m_Shader: {fileID: -6465566751694194690, guid: 4762c70a67337d145aebafc177937494, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - DistortTexture:
+        m_Texture: {fileID: 2800000, guid: 05e68f91ae1d85a4cb012de9e983298d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTexture:
+        m_Texture: {fileID: 2800000, guid: a622eb60501be3a49af7289a52b562b9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - EdgeA: 0.9
+    - MovingOffsetSpeed: 0.3
+    - Vector1_3A4931B2: 5
+    - Vector1_A9532B28: 1
+    - Vector1_F1E786B1: 5
+    - VoranoiDistort: 0.0125
+    - VoranoiTiling: 4
+    - _: 0.788
+    - _Displacement_Multiplier: 0.14
+    - _Distance: 1
+    - _Edge_Amount: 0.72
+    - _Edge_Cutoff: 4.8
+    - _Edge_Scale: 44
+    - _Edge_Speed: 3.66
+    - _GlitterOffset: 0.59
+    - _Metallic: 0.288
+    - _NoiseRotationSpeed: 144
+    - _Normal_Strength: 1
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Refraction_Scale: 87.3
+    - _Refraction_Speed: 0.7
+    - _Refraction_Strength: 0.0047
+    - _Ripple_Density: 14.31
+    - _Ripple_Slimness: 4.3
+    - _Water_Tiling_Speed: 1.97
+    m_Colors:
+    - DistortSpeed: {r: 1, g: 1, b: 0, a: 0}
+    - DistortTiling: {r: 1, g: 1, b: 1, a: 1}
+    - MovingOffsetRange: {r: 0, g: 0, b: 0, a: 0}
+    - Vector2_CFDAA394: {r: 0.5, g: 0.01, b: 0, a: 0}
+    - _Deep_Water_Color: {r: 0, g: 0.7137255, b: 0.8313726, a: 0}
+    - _Edge_Color: {r: 0.5660378, g: 0.5633678, b: 0.5633678, a: 1}
+    - _GlitterColor: {r: 766.9961, g: 766.9961, b: 766.9961, a: 1}
+    - _NoiseScale: {r: 1, g: 2, b: 1, a: 0}
+    - _Radial_Shear: {r: 4, g: 4, b: 0, a: 0}
+    - _Ripple_Color: {r: 0.9098039, g: 3.5137255, b: 3.0117648, a: 0}
+    - _Shallow_Water_Color: {r: 0.4941176, g: 0.9921569, b: 1, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

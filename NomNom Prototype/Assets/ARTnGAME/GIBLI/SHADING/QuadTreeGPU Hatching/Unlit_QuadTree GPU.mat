@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Unlit_QuadTree GPU
+  m_Shader: {fileID: 4800000, guid: 7df62a3a3c88e5d4e82864e9aa025f60, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: fee549363ae34774f8527c6f458747d6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - addOriginal: 0.16
+    - blackenA: 0.97
+    - brightness: 0.75
+    - colorSmoothX: -2.84
+    - colorSmoothY: 10.65
+    - hatchingA: 0.27
+    - lineThickness: 1.79
+    - treeSpread: 3.88
+    m_Colors: []
+  m_BuildTextureStacks: []

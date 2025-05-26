@@ -1,0 +1,189 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-619430839550090085
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Outline WEATHER NEW RENDER GRAPH
+  m_Shader: {fileID: -6465566751694194690, guid: cd9143accf02b5b47b827c1f1966fffd, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Lux_RainRipples:
+        m_Texture: {fileID: 2800000, guid: e961cd5c89559fc42be7e36e054e1f75, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxTex:
+        m_Texture: {fileID: 2800000, guid: 566827c1fa86a88428817f5d66c2ec1b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _depthMask:
+        m_Texture: {fileID: 8400000, guid: ab67de66faf2c0d4f9d2faa732f69a0d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _snowBumpMap:
+        m_Texture: {fileID: 2800000, guid: f63724c9ef294754d939285ea3218d15, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _snowTexture:
+        m_Texture: {fileID: 2800000, guid: 557fa375b09068c4d9f4d473da0983c5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - EdgesControlA: 1
+    - EdgesControlB: 1
+    - EdgesControlC: 1
+    - EdgesControlD: 1
+    - OutlineThickness: 0
+    - Outline_Color_Sensitivity: 10
+    - Outline_Depth_Sensitivity: 1
+    - Outline_Normals_Sensitivity: 1
+    - Vector1_48F29B53: 3.35
+    - Vector1_4E87E868: 7.52
+    - Vector1_541E821D: 1
+    - Vector1_6AAE875: 1
+    - Vector1_BC878080: 0.9
+    - Vector1_E4DC2276: 0.639
+    - _AlphaClip: 0
+    - _Blend: 0
+    - _Blur: 5
+    - _BottomThreshold: 1.1
+    - _BumpScale: 1
+    - _CameraRainPower: 0.15
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _Distortion: 42
+    - _DstBlend: 0
+    - _EnvironmentReflections: 1
+    - _GlossMapScale: 0
+    - _Glossiness: 0
+    - _GlossyReflections: 0
+    - _Lux_RainBrightness: 2.4
+    - _Lux_RainIntensity: 0.2395834
+    - _Lux_RippleAnimSpeed: 1.2
+    - _Lux_RippleTiling: 0.9
+    - _Lux_WaterBumpDistance: 1000
+    - _Metallic: 0
+    - _ObjectRainPower: 0.09
+    - _OcclusionStrength: 1
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _ReceiveShadows: 1
+    - _ShininessSnow: 0.06
+    - _Size: 2
+    - _Smoothness: 0.5
+    - _SmoothnessTextureChannel: 0
+    - _SnowTexScale: 0.26
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _Surface: 0
+    - _TileNumCausticRotMin: 1
+    - _TopThreshold: 2.69
+    - _WorkflowMode: 1
+    - _ZWrite: 1
+    - _enableTopOcclusion: 1
+    - _erasePower: 1
+    - _followCameraRotation: 1
+    - _maskPower: 1
+    - _parallaxDepth: 6.5
+    - _parallaxStepLength: 0.03
+    - _parallaxSteps: 110
+    - _rainContrast: 1000
+    - _rainPower: 4
+    - _rainUnderCutoff: 1
+    - _snowBrightness: 1.52
+    - _snowBumpPower: 8.11
+    - _snowBumpScale: 0.12
+    - _useDetailNormals: 1
+    - _useParallax: 1
+    m_Colors:
+    - Color_B9F825DD: {r: 0, g: 0, b: 0, a: 1}
+    - Outline_Color: {r: 0.18, g: -0.14, b: -0.03, a: 1}
+    - _BaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EraseCenterRadius: {r: 0, g: 0, b: 0, a: 0}
+    - _RainSmallDirection: {r: 1, g: 1, b: 1, a: 1}
+    - _SnowColor: {r: 0.7207546, g: 0.7207546, b: 0.7207546, a: 1}
+    - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _TimeOffset: {r: -3.25, g: 0, b: 0, a: 0}
+    - _depthCameraFarSize: {r: 11111, g: 100, b: 0, a: 0}
+    - _depthCameraPos: {r: 30.8, g: 27, b: 16.5, a: 1}
+    - _detailToPlainRatio: {r: 1.05, g: 2, b: 0, a: 0}
+    - _directionControls: {r: 0.16, g: 0, b: 0, a: 0}
+    - _interactPointRadius: {r: 0, g: 0, b: 0, a: 0}
+    - _mainTexTilingOffset: {r: 1, g: 1, b: 0, a: 0}
+    - _parallaxTuneY: {r: 94, g: -8, b: 0, a: 0}
+    - _radialControls: {r: 0, g: 0, b: 1.8, a: 0}
+    - _wipeControls: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

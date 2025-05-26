@@ -1,0 +1,147 @@
+﻿#pragma kernel CSMain
+
+//Matrix4x4 v = Camera.main.worldToCameraMatrix;
+//Matrix4x4 p = Camera.main.projectionMatrix; //unity C# use opengl standard projection matrix
+//cullingComputeShader.SetMatrix("_VPMatrix", p * v); //set from C#
+float4x4 _VPMatrix;
+float _MaxDrawDistance;
+uint _StartOffset;
+StructuredBuffer<float3> _AllInstancesPosWSBuffer; //will not change until instance count change
+AppendStructuredBuffer<uint> _VisibleInstancesOnlyPosWSIDBuffer; //will set counter to 0 per frame, then fill in by this compute shader
+
+float offsetGPUcullY; float offsetGPUcullX;
+
+//v0.4
+float3 _WorldSpaceCameraPosA;
+float scaleGrassHolder;
+
+//v1.3
+sampler2D _ShoreContourTex;
+float3 _DepthCameraPos;
+float _ShoreFadeFactor;
+float _TerrainScale;
+float depthCutoffHeigth;
+
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	//posWS -> posCS
+	float3 poWSs = _AllInstancesPosWSBuffer[id.x + _StartOffset]; //v0.4
+
+	//v0.4
+	if (scaleGrassHolder != 0) {
+		float3 perGrassPivotPosWS = poWSs;
+		float scaleGrassbed = scaleGrassHolder * 2;// 111.8034 * 2;
+		int floorX = floor(_WorldSpaceCameraPosA.x / (scaleGrassbed * 2));
+		int floorZ = floor(_WorldSpaceCameraPosA.z / (scaleGrassbed * 2));
+		if (_WorldSpaceCameraPosA.x > 0) {
+			if (perGrassPivotPosWS.x < -scaleGrassbed + _WorldSpaceCameraPosA.x)
+			{
+				perGrassPivotPosWS.x += (scaleGrassbed * 2)*(floorX + 1);
+			}
+			if (perGrassPivotPosWS.x > scaleGrassbed + _WorldSpaceCameraPosA.x)
+			{
+				perGrassPivotPosWS.x -= scaleGrassbed * 2;
+			}
+		}
+		if (_WorldSpaceCameraPosA.z > 0) {
+			if (perGrassPivotPosWS.z < -scaleGrassbed + _WorldSpaceCameraPosA.z)
+			{
+				perGrassPivotPosWS.z += (scaleGrassbed * 2)*(floorZ + 1);
+			}
+			if (perGrassPivotPosWS.z > scaleGrassbed + _WorldSpaceCameraPosA.z)
+			{
+				perGrassPivotPosWS.z -= scaleGrassbed * 2;
+			}
+		}
+		if (_WorldSpaceCameraPosA.x < 0) {
+			if (perGrassPivotPosWS.x > scaleGrassbed + _WorldSpaceCameraPosA.x)
+			{
+				perGrassPivotPosWS.x += (scaleGrassbed * 2)*(floorX - 0); //perGrassPivotPosWS.x += scaleGrassbed * 2 + (scaleGrassbed * 2)*floorX;
+			}
+			if (perGrassPivotPosWS.x < -scaleGrassbed + _WorldSpaceCameraPosA.x)
+			{
+				perGrassPivotPosWS.x += scaleGrassbed * 2;
+			}
+		}
+		if (_WorldSpaceCameraPosA.z < 0) {
+			if (perGrassPivotPosWS.z > scaleGrassbed + _WorldSpaceCameraPosA.z)
+			{
+				perGrassPivotPosWS.z += (scaleGrassbed * 2)*(floorZ - 0);
+			}
+			if (perGrassPivotPosWS.z < -scaleGrassbed + _WorldSpaceCameraPosA.z)
+			{
+				perGrassPivotPosWS.z += scaleGrassbed * 2;
+			}
+		}
+		poWSs = perGrassPivotPosWS;
+	}
+
+
+	//v0.4
+	//float4 absPosCS = abs(mul(_VPMatrix,float4(_AllInstancesPosWSBuffer[id.x + _StartOffset],1.0)));
+	float4 absPosCS = abs(mul(_VPMatrix, float4(poWSs, 1.0)));
+
+
+	//v1.3
+	//////// InfiniGRASS Terrain ADAPT
+	float heightDepthCam = _DepthCameraPos.y;		
+	float WorldScale = heightDepthCam * 2;//URP
+	float3 CamPos = _DepthCameraPos;
+	float2 Origin = float2(CamPos.x - WorldScale / 2.0, CamPos.z - WorldScale / 2.0);
+
+	half2 tileableUv = float2(poWSs.x, poWSs.z);
+	float2 UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	float2 ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float4 tex = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0));
+	//URP			
+	tex.r = 1 - tex.r;
+
+	//LOOK AROUND
+	float offset = 0.5f;
+	tileableUv = float2(poWSs.x + offset, poWSs.z + offset);
+	UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float texA = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0)).r;
+	texA.r = 1 - texA.r;
+
+	tileableUv = float2(poWSs.x + 0, poWSs.z + offset);
+	UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float texB = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0)).r;
+	texB.r = 1 - texB.r;
+
+	tileableUv = float2(poWSs.x + offset, poWSs.z + 0);
+	UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float texC = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0)).r;
+	texC.r = 1 - texC.r;
+
+	tileableUv = float2(poWSs.x - offset, poWSs.z - offset);
+	UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float texA1 = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0)).r;
+	texA1.r = 1 - texA1.r;
+	tileableUv = float2(poWSs.x + 0, poWSs.z - offset);
+	UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float texB1 = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0)).r;
+	texB1.r = 1 - texB1.r;
+	tileableUv = float2(poWSs.x - offset, poWSs.z + 0);
+	UnscaledTexPoint = float2(tileableUv.x - Origin.x, tileableUv.y - Origin.y);
+	ScaledTexPoint = float2(UnscaledTexPoint.x / WorldScale, UnscaledTexPoint.y / WorldScale);
+	float texC1 = tex2Dlod(_ShoreContourTex, float4(float2(ScaledTexPoint.x, ScaledTexPoint.y), 0.0, 0.0)).r;
+	texC1.r = 1 - texC1.r;
+
+
+	//do culling test in clip space, result is the same as doing test in NDC space.
+	//prefer clip space here because doing culling test in clip space is faster than doing culling test in NDC, because we can skip 1 division.
+	//the test is using OpenGL standard projection matrix, because all matrix from unity C# is OpenGL standard
+	//if instance is inside camera frustum, and is within draw distance, we append it to _VisibleInstanceOnlyTransformBuffer
+	//y test allow 50% more threshold (hardcode for grass)
+	//x test allow 10% more threshold (hardcode for grass)
+    if (absPosCS.z <= absPosCS.w && absPosCS.y <= absPosCS.w*1.5*(offsetGPUcullY+1) && absPosCS.x <= absPosCS.w*1.1*(offsetGPUcullX + 1) && absPosCS.w <= _MaxDrawDistance
+		&& tex.r >= depthCutoffHeigth && texA.r >= depthCutoffHeigth && texB.r >= depthCutoffHeigth && texC.r >= depthCutoffHeigth
+		&& texA1.r >= depthCutoffHeigth && texB1.r >= depthCutoffHeigth && texC1.r >= depthCutoffHeigth)
+		_VisibleInstancesOnlyPosWSIDBuffer.Append(id.x + _StartOffset);
+}

@@ -1,0 +1,138 @@
+﻿#pragma kernel CSMain
+
+struct VertStruct
+{
+	uint vid;
+	float4 position;
+	float3 normal;
+	float2 uv;
+	float4 color;
+	float4 orposition;
+	float3 speed;
+};
+
+RWStructuredBuffer<VertStruct> vertSBUFFER;
+float _Time;
+uint vertCount;
+
+uint flower_repeats;
+uint bladeSegments;
+uint grassType;
+
+[numthreads(1, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{	
+	uint vid = vertSBUFFER[id.x].vid;	
+	uint next = vid + 1;
+	uint prev = vid - 1;
+
+	if (prev < 0) {
+		prev = vertCount - 1;
+	}
+	if (prev >= vertCount) {
+		next = 0; 
+	}
+
+	////First vertex
+	float4 startPos = vertSBUFFER[0].position;
+	float4 position = vertSBUFFER[vid].position;
+	float distance = length(startPos - position);  //distance(startPos,position);
+	
+	vertSBUFFER[vid].color = vertSBUFFER[prev].color;
+	vertSBUFFER[vid].speed = vertSBUFFER[prev].speed;
+		
+	//vertSBUFFER[vid].position.xz = vertSBUFFER[vid].orposition.xz;
+
+	if (grassType == 1) {
+		vertSBUFFER[vid].position.y += 0.5;
+	}
+
+	if (grassType == 2) {
+		//vertSBUFFER[vid].position.y += 0.5;
+		if (vid == 0) {
+			vertSBUFFER[0].position = float4(-0.25, 0,0, 0);
+		}
+		if (vid == 1) 
+		{
+			vertSBUFFER[1].position = float4(+0.25, 0, 0, 0);
+		}
+		if (vid == 2) 
+		{
+			vertSBUFFER[2].position = float4(-0.2, 0.25, 0, 0);
+		}
+		if (vid == 3) 
+		{
+			vertSBUFFER[3].position = float4(+0.2, 0.25, 0, 0);
+		}
+		if (vid == 4) 
+		{
+			vertSBUFFER[4].position = float4(-0.15, 0.5, 0, 0);
+		}
+		if (vid == 5) 
+		{
+			vertSBUFFER[5].position = float4(+0.15, 0.5, 0, 0);
+		}
+		if (vid == 6) 
+		{
+			vertSBUFFER[6].position = float4(-0.05, 0.75, 0, 0);
+		}
+		if (vid == 7) 
+		{
+			vertSBUFFER[7].position = float4(+0.05, 0.75, 0, 0);
+		}
+		if (vid == 8) 
+		{
+			vertSBUFFER[8].position = float4(-0.0, 1, 0, 0);
+		}
+
+		float4 offset = float4(0, 9, 0, 0);
+		if (vid == 9) 
+		{
+			vertSBUFFER[9].position = float4(-0.25, 0, 0, 0) + offset;
+		}
+		if (vid == 10) 
+		{
+			vertSBUFFER[10].position = float4(-0.25, 0, 0, 0) + offset;
+		}
+		if (vid == 11) 
+		{
+			vertSBUFFER[11].position = float4(+0.25, 0, 0, 0) + offset;
+		}
+		if (vid == 12) 
+		{
+			vertSBUFFER[12].position = float4(-0.2, 0.25, 0, 0) + offset;
+		}
+		if (vid == 13) 
+		{
+			vertSBUFFER[13].position = float4(+0.2, 0.25, 0, 0) + offset;
+		}
+		if (vid == 14) 
+		{
+			vertSBUFFER[14].position = float4(-0.15, 0.5, 0, 0) + offset;
+		}
+		if (vid == 15) 
+		{
+			vertSBUFFER[15].position = float4(+0.15, 0.5, 0, 0) + offset;
+		}
+		if (vid == 16) 
+		{
+			vertSBUFFER[16].position = float4(-0.05, 0.75, 0, 0) + offset;
+		}
+		if (vid == 17) 
+		{
+			vertSBUFFER[17].position = float4(+0.05, 0.75, 0, 0) + offset;
+		}
+		if (vid == 18) 
+		{
+			vertSBUFFER[18].position = float4(-0.0, 1, 0, 0) + offset;
+		}
+
+
+		vertSBUFFER[vid].position += 1;
+
+	}
+
+	//vertSBUFFER[vid].position.y += 0.05+0.05 * cos(_Time*4 + vertSBUFFER[vid].orposition.x);
+	//vertSBUFFER[vid].position.xz = 0.1 * cos(vertSBUFFER[vid].orposition.z* _Time * 100 + vertSBUFFER[vid].orposition.x * _Time + 5);
+	//vertSBUFFER[vid].position.xz +=25*cos(vertSBUFFER[vid].position.z* _Time*100 + vertSBUFFER[vid].position.x * _Time + 5);// 0.1*(2 + cos(_Time * 5 + vertSBUFFER[vid].position.x * 2.0f) * 1.1f);
+}

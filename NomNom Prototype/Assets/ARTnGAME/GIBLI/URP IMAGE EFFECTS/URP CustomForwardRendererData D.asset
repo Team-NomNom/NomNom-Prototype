@@ -1,0 +1,250 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8839101826819258120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab40ef0296f774b37864154aaae1e725, type: 3}
+  m_Name: AquaEffectFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+--- !u!114 &-7719196923187112254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff06ed381ebf3d5488817b25144bb463, type: 3}
+  m_Name: NewScreenSpaceCavity
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: cadf94faa8c5cc249a8ce2082e0da042, type: 3}
+  m_Settings:
+    cavityType: 0
+    debug: 0
+    curvatureScale: 1
+    curvatureRidge: 0.25
+    curvatureValley: 0.25
+    cavityDistance: 0.25
+    cavityAttenuation: 0.015625
+    cavityRidge: 1.25
+    cavityValley: 1.25
+    cavitySamples: 4
+--- !u!114 &-6247964675186098730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff06ed381ebf3d5488817b25144bb463, type: 3}
+  m_Name: NewScreenSpaceCavity
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: cadf94faa8c5cc249a8ce2082e0da042, type: 3}
+  m_Settings:
+    cavityType: 0
+    debug: 0
+    curvatureScale: 1
+    curvatureRidge: 0.25
+    curvatureValley: 0.25
+    cavityDistance: 0.25
+    cavityAttenuation: 0.015625
+    cavityRidge: 1.25
+    cavityValley: 1.25
+    cavitySamples: 4
+--- !u!114 &-2793993434203450846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eadc27cc8a56ba4c880962453e388e8, type: 3}
+  m_Name: GrassBendingRTPrePass
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  eventA: 200
+--- !u!114 &-790145404817639000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff06ed381ebf3d5488817b25144bb463, type: 3}
+  m_Name: NewScreenSpaceCavity
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: cadf94faa8c5cc249a8ce2082e0da042, type: 3}
+  m_Settings:
+    cavityType: 0
+    debug: 0
+    curvatureScale: 1.5
+    curvatureRidge: 0.25
+    curvatureValley: 0.25
+    cavityDistance: 0.25
+    cavityAttenuation: 0.015625
+    cavityRidge: 1.25
+    cavityValley: 1.25
+    cavitySamples: 4
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
+  m_Name: URP CustomForwardRendererData D
+  m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
+    hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
+    probeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 53626a513ea68ce47b59dc1299fe3959, type: 3}
+  probeVolumeResources:
+    probeVolumeDebugShader: {fileID: 0}
+    probeVolumeFragmentationDebugShader: {fileID: 0}
+    probeVolumeOffsetDebugShader: {fileID: 0}
+    probeVolumeSamplingDebugShader: {fileID: 0}
+    probeSamplingDebugMesh: {fileID: 0}
+    probeSamplingDebugTexture: {fileID: 0}
+    probeVolumeBlendStatesCS: {fileID: 0}
+  m_RendererFeatures:
+  - {fileID: 961192100780774015}
+  - {fileID: -7719196923187112254}
+  - {fileID: -8839101826819258120}
+  - {fileID: -2793993434203450846}
+  m_RendererFeatureMap: 7f12f37f1fd7560dc2d624e24be7df94f888ee56b833558522928759c6bd39d9
+  m_UseNativeRenderPass: 0
+  xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
+  postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  m_AssetVersion: 2
+  m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_TransparentLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_DefaultStencilState:
+    overrideStencilState: 0
+    stencilReference: 0
+    stencilCompareFunction: 8
+    passOperation: 0
+    failOperation: 0
+    zFailOperation: 0
+  m_ShadowTransparentReceive: 1
+  m_RenderingMode: 0
+  m_DepthPrimingMode: 0
+  m_CopyDepthMode: 0
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
+  m_AccurateGbufferNormals: 0
+  m_IntermediateTextureMode: 1
+--- !u!114 &961192100780774015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c112c19a3a69c4697b058198829075, type: 3}
+  m_Name: NewDepthNormalsFeature
+  m_EditorClassIdentifier: 
+  m_Active: 0
+--- !u!114 &3844137077578349241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff06ed381ebf3d5488817b25144bb463, type: 3}
+  m_Name: NewScreenSpaceCavity
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: cadf94faa8c5cc249a8ce2082e0da042, type: 3}
+  m_Settings:
+    cavityType: 0
+    debug: 0
+    curvatureScale: 1
+    curvatureRidge: 0.25
+    curvatureValley: 0.25
+    cavityDistance: 0.25
+    cavityAttenuation: 0.015625
+    cavityRidge: 1.25
+    cavityValley: 1.25
+    cavitySamples: 4
+--- !u!114 &4780323425987548577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff06ed381ebf3d5488817b25144bb463, type: 3}
+  m_Name: NewScreenSpaceCavity
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: cadf94faa8c5cc249a8ce2082e0da042, type: 3}
+  m_Settings:
+    cavityType: 0
+    debug: 0
+    curvatureScale: 2
+    curvatureRidge: 0.25
+    curvatureValley: 0.25
+    cavityDistance: 0.25
+    cavityAttenuation: 0.015625
+    cavityRidge: 1.25
+    cavityValley: 1.25
+    cavitySamples: 4
+--- !u!114 &5169869880531946926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff06ed381ebf3d5488817b25144bb463, type: 3}
+  m_Name: NewScreenSpaceCavity
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: cadf94faa8c5cc249a8ce2082e0da042, type: 3}
+  m_Settings:
+    cavityType: 0
+    debug: 0
+    curvatureScale: 3
+    curvatureRidge: 0.25
+    curvatureValley: 0.25
+    cavityDistance: 0.25
+    cavityAttenuation: 0.015625
+    cavityRidge: 1.25
+    cavityValley: 1.25
+    cavitySamples: 4

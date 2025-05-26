@@ -1,0 +1,332 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6500917097778610659
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6de40c3d47391a4e89d129fbf4136c1, type: 3}
+  m_Name: TemporalAntiAliasing
+  m_EditorClassIdentifier: 
+  active: 0
+  m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 0
+  spread:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 11
+  feedback:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 11
+--- !u!114 &-6186973052653129908
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7443357ba9cb024f9e0f59d75c1c066, type: 3}
+  m_Name: HalfToneOnlyPointVolume
+  m_EditorClassIdentifier: 
+  active: 0
+  _visibleInSceneview:
+    m_OverrideState: 1
+    m_Value: 0
+  _Density:
+    m_OverrideState: 1
+    m_Value: 200
+  _Radius:
+    m_OverrideState: 1
+    m_Value: 1.2
+  _SmoothEdge:
+    m_OverrideState: 1
+    m_Value: 0.2
+  _HalfToneFactor:
+    m_OverrideState: 1
+    m_Value: 0.5
+  _SourceFactor:
+    m_OverrideState: 1
+    m_Value: 0.5
+  _Lightness:
+    m_OverrideState: 1
+    m_Value: 1
+  _PointColor:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 0, b: 0.51284885, a: 1}
+  _ColorFactor:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &-5468031546292981191
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47dcf55aff9240159bb852ed4393989b, type: 3}
+  m_Name: SimpleRaymarch
+  m_EditorClassIdentifier: 
+  active: 0
+  maxIterations:
+    m_OverrideState: 1
+    m_Value: 64
+  maxDistance:
+    m_OverrideState: 1
+    m_Value: 100
+  minDistance:
+    m_OverrideState: 1
+    m_Value: 0.01
+  spherePos:
+    m_OverrideState: 1
+    m_Value: {x: 0, y: 0, z: 0}
+  sphereRadius:
+    m_OverrideState: 1
+    m_Value: 27.8
+--- !u!114 &-5078112658624466544
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f3adaab4db4f8f9fbc58713914aa1b, type: 3}
+  m_Name: LightShaft
+  m_EditorClassIdentifier: 
+  active: 0
+  maxIterations:
+    m_OverrideState: 1
+    m_Value: 64
+  maxDistance:
+    m_OverrideState: 1
+    m_Value: 4.62
+  minDistance:
+    m_OverrideState: 1
+    m_Value: 1.72
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.556
+--- !u!114 &-4571364224037073621
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c592f8609bbaa404b8c91d85a7293970, type: 3}
+  m_Name: Flare
+  m_EditorClassIdentifier: 
+  active: 1
+  flareColor:
+    m_OverrideState: 1
+    m_Value: {r: 0.9811321, g: 0.48593804, b: 0.48593804, a: 1}
+  flarePosition:
+    m_OverrideState: 1
+    m_Value: {x: 0.58, y: 0}
+  flareSize:
+    m_OverrideState: 1
+    m_Value: 0.01
+  paraColor:
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 0.033018887, b: 0.033018887, a: 1}
+  paraPosition:
+    m_OverrideState: 1
+    m_Value: {x: 0.58, y: 0}
+  paraSize:
+    m_OverrideState: 1
+    m_Value: 0.38
+--- !u!114 &-4545852474859853677
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4fd7d3882af82046b3945e7a77b5ef3, type: 3}
+  m_Name: CloudShadowVolume
+  m_EditorClassIdentifier: 
+  active: 0
+  ShadowStrength:
+    m_OverrideState: 1
+    m_Value: 0.53
+  SmoothStepRange:
+    m_OverrideState: 1
+    m_Value: {x: 0.45, y: 0.55}
+  NoiseScale1:
+    m_OverrideState: 1
+    m_Value: {x: 0.01, y: 0.01}
+  NoiseTime1:
+    m_OverrideState: 1
+    m_Value: 0.1
+  DebugMode:
+    m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &-1926052526102047969
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 012d3263da3d1234bb848967c99084f1, type: 3}
+  m_Name: Glitch
+  m_EditorClassIdentifier: 
+  active: 0
+  Speed:
+    m_OverrideState: 1
+    m_Value: 11.32
+  BlockSize:
+    m_OverrideState: 1
+    m_Value: 3.4
+  BlockSizeJitter:
+    m_OverrideState: 1
+    m_Value: 2.52
+  MaxRGBSplitX:
+    m_OverrideState: 0
+    m_Value: 1
+  MaxRGBSplitY:
+    m_OverrideState: 0
+    m_Value: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: TestVolume_3
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: -6186973052653129908}
+  - {fileID: -1926052526102047969}
+  - {fileID: 5592349666684220558}
+  - {fileID: -4545852474859853677}
+  - {fileID: 2626199608126478767}
+  - {fileID: 2886356160701944179}
+  - {fileID: -4571364224037073621}
+  - {fileID: 3552511453268375425}
+  - {fileID: -5078112658624466544}
+  - {fileID: -5468031546292981191}
+--- !u!114 &2626199608126478767
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b634000b1fe567b4c94f944178b5e9a5, type: 3}
+  m_Name: OutlineVolume
+  m_EditorClassIdentifier: 
+  active: 0
+  SampleDistance:
+    m_OverrideState: 1
+    m_Value: 4.3
+  StrengthPow:
+    m_OverrideState: 1
+    m_Value: 111
+--- !u!114 &2886356160701944179
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 702bcde1762b6fd439c6021eef0e4b2f, type: 3}
+  m_Name: StarGlow
+  m_EditorClassIdentifier: 
+  active: 0
+  Threshold:
+    m_OverrideState: 1
+    m_Value: 0.88
+  Intensity:
+    m_OverrideState: 1
+    m_Value: 0.14
+  Attenuation:
+    m_OverrideState: 1
+    m_Value: 1.02
+  Angle:
+    m_OverrideState: 1
+    m_Value: 25.3
+  StreakCount:
+    m_OverrideState: 1
+    m_Value: 4
+  Iteration:
+    m_OverrideState: 1
+    m_Value: 5
+  Divide:
+    m_OverrideState: 1
+    m_Value: 3
+--- !u!114 &3552511453268375425
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99afce47938ea244f9fa0cd3d0883cf3, type: 3}
+  m_Name: DepthLine
+  m_EditorClassIdentifier: 
+  active: 0
+  bias:
+    m_OverrideState: 1
+    m_Value: 3
+  maxWeight:
+    m_OverrideState: 1
+    m_Value: 10
+  samplingScale:
+    m_OverrideState: 1
+    m_Value: 5
+  lineWidth:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &5592349666684220558
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f21f170b640032a4ba47bfe9e6497f01, type: 3}
+  m_Name: WorldScanVolume
+  m_EditorClassIdentifier: 
+  active: 1
+  ColorAddMode:
+    m_OverrideState: 1
+    m_Value: 1
+  GridSize:
+    m_OverrideState: 1
+    m_Value: 10
+  GridLineWidth:
+    m_OverrideState: 1
+    m_Value: 2
