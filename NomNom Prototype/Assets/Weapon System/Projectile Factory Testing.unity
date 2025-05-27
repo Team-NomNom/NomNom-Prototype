@@ -826,13 +826,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   projectile: {fileID: 4420149132532661449, guid: 84b97897f7d23fc458191cbac0a4c934, type: 3}
-  followMouse: 1
+  movesIndependently: 1
   fullAuto: 1
   numBullets: 1
   bulletSpreadAngle: 0
   bulletsPerSecond: 5
   recoilFactor: 0
+  joystickDeadzone: 0.5
   debugScreenText: {fileID: 530159932}
+  joystickAngleOffset: 90
 --- !u!114 &919132147608773349
 MonoBehaviour:
   m_ObjectHideFlags: 0

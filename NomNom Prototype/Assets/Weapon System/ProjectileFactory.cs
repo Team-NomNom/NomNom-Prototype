@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -20,7 +22,7 @@ public class ProjectileFactory : MonoBehaviour
     public GameObject projectile;
 
     [SerializeField]
-    public bool followMouse = true;
+    public bool movesIndependently = true;
 
     [SerializeField]
     public bool fullAuto = true;
@@ -40,24 +42,34 @@ public class ProjectileFactory : MonoBehaviour
     public float recoilFactor = 0.0f;
 
     [SerializeField]
+    public float joystickDeadzone = 0.5f;
+
+    [SerializeField]
     public Text debugScreenText;
 
 
     // THIS SHOULD BE TEMPORARY the input system should be defined statically in the master tank class
     private InputSystem_Actions input;
 
+    // TEMPORARY This should also be passed down from the master tank class
+    private PlayerInput playerInput;
 
     private Camera mainCamera;
 
-    // Update this when the model for the turret changes
-    // We could even make this serializable?
+    // Update these accordingly when the model for the turret changes
+    // We could even make them serializable?
     private Vector3 shaftOffset = new Vector3(0f, 0.4f, 2f);
+    [SerializeField]
+    private float joystickAngleOffset = 90f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // THIS SHOULD BE TEMPORARY the input system should be defined statically in the master tank class
         input = new InputSystem_Actions();
+
+        // TEMPORARY This should also be passed down from the master tank class
+        playerInput = GetComponent<PlayerInput>();
 
         try
         {
@@ -76,25 +88,65 @@ public class ProjectileFactory : MonoBehaviour
     {
         if (debugScreenText != null)
         {
-            debugScreenText.text = $"# of bullets: {numBullets}\nBullet spread angle: {bulletSpreadAngle} degrees\nBullets per second: {bulletsPerSecond}\nFollowing Mouse? {followMouse}\nFull auto? {fullAuto}";
+            debugScreenText.text = $"# of bullets: {numBullets}\nBullet spread angle: {bulletSpreadAngle} degrees\nBullets per second: {bulletsPerSecond}\nMoves Independently? {movesIndependently}\nFull auto? {fullAuto}";
         }
 
 
-        if (followMouse)
+        if (movesIndependently)
         {
-            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            if (playerInput.currentControlScheme == "Keyboard&Mouse")
             {
-                Vector3 targetPos = hit.point;
-
-                Vector3 direction = targetPos - transform.position;
-                direction.y = 0f;
-
-                if (direction != Vector3.zero)
+                Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                if (Physics.Raycast(ray, out RaycastHit hit, 100f))
                 {
-                    Quaternion targetRotation = Quaternion.LookRotation(direction);
-                    transform.rotation = targetRotation;
+                    Vector3 targetPos = hit.point;
+
+                    Vector3 direction = targetPos - transform.position;
+                    direction.y = 0f;
+
+                    if (direction != Vector3.zero)
+                    {
+                        Quaternion targetRotation = Quaternion.LookRotation(direction);
+                        transform.rotation = targetRotation;
+                    }
                 }
+            }
+            else if (playerInput.currentControlScheme == "Gamepad")
+            {
+                Vector2 rStickPos = Gamepad.current.rightStick.ReadValue();
+                
+                // Ensures deadzone is respected
+                if (Math.Abs(rStickPos.x) <= joystickDeadzone && Math.Abs(rStickPos.y) <= joystickDeadzone) { return; }
+
+                // Just wanted to say I REMEMBERED HOW TO DO THIS COMPLETELY MYSELF WITHOUT CHATGPT I FEEL AMAZING RN
+                // This code is a little jank because again NO AI WAS INVOLVED THIS WAS ALL ME BABY
+                double angle = 0;
+    
+                // Special cases; hard-coded
+                if (rStickPos.x == 0)
+                {
+                    if (rStickPos.y == 1) angle = 90;
+                    if (rStickPos.y == -1) angle = 270;
+                }
+                else
+                {
+                    // Gets inverse tangent of x/y values and converts value to degrees
+                    angle = Math.Atan(rStickPos.y / rStickPos.x) * (180 / Math.PI);
+                    // Since inverse tangent is limited from (-pi/2) to (pi/2)
+                    // We must manually make angles in the 2nd/3rd quadrants opposites
+                    if (rStickPos.x < 0) angle += 180;
+                }
+                // Apparently unity uses clockwise rotation
+                // as if this engine wasn't confusing enough
+                angle *= -1;
+
+                // Sets rotation with a defined offset
+                transform.rotation = Quaternion.Euler(0, (float) angle + joystickAngleOffset, 0);
+
+            }
+            else
+            {
+                Debug.LogError("Control scheme other than KBM/Controller is being used.");
             }
         }
 
