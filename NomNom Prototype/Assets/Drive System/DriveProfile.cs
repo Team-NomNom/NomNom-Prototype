@@ -4,7 +4,18 @@ using System;
 
 [CreateAssetMenu(menuName = "Drive System/Drive Profile", fileName = "New DriveProfile")]
 public class DriveProfile : ScriptableObject
+
 {
+    [Header("Input Axes")]
+
+    [Tooltip("Axis name for forward/back movement")]
+    public string forwardAxis = "Vertical";
+    [Tooltip("Axis name for strafing (holonomic)")]
+    public string strafeAxis = "Horizontal2";
+    [Tooltip("Axis name for turning")]
+    public string turnAxis = "Horizontal";
+
+
     [Header("General")]
     public float maxSpeed = 10f;
     public AnimationCurve accelerationCurve = AnimationCurve.Linear(0, 0, 1, 1);

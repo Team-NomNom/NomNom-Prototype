@@ -33,9 +33,9 @@ public class TankController : MonoBehaviour
     {
         DriveInput input = new DriveInput
         {
-            forward = Input.GetAxis("Vertical"),
-            strafe = Input.GetAxis("Horizontal2"),
-            turn = Input.GetAxis("Horizontal")
+            forward = Input.GetAxis(profile.forwardAxis),
+            strafe = Input.GetAxis(profile.strafeAxis),
+            turn = Input.GetAxis(profile.turnAxis)
         };
 
         if (driveBehaviour != null)
