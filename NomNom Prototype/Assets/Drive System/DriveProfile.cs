@@ -2,8 +2,8 @@ using UnityEngine;
 using System;
 
 
-[Serializable]
-public class DriveProfile
+[CreateAssetMenu(menuName = "Drive System/Drive Profile", fileName = "New DriveProfile")]
+public class DriveProfile : ScriptableObject
 {
     [Header("General")]
     public float maxSpeed = 10f;
