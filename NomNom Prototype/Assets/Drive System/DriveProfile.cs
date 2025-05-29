@@ -21,4 +21,7 @@ public class DriveProfile : ScriptableObject
 
     [Header("Flip Prevention")]
     public bool preventFlips = true;
+
+    [Header("Ackerman Specefic Values")]
+    public float steeringAngleAckerman = 45f;
 }

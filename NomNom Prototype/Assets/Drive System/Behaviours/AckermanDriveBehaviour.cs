@@ -17,7 +17,7 @@ public class AckermanDriveBehaviour : MonoBehaviour, IDriveBehaviour
         float newAccel = tc.ConstrainLinear(desiredAccel, profile, deltaTime);
 
         // Steering angle
-        float steerAngle = input.turn * 45f;
+        float steerAngle = input.turn * profile.steeringAngleAckerman;
 
         // Move tank forward
         rb.MovePosition(rb.position + transform.forward * newAccel * deltaTime);
