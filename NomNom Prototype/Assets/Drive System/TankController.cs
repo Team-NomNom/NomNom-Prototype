@@ -16,6 +16,10 @@ public class TankController : MonoBehaviour
     private float prevRotationAcceleration = 0f;
     private float prevRotationJerk = 0f;
 
+    // Kludgy fix to allow for 2 acceleration curves at the same time (eg. arcade drive)
+    private float prevAcceleration2 = 0f;
+    private float prevJerk2 = 0f;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -50,6 +54,17 @@ public class TankController : MonoBehaviour
                                         deltaTime, out float newJerk);
         prevAcceleration = result;
         prevJerk = newJerk;
+        return result;
+    }
+
+    // Kludgy fix to allow for 2 acceleration curves at the same time (eg. arcade drive)
+    public float ConstrainLinear2(float desiredAccel, DriveProfile p, float deltaTime)
+    {
+        float result = ApplyConstraints(prevAcceleration2, prevJerk2,
+                                        desiredAccel, p.maxJerk, p.maxSnap,
+                                        deltaTime, out float newJerk);
+        prevAcceleration2 = result;
+        prevJerk2 = newJerk;
         return result;
     }
 
