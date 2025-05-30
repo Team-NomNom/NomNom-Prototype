@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44e8f36806f2f6349b6bfa1ca9b1777e, type: 3}
   m_Name: AckermanDrive
   m_EditorClassIdentifier: 
+  forwardAxis: Vertical
+  strafeAxis: Horizontal2
+  turnAxis: Horizontal
   maxSpeed: 10
   accelerationCurve:
     serializedVersion: 2
@@ -115,4 +118,4 @@ MonoBehaviour:
   maxRotationJerk: 360
   maxRotationSnap: 720
   preventFlips: 1
-  steeringAngleAckerman: 45
+  steeringAngleAckerman: 34
