@@ -13,11 +13,11 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("How far the target can move from camera center before the camera follows")]
     [SerializeField] private Vector2 deadZone = new Vector2(1f, 1f);
 
-    [Header("Smoothing")]
-    [Tooltip("Time for camera to catch up")]
-    // [SerializeField, Range(0.01f, 1f)] private float smoothTime = 0.15f;
-    [SerializeField] private float followSpeed = 5f;  // tweak this (when its super high it motion sickness lowers...but then there is no reason to have any other logic then)
-    private Vector3 smoothVelocity;
+    [Header("Dynamic Follow Speed")]
+    [Tooltip("Multiplier applied to the target's speed to get camera move speed")]
+    [SerializeField] private float speedMultiplier = 1f;
+    [Tooltip("Optional minimum follow speed, in case the tank is almost stopped")]
+    [SerializeField] private float minFollowSpeed = 0.5f;
 
     [Header("Level Bounds")]
     [Tooltip("Minimum X,Z the camera can go")]
@@ -30,43 +30,53 @@ public class CameraFollow : MonoBehaviour
     public List<Collider> freezeZones = new List<Collider>();
     private bool followEnabled = true;
 
+    // cached Rigidbody from the target
+    private Rigidbody targetRb;
+
     void Start()
     {
         // tilt camera down
-        transform.rotation = Quaternion.Euler(cameraAngle, 0, 0);
+        transform.rotation = Quaternion.Euler(cameraAngle, 0f, 0f);
+
+        if (target != null)
+            targetRb = target.GetComponent<Rigidbody>();
     }
 
     void LateUpdate()
     {
         if (!followEnabled || target == null) return;
 
-        // desired world-space position based on player + offset
+        // compute the raw desired position
         Vector3 desiredPos = target.position + offset;
         Vector3 cur = transform.position;
 
-        // dead-zone logic on X
+        // dead-zone on X
         float x = cur.x;
         if (desiredPos.x > cur.x + deadZone.x) x = desiredPos.x - deadZone.x;
         else if (desiredPos.x < cur.x - deadZone.x) x = desiredPos.x + deadZone.x;
 
-        // dead-zone logic on Z (forward/back)
+        // dead-zone on Z (forward/back)
         float z = cur.z;
         if (desiredPos.z > cur.z + deadZone.y) z = desiredPos.z - deadZone.y;
         else if (desiredPos.z < cur.z - deadZone.y) z = desiredPos.z + deadZone.y;
 
-        // keep the height from desiredPos.y (so offset.y always applies)
+        // Keep the height from desiredPos.y (so offset.y always applies) -> builds the next cam position
         Vector3 nextPos = new Vector3(x, desiredPos.y, z);
 
-        // clamp to level bounds
+        // 5) clamp to level bounds
         nextPos.x = Mathf.Clamp(nextPos.x, minBounds.x, maxBounds.x);
         nextPos.z = Mathf.Clamp(nextPos.z, minBounds.y, maxBounds.y);
 
-        // move
-        transform.position = Vector3.Lerp(transform.position, nextPos, followSpeed * Time.deltaTime);
+        // 6) move based on target velocity?
+        float dynamicSpeed = speedMultiplier;
+        if (targetRb != null)
+            dynamicSpeed = Mathf.Max(targetRb.linearVelocity.magnitude * speedMultiplier, minFollowSpeed);
 
+        // 7) move the camera toward nextPos at that speed
+        transform.position = Vector3.MoveTowards(cur, nextPos, dynamicSpeed * Time.deltaTime);
     }
 
-    // Call these from zone triggers
+    // call these from zone triggers
     public void FreezeFollow() => followEnabled = false;
     public void UnfreezeFollow() => followEnabled = true;
 }
