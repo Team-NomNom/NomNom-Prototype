@@ -15,7 +15,7 @@ MonoBehaviour:
   forwardAxis: Vertical
   strafeAxis: Horizontal2
   turnAxis: Horizontal
-  maxSpeed: 10
+  maxSpeed: 15
   accelerationCurve:
     serializedVersion: 2
     m_Curve:
