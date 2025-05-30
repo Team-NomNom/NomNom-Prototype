@@ -1,9 +1,8 @@
 using UnityEngine;
 using System;
 // [RequireComponent(typeof(TankController))]
-public class CurvatureDriveBehaviour : MonoBehaviour, IDriveBehaviour
+public class ArcadeDriveBehaviour : MonoBehaviour, IDriveBehaviour
 {
-    //technically this is an implementation of arcade but whatever
     [Tooltip("Distance between left and right tracks")]
     public float trackWidth = 2f;
 
