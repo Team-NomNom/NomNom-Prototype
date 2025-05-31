@@ -42,7 +42,7 @@ public class CameraFollow : MonoBehaviour
             targetRb = target.GetComponent<Rigidbody>();
     }
 
-    void LateUpdate()
+    void FixedUpdate()
     {
         if (!followEnabled || target == null) return;
 
