@@ -58,7 +58,8 @@ public class ProjectileFactory : MonoBehaviour
 
     // Update these accordingly when the model for the turret changes
     // We could even make them serializable?
-    private Vector3 shaftOffset = new Vector3(0f, 0.4f, 2f);
+    [SerializeField]
+    private Transform shaftTransform;
     [SerializeField]
     private float joystickAngleOffset = 90f;
 
@@ -197,13 +198,15 @@ public class ProjectileFactory : MonoBehaviour
             for (int bulletCount = 0; bulletCount < numBullets; bulletCount++)
             {
                 // Offsets bullet spawn position to match turret shaft endpoint
-                Vector3 bulletPos = transform.TransformPoint(shaftOffset);
+                Vector3 bulletPos = shaftTransform.position;
 
                 // Calculates angle for this bullet using math from earlier
                 float angle = startAngle + (bulletCount * bulletSpreadAngle);
 
                 // Euler? I hardly know her!
-                Quaternion bulletRot = transform.rotation * Quaternion.Euler(0f, angle, 0f);
+                Quaternion baseRotation = shaftTransform.rotation;
+                Quaternion spreadRotation = Quaternion.Euler(0f, angle, 0f);
+                Quaternion bulletRot = baseRotation * spreadRotation;
 
                 // Spawns bullet
                 Instantiate(projectile, bulletPos, bulletRot);
