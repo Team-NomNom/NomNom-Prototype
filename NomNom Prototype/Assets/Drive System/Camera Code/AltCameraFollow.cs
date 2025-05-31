@@ -15,6 +15,7 @@ public class AltCameraFollow : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
+        print(player.transform.position.x);
         transform.position = player.transform.position + offset;
     }
 }
