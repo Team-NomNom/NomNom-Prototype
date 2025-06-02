@@ -19,10 +19,8 @@ public class NetworkTankController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // Always disable the TankController component so FixedUpdate never fires
-        // localTank.enabled = false;
 
-        if (!IsServer) // <--- if I'm not the server, I disable my TankController
+        if (!IsServer)
         {
             localTank.enabled = false;
         }

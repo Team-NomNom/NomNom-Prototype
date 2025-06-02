@@ -24,11 +24,9 @@ public class TankController : MonoBehaviour
     // NETWORKING
     private NetworkObject netObj;
 
-    // ──────────────────────────────────────────────────────────────────────────────
     // INPUT BUFFER: these store the last forwarded input from the client.
     // The server’s FixedUpdate() will read these once per physics tick.
     private DriveInput latestInput = new DriveInput { forward = 0f, strafe = 0f, turn = 0f };
-    // ──────────────────────────────────────────────────────────────────────────────
 
     void Awake()
     {
@@ -58,15 +56,6 @@ public class TankController : MonoBehaviour
     {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
             return;
-
-        /*        DriveInput input = new DriveInput
-                {
-                    forward = Input.GetAxis(profile.forwardAxis),
-                    strafe = Input.GetAxis(profile.strafeAxis),
-                    turn = Input.GetAxis(profile.turnAxis)
-                };
-
-                */
         DriveInput input = latestInput;
 
         if (driveBehaviour != null)

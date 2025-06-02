@@ -40,11 +40,16 @@ public class CameraFollow : MonoBehaviour
 
         if (target != null)
             targetRb = target.GetComponent<Rigidbody>();
+
+        AssignTargetRigidbody();
     }
 
     void FixedUpdate()
     {
         if (!followEnabled || target == null) return;
+
+        if (targetRb == null)
+            AssignTargetRigidbody();
 
         // compute the raw desired position
         Vector3 desiredPos = target.position + offset;
@@ -74,6 +79,11 @@ public class CameraFollow : MonoBehaviour
 
         // 7) move the camera toward nextPos at that speed
         transform.position = Vector3.MoveTowards(cur, nextPos, dynamicSpeed * Time.deltaTime);
+    }
+    private void AssignTargetRigidbody()
+    {
+        if (target != null)
+            targetRb = target.GetComponent<Rigidbody>();
     }
 
     // call these from zone triggers
