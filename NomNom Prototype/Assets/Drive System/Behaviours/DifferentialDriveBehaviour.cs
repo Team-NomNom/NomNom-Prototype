@@ -16,8 +16,6 @@ public class DifferentialDriveBehaviour : MonoBehaviour, IDriveBehaviour
 
     public void HandleDrive(Rigidbody rb, DriveInput input, DriveProfile profile, float deltaTime)
     {
-        // Only run on the server/host.  NetworkManager.Singleton.IsServer will be true
-        // whenever this instance is acting as the authoritative server.
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
             return;
 
