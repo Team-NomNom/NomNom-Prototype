@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class CameraZone : MonoBehaviour
@@ -9,13 +10,15 @@ public class CameraZone : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        var netObj = other.GetComponentInParent<NetworkObject>();
+        if (netObj != null && netObj.IsOwner)
             cam?.FreezeFollow();
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Player"))
+        var netObj = other.GetComponentInParent<NetworkObject>();
+        if (netObj != null && netObj.IsOwner)
             cam?.UnfreezeFollow();
     }
 }
