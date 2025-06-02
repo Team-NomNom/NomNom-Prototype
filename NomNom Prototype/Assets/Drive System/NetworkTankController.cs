@@ -20,7 +20,12 @@ public class NetworkTankController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         // Always disable the TankController component so FixedUpdate never fires
-        localTank.enabled = false;
+        // localTank.enabled = false;
+
+        if (!IsServer) // <--- if I'm not the server, I disable my TankController
+        {
+            localTank.enabled = false;
+        }
 
         if (IsOwner)
         {
@@ -56,6 +61,6 @@ public class NetworkTankController : NetworkBehaviour
         ServerRpcParams rpcParams = default)
     {
         // Only the server (or host) will execute this. It calls TankController.HandleNetworkedMovement exactly once.
-        localTank.HandleNetworkedMovement(forward, strafe, turn);
+        localTank.StoreInput(forward, strafe, turn);
     }
 }

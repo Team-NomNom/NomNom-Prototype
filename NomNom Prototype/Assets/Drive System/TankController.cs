@@ -24,6 +24,12 @@ public class TankController : MonoBehaviour
     // NETWORKING
     private NetworkObject netObj;
 
+    // ──────────────────────────────────────────────────────────────────────────────
+    // INPUT BUFFER: these store the last forwarded input from the client.
+    // The server’s FixedUpdate() will read these once per physics tick.
+    private DriveInput latestInput = new DriveInput { forward = 0f, strafe = 0f, turn = 0f };
+    // ──────────────────────────────────────────────────────────────────────────────
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -53,15 +59,30 @@ public class TankController : MonoBehaviour
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
             return;
 
-/*        DriveInput input = new DriveInput
-        {
-            forward = Input.GetAxis(profile.forwardAxis),
-            strafe = Input.GetAxis(profile.strafeAxis),
-            turn = Input.GetAxis(profile.turnAxis)
-        };
+        /*        DriveInput input = new DriveInput
+                {
+                    forward = Input.GetAxis(profile.forwardAxis),
+                    strafe = Input.GetAxis(profile.strafeAxis),
+                    turn = Input.GetAxis(profile.turnAxis)
+                };
+
+                */
+        DriveInput input = latestInput;
 
         if (driveBehaviour != null)
-            driveBehaviour.HandleDrive(rb, input, profile, Time.fixedDeltaTime);*/
+            driveBehaviour.HandleDrive(rb, input, profile, Time.fixedDeltaTime);
+    }
+
+    /// <summary>
+    /// Called by NetworkTankController’s ServerRpc to update the “latestInput” buffer.
+    /// It does NOT immediately invoke HandleDrive; it only stores input for
+    /// the next FixedUpdate on the server to consume.
+    /// </summary>
+    public void StoreInput(float forward, float strafe, float turn)
+    {
+        latestInput.forward = forward;
+        latestInput.strafe = strafe;
+        latestInput.turn = turn;
     }
 
     /// Constrains linear acceleration with jerk and snap limits, updates state, and returns the clamped acceleration.
