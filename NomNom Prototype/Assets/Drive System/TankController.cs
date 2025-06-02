@@ -91,4 +91,29 @@ public class TankController : MonoBehaviour
         newJerk = prevJerk + clampedSnap * dt;
         return prevAccel + clampedJerk * dt;
     }
+
+    public void HandleNetworkedMovement(float forward, float strafe, float turn)
+    {
+        // Build a DriveInput using the values the client sent
+        DriveInput input = new DriveInput
+        {
+            forward = forward,
+            strafe = strafe,
+            turn = turn
+        };
+
+        // Call the same HandleDrive that behaviours already expect
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+        float deltaTime = Time.fixedDeltaTime;
+
+        if (driveBehaviourMono is IDriveBehaviour behaviour)
+        {
+            behaviour.HandleDrive(rb, input, profile, deltaTime);
+        }
+        else
+        {
+            Debug.LogError("TankController: No IDriveBehaviour assigned, cannot move networked tank.");
+        }
+    }
 }
