@@ -27,7 +27,7 @@ public class ClientInitializer : MonoBehaviour
 
         // Set the connection data to the address the player typed
         transport.ConnectionData.Address = hostAddress;
-        transport.ConnectionData.Port = 7777; // or whatever port you forwarded
+        transport.ConnectionData.Port = 7777;
 
         // Now start the client
         NetworkManager.Singleton.StartClient();

@@ -1,5 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
+using Unity.Netcode;
 
 public class TankController : MonoBehaviour
 {
@@ -20,12 +21,26 @@ public class TankController : MonoBehaviour
     private float prevAcceleration2 = 0f;
     private float prevJerk2 = 0f;
 
+    // NETWORKING
+    private NetworkObject netObj;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        netObj = GetComponent<NetworkObject>(); // cache if this is a networked object
+
         if (profile.preventFlips)
         {
             rb.constraints |= RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        }
+
+        if (netObj == null)
+        {
+            Debug.LogError("TankController: NetworkObject is MISSING on " + gameObject.name);
+        }
+        else
+        {
+            Debug.Log("TankController.Awake: Found NetworkObject on " + gameObject.name);
         }
 
         driveBehaviour = driveBehaviourMono as IDriveBehaviour;
@@ -35,7 +50,10 @@ public class TankController : MonoBehaviour
 
     void FixedUpdate()
     {
-        DriveInput input = new DriveInput
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
+/*        DriveInput input = new DriveInput
         {
             forward = Input.GetAxis(profile.forwardAxis),
             strafe = Input.GetAxis(profile.strafeAxis),
@@ -43,7 +61,7 @@ public class TankController : MonoBehaviour
         };
 
         if (driveBehaviour != null)
-            driveBehaviour.HandleDrive(rb, input, profile, Time.fixedDeltaTime);
+            driveBehaviour.HandleDrive(rb, input, profile, Time.fixedDeltaTime);*/
     }
 
     /// Constrains linear acceleration with jerk and snap limits, updates state, and returns the clamped acceleration.

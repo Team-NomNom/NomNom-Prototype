@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class DifferentialDriveBehaviour : MonoBehaviour, IDriveBehaviour
@@ -5,8 +6,21 @@ public class DifferentialDriveBehaviour : MonoBehaviour, IDriveBehaviour
     [Tooltip("Distance between left and right tracks")]
     public float trackWidth = 1f;
 
+    private NetworkObject netObj;
+
+    void Awake()
+    {
+        netObj = GetComponent<NetworkObject>();
+    }
+
+
     public void HandleDrive(Rigidbody rb, DriveInput input, DriveProfile profile, float deltaTime)
     {
+        // Only run on the server/host.  NetworkManager.Singleton.IsServer will be true
+        // whenever this instance is acting as the authoritative server.
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
         TankController tc = rb.GetComponent<TankController>();
 
         // Translation: independent of rotation
