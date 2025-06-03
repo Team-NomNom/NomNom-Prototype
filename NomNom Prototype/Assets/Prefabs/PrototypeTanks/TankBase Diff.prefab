@@ -449,6 +449,7 @@ GameObject:
   - component: {fileID: 1159630504380882482}
   - component: {fileID: 7602811718447538566}
   - component: {fileID: 6357561973925527749}
+  - component: {fileID: 3223559092925386599}
   m_Layer: 0
   m_Name: TankBase Diff
   m_TagString: Player
@@ -686,7 +687,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  projectilePrefab: {fileID: 4420149132532661449, guid: 84b97897f7d23fc458191cbac0a4c934, type: 3}
+  projectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
   movesIndependently: 0
   fullAuto: 1
   numBullets: 1
@@ -755,6 +756,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &3223559092925386599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3626744771387545982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cbe0d82eef5cee4eb4e93450bcabad5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxHealth: 100
+  healthBar: {fileID: 0}
+  healthText: {fileID: 7751844799248634326, guid: ca50a42dfc51b0547a4e81415e45207f, type: 3}
 --- !u!1 &7209051376469364900
 GameObject:
   m_ObjectHideFlags: 0
