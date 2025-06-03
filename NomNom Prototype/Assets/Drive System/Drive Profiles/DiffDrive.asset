@@ -117,5 +117,5 @@ MonoBehaviour:
     m_RotationOrder: 4
   maxRotationJerk: 3927
   maxRotationSnap: 3013.2
-  preventFlips: 1
+  preventFlips: 0
   steeringAngleAckerman: 45
