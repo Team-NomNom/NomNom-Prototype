@@ -445,8 +445,8 @@ GameObject:
   - component: {fileID: 8534088625985019292}
   - component: {fileID: 3255127945892570634}
   - component: {fileID: 6835483980427351820}
-  - component: {fileID: 1159630504380882482}
   - component: {fileID: 237159153903873539}
+  - component: {fileID: 1159630504380882482}
   - component: {fileID: 7602811718447538566}
   - component: {fileID: 6357561973925527749}
   m_Layer: 0
@@ -537,7 +537,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3626744771387545982}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
@@ -648,29 +648,6 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &1159630504380882482
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3626744771387545982}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c17e865faf5ec743aae55b0cf18c24b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  projectile: {fileID: 4420149132532661449, guid: 84b97897f7d23fc458191cbac0a4c934, type: 3}
-  movesIndependently: 0
-  fullAuto: 1
-  numBullets: 1
-  bulletSpreadAngle: 0
-  bulletsPerSecond: 5
-  recoilFactor: 0
-  joystickDeadzone: 0.5
-  debugScreenText: {fileID: 0}
-  shaftTransform: {fileID: 7003691086340539106}
-  joystickAngleOffset: 90
 --- !u!114 &237159153903873539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -696,6 +673,29 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &1159630504380882482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3626744771387545982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c17e865faf5ec743aae55b0cf18c24b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  projectilePrefab: {fileID: 4420149132532661449, guid: 84b97897f7d23fc458191cbac0a4c934, type: 3}
+  movesIndependently: 0
+  fullAuto: 1
+  numBullets: 1
+  bulletSpreadAngle: 0
+  bulletsPerSecond: 5
+  recoilFactor: 0
+  shaftTransform: {fileID: 7003691086340539106}
+  joystickAngleOffset: 90
+  debugScreenText: {fileID: 0}
 --- !u!114 &7602811718447538566
 MonoBehaviour:
   m_ObjectHideFlags: 0

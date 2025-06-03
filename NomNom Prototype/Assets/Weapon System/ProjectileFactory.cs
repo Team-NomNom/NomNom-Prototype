@@ -1,264 +1,182 @@
-using System;
-using System.Collections;
-using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
+﻿using System.Collections;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.UI;
 
-// TO DO LIST
-
-// - Implement bullet drop (still confused how we would do that here, that seems like logic of the projectile itself)
-// - Implement recoil (hard to do this until this class is attached to the drive system)
-// - Implement visual effects (e.g. muzzle flash)
-// - Implement method for single-use projectile (e.g. melee weapon)
-//      - this projectile should spawn as a child of the factory
-//      - and only one should be spawned at a time
-
+/// <summary>
+/// A network‐enabled projectile factory that uses the Legacy Input System.
+/// Clients call a ServerRpc to spawn bullets. Only the local owner can shoot.
+/// </summary>
 public class ProjectileFactory : NetworkBehaviour
 {
-    [SerializeField]
-    public GameObject projectile;
+    [Header("Projectile Settings")]
+    [Tooltip("Projectile prefab must have a NetworkObject component and be registered in NetworkManager.")]
+    [SerializeField] private GameObject projectilePrefab;
 
-    [SerializeField]
-    public bool movesIndependently = true;
+    [Header("Fire Mode")]
+    [Tooltip("If true, turret rotates independently of tank drive.")]
+    [SerializeField] private bool movesIndependently = true;
+    [Tooltip("If true, fire continuously while holding Fire1; if false, fire only once per button press.")]
+    [SerializeField] private bool fullAuto = true;
+    [Tooltip("How many bullets to spawn per shot (e.g. shotguns).")]
+    [SerializeField] private int numBullets = 1;
+    [Tooltip("Degrees between each bullet in a multi‐bullet spread.")]
+    [SerializeField] private float bulletSpreadAngle = 0f;
+    [Tooltip("Maximum number of bullets spawned per second.")]
+    [SerializeField] private float bulletsPerSecond = 1f;
 
-    [SerializeField]
-    public bool fullAuto = true;
+    [Header("Recoil & Offsets")]
+    [Tooltip("How much to shove the tank backwards when firing (optional).")]
+    [SerializeField] private float recoilFactor = 0f;
+    [Tooltip("Where on the turret the bullets should originate from.")]
+    [SerializeField] private Transform shaftTransform;
+    [Tooltip("If using a joystick, rotate turret by this offset.")]
+    [SerializeField] private float joystickAngleOffset = 90f;
 
+    [Header("UI (Optional)")]
+    [Tooltip("If set, displays debug info about the # of bullets, spread, etc.")]
+    [SerializeField] private Text debugScreenText;
 
-    [SerializeField]
-    public int numBullets = 1;
+    // Internal state
+    private Coroutine bulletLoop;
+    private bool canFire = true;
+    private bool isFiring = false;
 
-    [SerializeField]
-    public float bulletSpreadAngle = 0.0f;
+    // Legacy Input names
+    private const string FIRE_BUTTON = "Fire1"; 
+    private const string RS_HORIZ_AXIS = "RightStickHorizontal";
+    private const string RS_VERT_AXIS = "RightStickVertical"; 
 
-    [SerializeField]
-    public float bulletsPerSecond = 1.0f;
-
-    // Not exactly sure how this should be implemented
-    [SerializeField]
-    public float recoilFactor = 0.0f;
-
-    [SerializeField]
-    public float joystickDeadzone = 0.5f;
-
-    [SerializeField]
-    public Text debugScreenText;
-
-
-    // THIS SHOULD BE TEMPORARY the input system should be defined statically in the master tank class
-    private InputSystem_Actions input;
-
-    // TEMPORARY This should also be passed down from the master tank class
-    private PlayerInput playerInput;
-
-    private Camera mainCamera;
-
-    // Update these accordingly when the model for the turret changes
-    // We could even make them serializable?
-    [SerializeField]
-    private Transform shaftTransform;
-    [SerializeField]
-    private float joystickAngleOffset = 90f;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        // THIS SHOULD BE TEMPORARY the input system should be defined statically in the master tank class
-        input = new InputSystem_Actions();
-
-        // TEMPORARY This should also be passed down from the master tank class
-        playerInput = GetComponent<PlayerInput>();
-
-        try
-        {
-            mainCamera = GameObject.Find("LocalCamera").GetComponent<Camera>();
-        }
-        catch
-        {
-            Debug.LogError("Couldn't find camera! Is the camera named something other than 'Main Camera'?");
-        }
-
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
         if (debugScreenText != null)
         {
-            debugScreenText.text = $"# of bullets: {numBullets}\nBullet spread angle: {bulletSpreadAngle} degrees\nBullets per second: {bulletsPerSecond}\nMoves Independently? {movesIndependently}\nFull auto? {fullAuto}";
+            debugScreenText.text =
+                $"# Bullets: {numBullets}\n" +
+                $"Spread: {bulletSpreadAngle}°\n" +
+                $"Bullets/sec: {bulletsPerSecond}\n" +
+                $"Independent Aim? {movesIndependently}\n" +
+                $"Full Auto? {fullAuto}";
         }
 
-        if (!IsOwner) return; // Only the local owner can aim
+        // 2) Only let the local‐owner turret run aiming & firing logic
+        if (!IsOwner)
+            return;
 
-
+        // Aiming logic: point the shaftTransform toward the cursor (mouse) or right stick
         if (movesIndependently)
         {
-            if (playerInput.currentControlScheme == "Keyboard&Mouse")
+            // --- Mouse & Keyboard Aiming ---
+            if (Input.mousePresent)
             {
-                Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out RaycastHit hit, 100f))
                 {
                     Vector3 targetPos = hit.point;
-
-                    Vector3 direction = targetPos - transform.position;
-                    direction.y = 0f;
-
-                    if (direction != Vector3.zero)
+                    Vector3 dir = targetPos - shaftTransform.position;
+                    dir.y = 0f;
+                    if (dir.sqrMagnitude > 0.001f)
                     {
-                        Quaternion targetRotation = Quaternion.LookRotation(direction);
-                        transform.rotation = targetRotation;
+                        shaftTransform.rotation = Quaternion.LookRotation(dir);
                     }
                 }
             }
-            else if (playerInput.currentControlScheme == "Gamepad")
+            else
             {
-                Vector2 rStickPos = Gamepad.current.rightStick.ReadValue();
-                
-                // Ensures deadzone is respected
-                if (Math.Abs(rStickPos.x) <= joystickDeadzone && Math.Abs(rStickPos.y) <= joystickDeadzone) { return; }
+                float rsX = Input.GetAxis(RS_HORIZ_AXIS);
+                float rsY = Input.GetAxis(RS_VERT_AXIS);
+                Vector2 rsInput = new Vector2(rsX, rsY);
 
-                // Just wanted to say I REMEMBERED HOW TO DO THIS COMPLETELY MYSELF WITHOUT CHATGPT I FEEL AMAZING RN
-                // This code is a little jank because again NO AI WAS INVOLVED THIS WAS ALL ME BABY
-                double angle = 0;
-    
-                // Special cases; hard-coded
-                if (rStickPos.x == 0)
+                if (rsInput.magnitude > 0.2f) //
                 {
-                    if (rStickPos.y == 1) angle = 90;
-                    if (rStickPos.y == -1) angle = 270;
+                    float angle = Mathf.Atan2(rsInput.y, rsInput.x) * Mathf.Rad2Deg;
+                    shaftTransform.rotation = Quaternion.Euler(0f, angle + joystickAngleOffset, 0f);
                 }
-                else
-                {
-                    // Gets inverse tangent of x/y values and converts value to degrees
-                    angle = Math.Atan(rStickPos.y / rStickPos.x) * (180 / Math.PI);
-                    // Since inverse tangent is limited from (-pi/2) to (pi/2)
-                    // We must manually make angles in the 2nd/3rd quadrants opposites
-                    if (rStickPos.x < 0) angle += 180;
-                }
-                // Apparently unity uses clockwise rotation
-                // as if this engine wasn't confusing enough
-                angle *= -1;
+            }
+        }
 
-                // Sets rotation with a defined offset
-                transform.rotation = Quaternion.Euler(0, (float) angle + joystickAngleOffset, 0);
-
+        // If fullAuto, hold “Fire1” to keep firing.
+        if (fullAuto)
+        {
+            if (Input.GetButton(FIRE_BUTTON))
+            {
+                if (bulletLoop == null)
+                    bulletLoop = StartCoroutine(SpawnBulletLoop());
             }
             else
             {
-                Debug.LogError("Control scheme other than KBM/Controller is being used.");
+                // If button released, stop firing loop
+                isFiring = false;
+                if (bulletLoop != null)
+                {
+                    StopCoroutine(bulletLoop);
+                    bulletLoop = null;
+                }
             }
         }
-
-
-    }
-
-    private Coroutine bulletLoop;
-    private bool canFire = true;
-    private bool isFiring;
-    // This method is public so that eventually, it can be controlled by the input system in the master tank class
-    // For now, input is controlled by the Player Input component in the turret
-    public void SpawnBullets(InputAction.CallbackContext context)
-    {
-
-        if (!IsOwner) return; // only the owning client can request firing
-
-        //Debug.Log($"Attempting loop with context as {context.phase} and bulletloop as {bulletLoop} and canFire as {canFire}");
-        if (context.started && bulletLoop == null)
+        else
         {
-            bulletLoop = StartCoroutine(SpawnBulletLoop());
-        }
-        else if (context.canceled)
-        {
-            isFiring = false;
-            try { StopCoroutine(bulletLoop); } catch { }
-            bulletLoop = null;
+            // Semi‐auto: only trigger when the button is first pressed
+            if (Input.GetButtonDown(FIRE_BUTTON))
+            {
+                if (bulletLoop == null)
+                    bulletLoop = StartCoroutine(SpawnBulletLoop());
+            }
         }
     }
-
-
-    // Debug variable used to ensure proper bullet timing
-    //private float time;
-    //private int bulletsFired = 0;
 
     private IEnumerator SpawnBulletLoop()
     {
-        if (!canFire) { yield return new WaitUntil(() => canFire); }
+        // Wait if we just fired and are still in cooldown
+        if (!canFire)
+            yield return new WaitUntil(() => canFire);
+
         isFiring = true;
         while (isFiring)
         {
-            // Debug logic used to ensure proper bullet timing
-            //if (time == null) { time = Time.fixedTime; }
-            //Debug.Log($"Spawning bullet # {bulletsFired}! {Time.fixedTime - time} seconds since last bullet.");
-            //time = Time.fixedTime;
-            //bulletsFired++;
-
-            // Math that's above my pay grade but works
+            // Compute spread
             float totalSpread = bulletSpreadAngle * (numBullets - 1);
             float startAngle = -totalSpread / 2f;
 
-            for (int bulletCount = 0; bulletCount < numBullets; bulletCount++)
+            // For each bullet send a ServerRpc
+            for (int i = 0; i < numBullets; i++)
             {
-                // Offsets bullet spawn position to match turret shaft endpoint
-                Vector3 bulletPos = shaftTransform.position;
+                float angleOffset = startAngle + i * bulletSpreadAngle;
+                Vector3 spawnPos = shaftTransform.position;
+                Quaternion baseRot = shaftTransform.rotation;
+                Quaternion spreadRot = Quaternion.Euler(0f, angleOffset, 0f);
+                Quaternion finalRot = baseRot * spreadRot;
 
-                // Calculates angle for this bullet using math from earlier
-                float angle = startAngle + (bulletCount * bulletSpreadAngle);
-
-                // Euler? I hardly know her!
-                Quaternion baseRotation = shaftTransform.rotation;
-                Quaternion spreadRotation = Quaternion.Euler(0f, angle, 0f);
-                Quaternion bulletRot = baseRotation * spreadRotation;
-
-                // Spawns bullet
-                // Instantiate(projectile, bulletPos, bulletRot);
-                SpawnBulletServerRpc(bulletPos, bulletRot);
+                SpawnBulletServerRpc(spawnPos, finalRot);
             }
 
-            // Waits for cooldown before continuing (this also protects the fire button from being spammed)
             yield return StartCoroutine(BulletCooldown());
 
-            // "Full auto" means that fire will continue as long as the button is held
-            // If full auto is off, then player will have to hit the fire button again for each projectile
-            if (!fullAuto) { yield break; }
+            if (!fullAuto)
+                yield break; // only single shot if not fullAuto
         }
-
     }
 
     private IEnumerator BulletCooldown()
     {
         canFire = false;
-        // Waits for inverse of bullets per second (seconds per bullet)
-        yield return new WaitForSeconds(1 / bulletsPerSecond);
+        yield return new WaitForSeconds(1f / bulletsPerSecond);
         canFire = true;
     }
-
-    private void Recoil()
-    {
-        // TODO: Make this do something
-        // reminder: you want to use the recoilFactor variable
-    }
-
 
     [ServerRpc]
     private void SpawnBulletServerRpc(Vector3 position, Quaternion rotation, ServerRpcParams rpcParams = default)
     {
-        // This code runs on the server (and on the Host as �server�).
-        // Instantiate the projectile prefab, then call .Spawn() so NGO replicates it.
-        GameObject bulletInstance = Instantiate(projectile, position, rotation);
+        GameObject bullet = Instantiate(projectilePrefab, position, rotation);
 
-        // Make sure the prefab has a NetworkObject component!
-        NetworkObject nob = bulletInstance.GetComponent<NetworkObject>();
+        NetworkObject nob = bullet.GetComponent<NetworkObject>();
         if (nob == null)
         {
-            Debug.LogError("SpawnBulletServerRpc: projectilePrefab must have a NetworkObject component.");
-            Destroy(bulletInstance);
+            Debug.LogError("SpawnBulletServerRpc: Prefab needs a NetworkObject!");
+            Destroy(bullet);
             return;
         }
 
-        // Finally, spawn it on the network:
         nob.Spawn();
     }
 }
