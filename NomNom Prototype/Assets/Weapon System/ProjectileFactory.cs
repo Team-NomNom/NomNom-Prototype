@@ -1,10 +1,10 @@
 using System;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions.Must;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 // TO DO LIST
 
@@ -15,7 +15,7 @@ using UnityEngine.UI;
 //      - this projectile should spawn as a child of the factory
 //      - and only one should be spawned at a time
 
-public class ProjectileFactory : MonoBehaviour
+public class ProjectileFactory : NetworkBehaviour
 {
     [SerializeField]
     public GameObject projectile;
@@ -73,7 +73,7 @@ public class ProjectileFactory : MonoBehaviour
 
         try
         {
-            mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+            mainCamera = GameObject.Find("LocalCamera").GetComponent<Camera>();
         }
         catch
         {
@@ -90,6 +90,8 @@ public class ProjectileFactory : MonoBehaviour
         {
             debugScreenText.text = $"# of bullets: {numBullets}\nBullet spread angle: {bulletSpreadAngle} degrees\nBullets per second: {bulletsPerSecond}\nMoves Independently? {movesIndependently}\nFull auto? {fullAuto}";
         }
+
+        if (!IsOwner) return; // Only the local owner can aim
 
 
         if (movesIndependently)
@@ -160,6 +162,9 @@ public class ProjectileFactory : MonoBehaviour
     // For now, input is controlled by the Player Input component in the turret
     public void SpawnBullets(InputAction.CallbackContext context)
     {
+
+        if (!IsOwner) return; // only the owning client can request firing
+
         //Debug.Log($"Attempting loop with context as {context.phase} and bulletloop as {bulletLoop} and canFire as {canFire}");
         if (context.started && bulletLoop == null)
         {
@@ -208,7 +213,8 @@ public class ProjectileFactory : MonoBehaviour
                 Quaternion bulletRot = baseRotation * spreadRotation;
 
                 // Spawns bullet
-                Instantiate(projectile, bulletPos, bulletRot);
+                // Instantiate(projectile, bulletPos, bulletRot);
+                SpawnBulletServerRpc(bulletPos, bulletRot);
             }
 
             // Waits for cooldown before continuing (this also protects the fire button from being spammed)
@@ -233,5 +239,26 @@ public class ProjectileFactory : MonoBehaviour
     {
         // TODO: Make this do something
         // reminder: you want to use the recoilFactor variable
+    }
+
+
+    [ServerRpc]
+    private void SpawnBulletServerRpc(Vector3 position, Quaternion rotation, ServerRpcParams rpcParams = default)
+    {
+        // This code runs on the server (and on the Host as “server”).
+        // Instantiate the projectile prefab, then call .Spawn() so NGO replicates it.
+        GameObject bulletInstance = Instantiate(projectile, position, rotation);
+
+        // Make sure the prefab has a NetworkObject component!
+        NetworkObject nob = bulletInstance.GetComponent<NetworkObject>();
+        if (nob == null)
+        {
+            Debug.LogError("SpawnBulletServerRpc: projectilePrefab must have a NetworkObject component.");
+            Destroy(bulletInstance);
+            return;
+        }
+
+        // Finally, spawn it on the network:
+        nob.Spawn();
     }
 }
