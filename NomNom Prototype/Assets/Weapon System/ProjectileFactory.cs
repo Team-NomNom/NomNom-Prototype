@@ -188,5 +188,31 @@ public class ProjectileFactory : NetworkBehaviour
         {
             baseProj.ownerId.Value = shooterNetworkObjectId;
         }
+
+        // Find the shooter’s tank GameObject by its NetworkObjectId (on server)
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                shooterNetworkObjectId,
+                out NetworkObject shooterNetObj))
+        {
+            GameObject shooterGO = shooterNetObj.gameObject;
+
+            // Get all Colliders on the shooter tank (root + children)
+            Collider[] shooterColliders = shooterGO.GetComponentsInChildren<Collider>(includeInactive: false);
+            // Get all Colliders on the bullet (root + children)
+            Collider[] bulletColliders = bulletInstance.GetComponentsInChildren<Collider>(includeInactive: false);
+
+            // Tell Unity’s physics to ignore collisions between each pair
+            foreach (var tankCol in shooterColliders)
+            {
+                foreach (var bulletCol in bulletColliders)
+                {
+                    Physics.IgnoreCollision(tankCol, bulletCol, true);
+                }
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"SpawnBulletServerRpc: could not find shooter object {shooterNetworkObjectId}");
+        }
     }
 }
