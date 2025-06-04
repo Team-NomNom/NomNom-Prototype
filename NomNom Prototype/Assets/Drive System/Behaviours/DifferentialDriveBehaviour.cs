@@ -12,8 +12,6 @@ public class DifferentialDriveBehaviour : MonoBehaviour, IDriveBehaviour
     {
         netObj = GetComponent<NetworkObject>();
     }
-
-
     public void HandleDrive(Rigidbody rb, DriveInput input, DriveProfile profile, float deltaTime)
     {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
