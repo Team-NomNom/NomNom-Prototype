@@ -3153,6 +3153,10 @@ PrefabInstance:
       propertyPath: 'freezeZones.Array.data[3]'
       value: 
       objectReference: {fileID: 243080643}
+    - target: {fileID: 4466407009493119930, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
+      propertyPath: field of view
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 7069539682052708408, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
       propertyPath: m_VolumeTrigger
       value: 
