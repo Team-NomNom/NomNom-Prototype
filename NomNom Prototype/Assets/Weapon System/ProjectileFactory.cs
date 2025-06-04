@@ -127,18 +127,15 @@ public class ProjectileFactory : NetworkBehaviour
 
     private IEnumerator SpawnBulletLoop()
     {
-        // Wait if we just fired and are still in cooldown
         if (!canFire)
             yield return new WaitUntil(() => canFire);
 
         isFiring = true;
         while (isFiring)
         {
-            // Compute spread
             float totalSpread = bulletSpreadAngle * (numBullets - 1);
             float startAngle = -totalSpread / 2f;
 
-            // For each bullet send a ServerRpc
             for (int i = 0; i < numBullets; i++)
             {
                 float angleOffset = startAngle + i * bulletSpreadAngle;
@@ -147,13 +144,14 @@ public class ProjectileFactory : NetworkBehaviour
                 Quaternion spreadRot = Quaternion.Euler(0f, angleOffset, 0f);
                 Quaternion finalRot = baseRot * spreadRot;
 
-                SpawnBulletServerRpc(spawnPos, finalRot);
+                var tankNetObj = GetComponent<NetworkObject>();
+                ulong myTankId = tankNetObj.NetworkObjectId;
+                SpawnBulletServerRpc(spawnPos, finalRot, myTankId);
             }
 
             yield return StartCoroutine(BulletCooldown());
-
             if (!fullAuto)
-                yield break; // only single shot if not fullAuto
+                yield break;
         }
     }
 
@@ -165,18 +163,30 @@ public class ProjectileFactory : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void SpawnBulletServerRpc(Vector3 position, Quaternion rotation, ServerRpcParams rpcParams = default)
+    private void SpawnBulletServerRpc(
+        Vector3 position,
+        Quaternion rotation,
+        ulong shooterNetworkObjectId,     
+        ServerRpcParams rpcParams = default)
     {
-        GameObject bullet = Instantiate(projectilePrefab, position, rotation);
-
-        NetworkObject nob = bullet.GetComponent<NetworkObject>();
+        // Instantiate on the server
+        GameObject bulletInstance = Instantiate(projectilePrefab, position, rotation);
+        NetworkObject nob = bulletInstance.GetComponent<NetworkObject>();
         if (nob == null)
         {
-            Debug.LogError("SpawnBulletServerRpc: Prefab needs a NetworkObject!");
-            Destroy(bullet);
+            Debug.LogError("SpawnBulletServerRpc: projectilePrefab missing NetworkObject!");
+            Destroy(bulletInstance);
             return;
         }
 
+        // Spawn it first so that ownerId can be written safely
         nob.Spawn();
+
+        // Set the projectile’s ownerId to the passed‐in tank ID
+        var baseProj = bulletInstance.GetComponent<ProjectileBase>();
+        if (baseProj != null)
+        {
+            baseProj.ownerId.Value = shooterNetworkObjectId;
+        }
     }
 }

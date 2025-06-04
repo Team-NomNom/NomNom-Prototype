@@ -23,6 +23,13 @@ public class ProjectileBase : NetworkBehaviour
     [Tooltip("Seconds until this projectile self‐destructs.")]
     [SerializeField] protected float lifetime = 5f;
 
+    // Holds ObjectID of whoever fired at tank
+    public NetworkVariable<ulong> ownerId = new NetworkVariable<ulong>(
+    0u,
+    NetworkVariableReadPermission.Everyone,
+    NetworkVariableWritePermission.Server
+    );
+
     protected Rigidbody rb;
 
     // Called by Netcode on both client & server when this NetworkObject is spawned.
@@ -88,6 +95,14 @@ public class ProjectileBase : NetworkBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (!IsServer) return;
+
+        // If we hit our own shooter, ignore entirely
+        var hitNetObj = collision.collider.GetComponentInParent<NetworkObject>();
+        if (hitNetObj != null && hitNetObj.NetworkObjectId == ownerId.Value)
+        {
+            // We collided with the tank that fired us—do nothing.
+            return;
+        }
 
         // Attempt to apply damage/effect to the thing we hit
         OnHit(collision.collider);
