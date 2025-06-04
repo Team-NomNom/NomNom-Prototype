@@ -688,11 +688,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   projectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
+  homingMissilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
   movesIndependently: 0
   fullAuto: 1
   numBullets: 1
   bulletSpreadAngle: 0
   bulletsPerSecond: 5
+  allowHoming: 1
+  homingCooldown: 5
   recoilFactor: 0
   shaftTransform: {fileID: 7003691086340539106}
   joystickAngleOffset: 90

@@ -83,9 +83,7 @@ public class ProjectileBase : NetworkBehaviour
         }
     }
 
-    /// <summary>
     /// Override in child to add effects (explosion, sound, etc.) when lifetime runs out (aka vfx/sfx).
-    /// </summary>
     protected virtual void OnLifetimeExpired()
     {
 

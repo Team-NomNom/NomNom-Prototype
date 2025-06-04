@@ -3,15 +3,13 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// A network‐enabled projectile factory that uses the Legacy Input System.
-/// Clients call a ServerRpc to spawn bullets. Only the local owner can shoot.
-/// </summary>
 public class ProjectileFactory : NetworkBehaviour
 {
     [Header("Projectile Settings")]
     [Tooltip("Projectile prefab must have a NetworkObject component and be registered in NetworkManager.")]
     [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private GameObject homingMissilePrefab;
+
 
     [Header("Fire Mode")]
     [Tooltip("If true, turret rotates independently of tank drive.")]
@@ -24,6 +22,13 @@ public class ProjectileFactory : NetworkBehaviour
     [SerializeField] private float bulletSpreadAngle = 0f;
     [Tooltip("Maximum number of bullets spawned per second.")]
     [SerializeField] private float bulletsPerSecond = 1f;
+
+    [Header("Homing Missile")]
+    [Tooltip("Check this box to enable homing missile on right‐click.")]
+    [SerializeField] private bool allowHoming = false;
+
+    [Tooltip("How many homing missiles can be fired per second (optional cooldown).")]
+    [SerializeField] private float homingCooldown = 1f;
 
     [Header("Recoil & Offsets")]
     [Tooltip("How much to shove the tank backwards when firing (optional).")]
@@ -41,6 +46,9 @@ public class ProjectileFactory : NetworkBehaviour
     private Coroutine bulletLoop;
     private bool canFire = true;
     private bool isFiring = false;
+
+    private bool canFireHoming = true;
+
 
     // Legacy Input names
     private const string FIRE_BUTTON = "Fire1"; 
@@ -123,6 +131,11 @@ public class ProjectileFactory : NetworkBehaviour
                     bulletLoop = StartCoroutine(SpawnBulletLoop());
             }
         }
+
+        if (allowHoming && canFireHoming && Input.GetMouseButtonDown(1))
+        {
+            FireHomingMissileOnce();
+        }
     }
 
     private IEnumerator SpawnBulletLoop()
@@ -160,6 +173,27 @@ public class ProjectileFactory : NetworkBehaviour
         canFire = false;
         yield return new WaitForSeconds(1f / bulletsPerSecond);
         canFire = true;
+    }
+
+    // Immediate, one‐time homing missile spawn (no coroutine needed, but enforces a cooldown)
+    private void FireHomingMissileOnce()
+    {
+        canFireHoming = false;
+
+        Vector3 spawnPos = shaftTransform.position;
+        Quaternion spawnRot = shaftTransform.rotation;
+
+        ulong myTankId = GetComponent<NetworkObject>().NetworkObjectId;
+        SpawnHomingMissileServerRpc(spawnPos, spawnRot, myTankId);
+
+        // Start cooldown before we can fire another homing missile
+        StartCoroutine(HomingCooldown());
+    }
+
+    private IEnumerator HomingCooldown()
+    {
+        yield return new WaitForSeconds(homingCooldown);
+        canFireHoming = true;
     }
 
     [ServerRpc]
@@ -215,4 +249,60 @@ public class ProjectileFactory : NetworkBehaviour
             Debug.LogWarning($"SpawnBulletServerRpc: could not find shooter object {shooterNetworkObjectId}");
         }
     }
+
+    [ServerRpc]
+    private void SpawnHomingMissileServerRpc(
+        Vector3 position,
+        Quaternion rotation,
+        ulong shooterNetworkObjectId,
+        ServerRpcParams rpcParams = default)
+    {
+        // Instantiate on the server
+        GameObject missileInstance = Instantiate(homingMissilePrefab, position, rotation);
+        NetworkObject nob = missileInstance.GetComponent<NetworkObject>();
+        if (nob == null)
+        {
+            Debug.LogError("SpawnHomingMissileServerRpc: homingMissilePrefab missing NetworkObject!");
+            Destroy(missileInstance);
+            return;
+        }
+
+        // Spawn it so NetworkVariables become valid
+        nob.Spawn();
+
+        // Set ownerId on ProjectileBase
+        var baseProj = missileInstance.GetComponent<ProjectileBase>();
+        if (baseProj != null)
+        {
+            baseProj.ownerId.Value = shooterNetworkObjectId;
+        }
+
+        // Prevent collisions between this missile and its shooter
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(
+                shooterNetworkObjectId,
+                out NetworkObject shooterNetObj))
+        {
+            GameObject shooterGO = shooterNetObj.gameObject;
+            Collider[] shooterCols = shooterGO.GetComponentsInChildren<Collider>(false);
+            Collider[] missileCols = missileInstance.GetComponentsInChildren<Collider>(false);
+
+            foreach (var tankCol in shooterCols)
+                foreach (var missileCol in missileCols)
+                    Physics.IgnoreCollision(tankCol, missileCol, true);
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"SpawnHomingMissileServerRpc: could not find shooter object {shooterNetworkObjectId}"
+            );
+        }
+
+        // Explicitly select a target now that ownerId is set
+        var homing = missileInstance.GetComponent<HomingProjectile>();
+        if (homing != null)
+        {
+            homing.SelectTarget();
+        }
+    }
+
 }
