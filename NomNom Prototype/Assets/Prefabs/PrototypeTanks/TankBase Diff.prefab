@@ -450,6 +450,7 @@ GameObject:
   - component: {fileID: 7602811718447538566}
   - component: {fileID: 6357561973925527749}
   - component: {fileID: 3223559092925386599}
+  - component: {fileID: 1432667664924225826}
   m_Layer: 0
   m_Name: TankBase Diff
   m_TagString: Player
@@ -687,19 +688,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  projectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
+  simpleProjectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
   homingMissilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
-  movesIndependently: 0
-  fullAuto: 1
-  numBullets: 1
-  bulletSpreadAngle: 0
-  bulletsPerSecond: 5
-  allowHoming: 1
-  homingCooldown: 5
-  recoilFactor: 0
-  shaftTransform: {fileID: 7003691086340539106}
-  joystickAngleOffset: 90
-  debugScreenText: {fileID: 0}
+  arcGrenadePrefab: {fileID: 1343818377063820803, guid: 934a467abe6a0f34a9a3061bc2591349, type: 3}
+  simpleConfig: {fileID: 11400000, guid: fdaef374b93c2ce40b9a31e3cde1cd53, type: 2}
+  homingConfig: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+  arcConfig: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
+  muzzleTransform: {fileID: 7003691086340539106}
 --- !u!114 &7602811718447538566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -775,6 +770,29 @@ MonoBehaviour:
   maxHealth: 100
   healthBar: {fileID: 0}
   healthText: {fileID: 7751844799248634326, guid: ca50a42dfc51b0547a4e81415e45207f, type: 3}
+--- !u!114 &1432667664924225826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3626744771387545982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2732ddd4ff59932499ecdaee79648092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireSimpleKey: 323
+  fireHomingKey: 113
+  fireArcKey: 101
+  fireSimpleAxis: Fire1
+  fireHomingAxis: Fire2
+  fireArcAxis: Fire3
+  movesIndependently: 0
+  turretTransform: {fileID: 7003691086340539106}
+  turretRotateSpeed: 100
+  turretHorizontalAxis: Mouse X
+  turretVerticalAxis: Mouse Y
 --- !u!1 &7209051376469364900
 GameObject:
   m_ObjectHideFlags: 0

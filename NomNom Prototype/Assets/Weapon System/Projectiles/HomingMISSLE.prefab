@@ -225,9 +225,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  speed: 10
-  damage: 30
-  lifetime: 12
+  config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+  useArcTrajectory: 0
+  launchAngle: 45
   ownerId:
     m_InternalValue: 0
   turnSpeed: 300

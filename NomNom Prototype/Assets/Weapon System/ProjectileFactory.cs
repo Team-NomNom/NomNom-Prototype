@@ -1,192 +1,110 @@
-﻿// Cleaned-Up Projectile System
-// All classes are structured to be modular, readable, and follow OOP principles
-
-using System.Collections;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
+/// <summary>
+/// Responsible for instantiating different types of projectiles.
+/// Reads from modular configuration (ScriptableObjects).
+/// </summary>
 public class ProjectileFactory : NetworkBehaviour
 {
-    [Header("Projectile Settings")]
-    [SerializeField] private GameObject projectilePrefab;
+    [Header("Projectile Prefabs")]
+    [SerializeField] private GameObject simpleProjectilePrefab;
     [SerializeField] private GameObject homingMissilePrefab;
+    [SerializeField] private GameObject arcGrenadePrefab;
 
-    [Header("Fire Mode")]
-    [SerializeField] private bool movesIndependently = true;
-    [SerializeField] private bool fullAuto = true;
-    [SerializeField] private int numBullets = 1;
-    [SerializeField] private float bulletSpreadAngle = 0f;
-    [SerializeField] private float bulletsPerSecond = 1f;
+    [Header("Projectile Configs")]
+    [SerializeField] private ProjectileConfig simpleConfig;
+    [SerializeField] private ProjectileConfig homingConfig;
+    [SerializeField] private ProjectileConfig arcConfig;
 
-    [Header("Homing Missile")]
-    [SerializeField] private bool allowHoming = false;
-    [SerializeField] private float homingCooldown = 1f;
+    [Header("Spawn Info")]
+    [Tooltip("Where projectiles originate from.")]
+    [SerializeField] private Transform muzzleTransform;
 
-    [Header("Recoil & Offsets")]
-    [SerializeField] private float recoilFactor = 0f;
-    [SerializeField] private Transform shaftTransform;
-    [SerializeField] private float joystickAngleOffset = 90f;
+    private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
 
-    [Header("UI (Optional)")]
-    [SerializeField] private Text debugScreenText;
+    // --------- Public firing methods ---------
 
-    private Coroutine bulletLoop;
-    private bool canFire = true;
-    private bool canFireHoming = true;
-    private const string FIRE_BUTTON = "Fire1";
-
-    void Update()
+    public void FireSimpleProjectile()
     {
-        if (!IsOwner) return;
-
-        UpdateDebugUI();
-        HandleAiming();
-        HandleFiring();
+        if (!IsOwner || simpleProjectilePrefab == null) return;
+        SpawnProjectileServerRpc(simpleProjectilePrefab.name, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
     }
 
-    private void UpdateDebugUI()
+    public void FireHomingMissile()
     {
-        if (debugScreenText != null)
-        {
-            debugScreenText.text =
-                $"# Bullets: {numBullets}\nSpread: {bulletSpreadAngle}°\nBullets/sec: {bulletsPerSecond}\n" +
-                $"Independent Aim? {movesIndependently}\nFull Auto? {fullAuto}\n" +
-                $"Allow Homing? {allowHoming}\nHoming CD: {homingCooldown:F1}s";
-        }
+        if (!IsOwner || homingMissilePrefab == null) return;
+        SpawnProjectileServerRpc(homingMissilePrefab.name, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
     }
 
-    private void HandleAiming()
+    public void FireArcGrenade()
     {
-        if (!movesIndependently) return;
-
-        if (Input.mousePresent && Camera.main != null)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-            {
-                Vector3 dir = hit.point - shaftTransform.position;
-                dir.y = 0f;
-                if (dir.sqrMagnitude > 0.001f)
-                {
-                    shaftTransform.rotation = Quaternion.LookRotation(dir);
-                }
-            }
-        }
-        else
-        {
-            float x = Input.GetAxis("RightStickHorizontal");
-            float y = Input.GetAxis("RightStickVertical");
-            Vector2 input = new Vector2(x, y);
-
-            if (input.magnitude > 0.2f)
-            {
-                float angle = Mathf.Atan2(y, x) * Mathf.Rad2Deg + joystickAngleOffset;
-                shaftTransform.rotation = Quaternion.Euler(0f, angle, 0f);
-            }
-        }
+        if (!IsOwner || arcGrenadePrefab == null) return;
+        SpawnProjectileServerRpc(arcGrenadePrefab.name, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
     }
 
-    private void HandleFiring()
-    {
-        if (fullAuto)
-        {
-            if (Input.GetButton(FIRE_BUTTON) && bulletLoop == null)
-            {
-                bulletLoop = StartCoroutine(SpawnBulletLoop());
-            }
-            else if (!Input.GetButton(FIRE_BUTTON) && bulletLoop != null)
-            {
-                StopCoroutine(bulletLoop);
-                bulletLoop = null;
-            }
-        }
-        else if (Input.GetButtonDown(FIRE_BUTTON))
-        {
-            StartCoroutine(SpawnBulletLoop());
-        }
-
-        if (allowHoming && canFireHoming && Input.GetMouseButtonDown(1))
-        {
-            FireHomingMissile();
-        }
-    }
-
-    private IEnumerator SpawnBulletLoop()
-    {
-        if (!canFire)
-            yield return new WaitUntil(() => canFire);
-
-        while (true)
-        {
-            float totalSpread = bulletSpreadAngle * (numBullets - 1);
-            float startAngle = -totalSpread / 2f;
-            ulong shooterId = GetComponent<NetworkObject>().NetworkObjectId;
-
-            for (int i = 0; i < numBullets; i++)
-            {
-                Quaternion spreadRot = Quaternion.Euler(0f, startAngle + i * bulletSpreadAngle, 0f);
-                Quaternion finalRot = shaftTransform.rotation * spreadRot;
-                SpawnBulletServerRpc(shaftTransform.position, finalRot, shooterId);
-            }
-
-            yield return new WaitForSeconds(1f / bulletsPerSecond);
-            if (!fullAuto) yield break;
-        }
-    }
-
-    private void FireHomingMissile()
-    {
-        canFireHoming = false;
-        ulong shooterId = GetComponent<NetworkObject>().NetworkObjectId;
-        SpawnHomingMissileServerRpc(shaftTransform.position, shaftTransform.rotation, shooterId);
-        StartCoroutine(ResetHomingCooldown());
-    }
-
-    private IEnumerator ResetHomingCooldown()
-    {
-        yield return new WaitForSeconds(homingCooldown);
-        canFireHoming = true;
-    }
+    // --------- Server side spawn logic ---------
 
     [ServerRpc]
-    private void SpawnBulletServerRpc(Vector3 pos, Quaternion rot, ulong shooterId, ServerRpcParams rpcParams = default)
+    private void SpawnProjectileServerRpc(string prefabName, Vector3 position, Quaternion rotation, ulong shooterId, ServerRpcParams rpcParams = default)
     {
-        GameObject bullet = Instantiate(projectilePrefab, pos, rot);
-        var nob = bullet.GetComponent<NetworkObject>();
-        if (nob == null) { Destroy(bullet); return; }
+        GameObject prefab = LookupProjectilePrefab(prefabName);
+        ProjectileConfig config = LookupProjectileConfig(prefabName);
 
-        nob.Spawn();
-        var proj = bullet.GetComponent<ProjectileBase>();
-        if (proj != null) proj.ownerId.Value = shooterId;
-        IgnoreCollisionWithShooter(bullet, shooterId);
+        if (prefab == null || config == null)
+        {
+            Debug.LogError($"ProjectileFactory: Missing prefab or config for {prefabName}");
+            return;
+        }
+
+        GameObject instance = Instantiate(prefab, position, rotation);
+
+        if (!instance.TryGetComponent<NetworkObject>(out var netObj))
+        {
+            Debug.LogError("Projectile prefab must contain a NetworkObject component.");
+            Destroy(instance);
+            return;
+        }
+
+        netObj.Spawn();
+
+        if (instance.TryGetComponent<IProjectile>(out var projectile))
+        {
+            projectile.Initialize(shooterId);
+            projectile.ApplyConfig(config);
+        }
+
+        IgnoreCollisionWithShooter(instance, shooterId);
     }
 
-    [ServerRpc]
-    private void SpawnHomingMissileServerRpc(Vector3 pos, Quaternion rot, ulong shooterId, ServerRpcParams rpcParams = default)
+    // --------- Helper methods ---------
+
+    private GameObject LookupProjectilePrefab(string name)
     {
-        GameObject missile = Instantiate(homingMissilePrefab, pos, rot);
-        var nob = missile.GetComponent<NetworkObject>();
-        if (nob == null) { Destroy(missile); return; }
+        if (name == simpleProjectilePrefab.name) return simpleProjectilePrefab;
+        if (name == homingMissilePrefab.name) return homingMissilePrefab;
+        if (name == arcGrenadePrefab.name) return arcGrenadePrefab;
+        return null;
+    }
 
-        nob.Spawn();
-        var proj = missile.GetComponent<ProjectileBase>();
-        if (proj != null) proj.ownerId.Value = shooterId;
-        IgnoreCollisionWithShooter(missile, shooterId);
-
-        var homing = missile.GetComponent<HomingProjectile>();
-        if (homing != null) homing.SelectTarget();
+    private ProjectileConfig LookupProjectileConfig(string name)
+    {
+        if (name == simpleProjectilePrefab.name) return simpleConfig;
+        if (name == homingMissilePrefab.name) return homingConfig;
+        if (name == arcGrenadePrefab.name) return arcConfig;
+        return null;
     }
 
     private void IgnoreCollisionWithShooter(GameObject projectile, ulong shooterId)
     {
-        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(shooterId, out NetworkObject shooterObj)) return;
+        if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(shooterId, out var shooterNetObj)) return;
 
-        Collider[] tankCols = shooterObj.GetComponentsInChildren<Collider>();
-        Collider[] projCols = projectile.GetComponentsInChildren<Collider>();
+        Collider[] shooterColliders = shooterNetObj.GetComponentsInChildren<Collider>();
+        Collider[] projectileColliders = projectile.GetComponentsInChildren<Collider>();
 
-        foreach (var t in tankCols)
-            foreach (var p in projCols)
-                Physics.IgnoreCollision(t, p, true);
+        foreach (var sCol in shooterColliders)
+            foreach (var pCol in projectileColliders)
+                Physics.IgnoreCollision(sCol, pCol, true);
     }
 }

@@ -223,19 +223,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  speed: 20
-  damage: 40
-  lifetime: 3
   ownerId:
     m_InternalValue: 0
-  initialSpeed: 13.49
-  launchAngle: 85
   maxBounces: 3
   bounceMaterial: {fileID: 13400000, guid: ed3c0a1fc3d7a234c99d2247d30ff119, type: 2}
-  fuseTime: 3
-  explosionDamage: 40
-  explosionRadius: 3
+  explosionVfxPrefab: {fileID: 0}
+  explosionRadius: 4
   damageableLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  explosionVfxPrefab: {fileID: 0}

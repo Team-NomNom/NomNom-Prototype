@@ -223,7 +223,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  speed: 10
-  damage: 10
-  lifetime: 5
-  hitEffectPrefab: {fileID: 0}
+  config: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
+  useArcTrajectory: 0
+  launchAngle: 45
+  ownerId:
+    m_InternalValue: 0
