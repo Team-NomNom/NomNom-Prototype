@@ -15,10 +15,5 @@ MonoBehaviour:
   speed: 10
   damage: 40
   lifetime: 5
+  affectsOwner: 1
   hitEffectPrefab: {fileID: 0}
-  explosionEffectPrefab: {fileID: 0}
-  explosionRadius: 3
-  directHitMultiplier: 1
-  damageableLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295

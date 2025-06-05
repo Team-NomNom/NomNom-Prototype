@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Netcode;
 
 public class ArcGrenade : ProjectileBase
@@ -27,15 +27,13 @@ public class ArcGrenade : ProjectileBase
         rb.linearVelocity = dir.normalized * vXZ + Vector3.up * vY;
     }
 
-    protected override void OnCollisionEnter(Collision collision)
+    protected virtual void OnCollisionEnter(Collision collision)
     {
         if (!IsServer || hasExploded) return;
 
-        var netObj = collision.collider.GetComponentInParent<NetworkObject>();
-        if (netObj != null && netObj.NetworkObjectId == ownerId.Value && !config.affectsOwner)
-            return;
+        if (ShouldSkipTarget(collision.collider)) return;
 
-        if (collision.collider.TryGetComponent<IDamagable>(out var dmg))
+        if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
             dmg.TakeDamage(config.damage * 0.2f);
         }
@@ -51,16 +49,13 @@ public class ArcGrenade : ProjectileBase
     {
         hasExploded = true;
 
-        Debug.Log($"[ArcGrenade] Exploding at {transform.position} with radius {explosionRadius}");
-
         Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius, damageableLayers);
         foreach (var hit in hits)
         {
-            Debug.Log($"[ArcGrenade] Explosion hit {hit.name}");
+            if (ShouldSkipTarget(hit)) continue;
 
             if (hit.GetComponentInParent<IDamagable>() is IDamagable dmg)
             {
-                Debug.Log($"[ArcGrenade] Dealing {config.damage} to {hit.name}");
                 dmg.TakeDamage(config.damage);
             }
         }
@@ -72,16 +67,4 @@ public class ArcGrenade : ProjectileBase
 
         GetComponent<NetworkObject>().Despawn();
     }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = new Color(0f, 1f, 0f, 1f); 
-        Gizmos.DrawSphere(transform.position, explosionRadius);
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, explosionRadius);
-    }
-#endif
-
 }

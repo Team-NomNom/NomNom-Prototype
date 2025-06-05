@@ -3,5 +3,10 @@ using Unity.Netcode;
 using UnityEngine;
 public class SimpleProjectile : ProjectileBase
 {
-    // Simple projectile doesn't need overrides unless adding specific behaviors
+    // Inherits all behavior from ProjectileBase
+    // Add debug logging to confirm it uses updated base
+    private void Start()
+    {
+        Debug.Log("[SimpleProjectile] Initialized with base behavior");
+    }
 }

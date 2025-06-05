@@ -6,20 +6,21 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
 {
     protected Rigidbody rb;
     protected ProjectileConfig config;
+    protected Transform shooterRoot;
 
     public NetworkVariable<ulong> ownerId = new(0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
-    public virtual void Initialize(ulong shooterId)
+    public virtual void Initialize(ulong shooterId, GameObject shooterRootObj)
     {
         ownerId.Value = shooterId;
+        shooterRoot = shooterRootObj.transform;
     }
 
     public virtual void ApplyConfig(ProjectileConfig cfg)
     {
-        config = Instantiate(cfg); // Clone to avoid shared SO issues
-        Debug.Log($"[ProjectileBase] Config applied to {gameObject.name} | Speed={config.speed}, Lifetime={config.lifetime}, AffectsOwner={config.affectsOwner}");
+        config = Instantiate(cfg);
     }
 
     public override void OnNetworkSpawn()
@@ -43,33 +44,14 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
 
     protected virtual void InitializeMotion()
     {
-        if (config == null)
-        {
-            Debug.LogError($"[ProjectileBase] InitializeMotion failed on {gameObject.name}: config was null.");
-            return;
-        }
-
+        if (config == null) return;
         rb.linearVelocity = transform.forward * config.speed;
-        Debug.Log($"[ProjectileBase] {gameObject.name} velocity set to {rb.linearVelocity}");
     }
 
     private IEnumerator DestroyAfterLifetime()
     {
-        float timeout = 2f;
-        float waited = 0f;
-
-        while (config == null && waited < timeout)
-        {
-            waited += Time.deltaTime;
+        while (config == null)
             yield return null;
-        }
-
-        if (config == null)
-        {
-            Debug.LogError($"[ProjectileBase] {gameObject.name} config never set. Despawning.");
-            GetComponent<NetworkObject>().Despawn();
-            yield break;
-        }
 
         yield return new WaitForSeconds(config.lifetime);
 
@@ -80,52 +62,45 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
         }
     }
 
-    protected virtual void OnLifetimeExpired()
-    {
-        Debug.Log($"[ProjectileBase] {gameObject.name} expired after {config.lifetime} seconds.");
-    }
+    protected virtual void OnLifetimeExpired() { }
 
     protected virtual void OnCollisionEnter(Collision collision)
     {
         if (!IsServer) return;
 
-        var netObj = collision.collider.GetComponentInParent<NetworkObject>();
-        ulong hitId = netObj?.NetworkObjectId ?? 999999;
+        Debug.Log($"[ProjectileBase] OnCollisionEnter: {name} hit {collision.collider.name}");
 
-        Debug.Log($"[ProjectileBase] {gameObject.name} hit {collision.collider.name} | Owner={ownerId.Value} | HitId={hitId} | AffectsOwner={config?.affectsOwner}");
-
-        // Skip owner if not supposed to damage them
-        if (netObj != null && netObj.NetworkObjectId == ownerId.Value)
-        {
-            if (!config.affectsOwner)
-            {
-                Debug.Log($"[ProjectileBase] {gameObject.name} hit owner but affectsOwner == false → no damage");
-                return;
-            }
-            else
-            {
-                Debug.Log($"[ProjectileBase] {gameObject.name} hit owner and affectsOwner == true → proceed with damage");
-            }
-        }
+        if (ShouldSkipTarget(collision.collider)) return;
 
         OnHit(collision.collider);
-
-        if (IsServer)
-        {
-            GetComponent<NetworkObject>().Despawn();
-        }
+        GetComponent<NetworkObject>().Despawn();
     }
 
     protected virtual void OnHit(Collider other)
     {
+        if (ShouldSkipTarget(other)) return;
+
         if (other.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
-            Debug.Log($"[ProjectileBase] {gameObject.name} dealt {config.damage} damage to {other.name}");
+            Debug.Log($"[ProjectileBase] {gameObject.name} applied {config.damage} damage to {other.name}");
             dmg.TakeDamage(config.damage);
         }
         else
         {
-            Debug.LogWarning($"[ProjectileBase] {gameObject.name} hit {other.name} but no IDamagable found in parent.");
+            Debug.LogWarning($"[ProjectileBase] {gameObject.name} hit {other.name} but no IDamagable found.");
         }
+    }
+
+    protected bool ShouldSkipTarget(Collider hit)
+    {
+        var isShooter = shooterRoot != null && hit.transform.root == shooterRoot.transform;
+        Debug.Log($"[Debug] Hit={hit.name}, Root={hit.transform.root.name}, Shooter={shooterRoot?.name}, IsShooter={isShooter}, AffectsOwner={config?.affectsOwner}");
+
+        if (isShooter && !config.affectsOwner)
+        {
+            Debug.Log("[Debug] Skipping damage to self.");
+            return true;
+        }
+        return false;
     }
 }

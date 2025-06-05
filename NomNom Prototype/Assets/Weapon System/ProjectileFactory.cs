@@ -50,17 +50,15 @@ public class ProjectileFactory : NetworkBehaviour
     private void SpawnProjectileServerRpc(string prefabName, Vector3 position, Quaternion rotation, ulong shooterId, ServerRpcParams rpcParams = default)
     {
         GameObject prefab = LookupProjectilePrefab(prefabName);
-        ProjectileConfig config = LookupProjectileConfig(prefabName);
-
-        if (prefab == null || config == null)
+        if (prefab == null)
         {
-            Debug.LogError($"ProjectileFactory: Missing prefab or config for {prefabName}");
+            Debug.LogError($"ProjectileFactory: Could not find prefab named {prefabName}.");
             return;
         }
 
         GameObject instance = Instantiate(prefab, position, rotation);
-
-        if (!instance.TryGetComponent<NetworkObject>(out var netObj))
+        var netObj = instance.GetComponent<NetworkObject>();
+        if (netObj == null)
         {
             Debug.LogError("Projectile prefab must contain a NetworkObject component.");
             Destroy(instance);
@@ -69,14 +67,17 @@ public class ProjectileFactory : NetworkBehaviour
 
         netObj.Spawn();
 
-        if (instance.TryGetComponent<IProjectile>(out var projectile))
+        var proj = instance.GetComponent<IProjectile>();
+        if (proj != null)
         {
-            projectile.Initialize(shooterId);
-            projectile.ApplyConfig(config);
+            proj.Initialize(shooterId, gameObject); // Pass factory's gameObject as shooter root
+            proj.ApplyConfig(LookupProjectileConfig(prefabName));
+            // Ensure config is applied correctly
         }
 
         IgnoreCollisionWithShooter(instance, shooterId);
     }
+
 
     // --------- Helper methods ---------
 
