@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2a1ab8741dd89140b894c86d6671493, type: 3}
   m_Name: SimpleProjectile
   m_EditorClassIdentifier: 
-  speed: 3
+  speed: 10
   damage: 10
   lifetime: 5
   affectsOwner: 1

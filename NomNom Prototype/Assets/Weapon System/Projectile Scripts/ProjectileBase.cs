@@ -45,7 +45,14 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
     protected virtual void InitializeMotion()
     {
         if (config == null) return;
-        rb.linearVelocity = transform.forward * config.speed;
+        Vector3 shooterVelocity = Vector3.zero;
+
+        if (shooterRoot != null && shooterRoot.TryGetComponent<Rigidbody>(out var shooterRb))
+        {
+            shooterVelocity = shooterRb.linearVelocity;
+        }
+
+        rb.linearVelocity = shooterVelocity + transform.forward * config.speed;
     }
 
     private IEnumerator DestroyAfterLifetime()
