@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -21,10 +22,22 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private InputField joinCodeInputField;
     [SerializeField] private Text lobbyCodeText;
     [SerializeField] private Button copyLobbyCodeButton;
+    [SerializeField] private Button leaveLobbyButton;
+    [SerializeField] private Text playerListText;
+    [SerializeField] private InputField playerNameInputField;
+
+    [Header("Panels")]
+    [SerializeField] private GameObject preLobbyPanel;
+    [SerializeField] private GameObject inLobbyPanel;
 
     private Lobby currentLobby;
     private string currentLobbyCode;
-    private const int MaxPlayers = 10;
+    private const int MaxPlayers = 4;
+
+    private float heartbeatInterval = 15f;
+    private float lobbyPollInterval = 3f;
+    private Coroutine heartbeatCoroutine;
+    private Coroutine lobbyPollCoroutine;
 
     private async void Awake()
     {
@@ -38,23 +51,26 @@ public class LobbyManager : MonoBehaviour
 
         createLobbyButton.onClick.AddListener(() => CreateLobby());
         joinLobbyButton.onClick.AddListener(() => JoinLobby(joinCodeInputField.text.Trim()));
+        leaveLobbyButton.onClick.AddListener(() => LeaveLobby());
 
         if (copyLobbyCodeButton != null)
             copyLobbyCodeButton.onClick.AddListener(CopyLobbyCodeToClipboard);
+
+        // Start in pre-lobby state
+        UpdateUIState(false);
     }
 
     public async void CreateLobby()
     {
         try
         {
-            // Allocate Relay server first
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxPlayers);
             string relayJoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
-            // Create Lobby and embed the Relay join code
             CreateLobbyOptions options = new CreateLobbyOptions
             {
                 IsPrivate = false,
+                Player = CreateLocalPlayerObject(),
                 Data = new Dictionary<string, DataObject>
                 {
                     {
@@ -66,24 +82,24 @@ public class LobbyManager : MonoBehaviour
 
             currentLobby = await Lobbies.Instance.CreateLobbyAsync("MyLobby", MaxPlayers, options);
 
-            // Fetch the lobby again to get the LobbyCode
             var lobbyInfo = await Lobbies.Instance.GetLobbyAsync(currentLobby.Id);
             currentLobbyCode = lobbyInfo.LobbyCode;
 
             Debug.Log($"Lobby created! Lobby ID: {currentLobby.Id}, Lobby Code: {currentLobbyCode}, RelayJoinCode: {relayJoinCode}");
 
-            // Update UI
             if (lobbyCodeText != null)
-            {
                 lobbyCodeText.text = $"{currentLobbyCode}";
-            }
 
-            // Setup Relay for Host
             SetRelayTransportAsHost(allocation);
 
-            // Start Host
             NetworkManager.Singleton.StartHost();
             Debug.Log("Host started using Relay.");
+
+            StartLobbyHeartbeat();
+            StartLobbyPolling();
+
+            // Switch to in-lobby UI
+            UpdateUIState(true);
         }
         catch (Exception e)
         {
@@ -101,28 +117,32 @@ public class LobbyManager : MonoBehaviour
                 return;
             }
 
-            currentLobby = await Lobbies.Instance.JoinLobbyByCodeAsync(lobbyCode);
-            currentLobbyCode = lobbyCode; // Save entered code
+            JoinLobbyByCodeOptions options = new JoinLobbyByCodeOptions
+            {
+                Player = CreateLocalPlayerObject()
+            };
+
+            currentLobby = await Lobbies.Instance.JoinLobbyByCodeAsync(lobbyCode, options);
+            currentLobbyCode = lobbyCode;
 
             Debug.Log($"Joined Lobby! Lobby ID: {currentLobby.Id}");
 
-            // Fetch Relay join code from lobby data
             string relayJoinCode = currentLobby.Data["RelayJoinCode"].Value;
 
-            // Join Relay
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(relayJoinCode);
 
             SetRelayTransportAsClient(joinAllocation);
 
-            // Update UI for client too
             if (lobbyCodeText != null)
-            {
                 lobbyCodeText.text = $"{currentLobbyCode}";
-            }
 
-            // Start Client
             NetworkManager.Singleton.StartClient();
             Debug.Log("Client started using Relay.");
+
+            StartLobbyPolling();
+
+            // Switch to in-lobby UI
+            UpdateUIState(true);
         }
         catch (Exception e)
         {
@@ -130,6 +150,25 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
+    private Player CreateLocalPlayerObject()
+    {
+        string playerName = playerNameInputField != null && !string.IsNullOrWhiteSpace(playerNameInputField.text)
+            ? playerNameInputField.text.Trim()
+            : $"Player_{UnityEngine.Random.Range(1000, 9999)}";
+
+        Debug.Log($"Using Player Name: {playerName}");
+
+        return new Player
+        {
+            Data = new Dictionary<string, PlayerDataObject>
+            {
+                {
+                    "DisplayName",
+                    new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, playerName)
+                }
+            }
+        };
+    }
 
     private void SetRelayTransportAsHost(Allocation allocation)
     {
@@ -154,5 +193,137 @@ public class LobbyManager : MonoBehaviour
         {
             Debug.LogWarning("No Lobby Code available to copy.");
         }
+    }
+
+    public async void LeaveLobby()
+    {
+        try
+        {
+            if (currentLobby != null)
+            {
+                if (NetworkManager.Singleton.IsHost)
+                {
+                    await Lobbies.Instance.DeleteLobbyAsync(currentLobby.Id);
+                    Debug.Log("Host deleted the Lobby.");
+                }
+                else
+                {
+                    await Lobbies.Instance.RemovePlayerAsync(currentLobby.Id, AuthenticationService.Instance.PlayerId);
+                    Debug.Log("Client left the Lobby.");
+                }
+
+                currentLobby = null;
+            }
+
+            NetworkManager.Singleton.Shutdown();
+
+            StopLobbyHeartbeat();
+            StopLobbyPolling();
+
+            if (lobbyCodeText != null)
+                lobbyCodeText.text = "(none)";
+            if (playerListText != null)
+                playerListText.text = "\n";
+
+            Debug.Log("Left Lobby and shutdown network.");
+
+            // Switch back to pre-lobby UI
+            UpdateUIState(false);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to leave lobby: {e}");
+        }
+    }
+
+    private void StartLobbyHeartbeat()
+    {
+        if (heartbeatCoroutine != null)
+            StopCoroutine(heartbeatCoroutine);
+        heartbeatCoroutine = StartCoroutine(HeartbeatCoroutine());
+    }
+
+    private void StopLobbyHeartbeat()
+    {
+        if (heartbeatCoroutine != null)
+            StopCoroutine(heartbeatCoroutine);
+        heartbeatCoroutine = null;
+    }
+
+    private IEnumerator HeartbeatCoroutine()
+    {
+        while (currentLobby != null && NetworkManager.Singleton.IsHost)
+        {
+            Lobbies.Instance.SendHeartbeatPingAsync(currentLobby.Id);
+            Debug.Log("Sent Lobby heartbeat.");
+            yield return new WaitForSeconds(heartbeatInterval);
+        }
+    }
+
+    private void StartLobbyPolling()
+    {
+        if (lobbyPollCoroutine != null)
+            StopCoroutine(lobbyPollCoroutine);
+        lobbyPollCoroutine = StartCoroutine(LobbyPollCoroutine());
+    }
+
+    private void StopLobbyPolling()
+    {
+        if (lobbyPollCoroutine != null)
+            StopCoroutine(lobbyPollCoroutine);
+        lobbyPollCoroutine = null;
+    }
+
+    private IEnumerator LobbyPollCoroutine()
+    {
+        while (currentLobby != null)
+        {
+            yield return new WaitForSeconds(lobbyPollInterval);
+
+            Task<Lobby> getLobbyTask = Lobbies.Instance.GetLobbyAsync(currentLobby.Id);
+            yield return new WaitUntil(() => getLobbyTask.IsCompleted);
+
+            try
+            {
+                if (getLobbyTask.Exception != null)
+                {
+                    throw getLobbyTask.Exception;
+                }
+
+                currentLobby = getLobbyTask.Result;
+                UpdatePlayerListUI();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to poll lobby: {e}");
+            }
+        }
+    }
+
+    private void UpdatePlayerListUI()
+    {
+        if (playerListText == null || currentLobby == null)
+            return;
+
+        string playerList = "Players:\n";
+        foreach (var player in currentLobby.Players)
+        {
+            string displayName = player.Data != null && player.Data.ContainsKey("DisplayName")
+                ? player.Data["DisplayName"].Value
+                : player.Id;
+
+            playerList += $"- {displayName}\n";
+        }
+
+        playerListText.text = playerList;
+    }
+
+    private void UpdateUIState(bool inLobby)
+    {
+        if (preLobbyPanel != null)
+            preLobbyPanel.SetActive(!inLobby);
+
+        if (inLobbyPanel != null)
+            inLobbyPanel.SetActive(inLobby);
     }
 }
