@@ -49,8 +49,9 @@ public class LobbyManager : MonoBehaviour
     // Map playerId -> clientId for tracking connected players
     private Dictionary<string, ulong> playerIdToClientId = new Dictionary<string, ulong>();
 
-    // Track playerIds that are currently Disconnected (Host side)
-    private HashSet<string> disconnectedPlayerIds = new HashSet<string>();
+    // Track playerIds that are currently disconnected (cleaner version -> true/false map)
+    private Dictionary<string, bool> playerIdIsConnected = new Dictionary<string, bool>();
+
 
     private async void Awake()
     {
@@ -382,6 +383,7 @@ public class LobbyManager : MonoBehaviour
                 }
 
                 currentLobby = getLobbyTask.Result;
+                UpdatePlayerListUI();
 
                 // Detect if I was kicked:
                 bool isInLobby = currentLobby.Players.Any(p => p.Id == AuthenticationService.Instance.PlayerId);
@@ -433,22 +435,13 @@ public class LobbyManager : MonoBehaviour
 
     private void UpdatePlayerListUI()
     {
-        // Clear old list
         foreach (Transform child in playerListContent)
         {
             Destroy(child.gameObject);
         }
 
-        // Rebuild list from currentLobby.Players
         foreach (var player in currentLobby.Players)
         {
-            // NEW: Skip players marked as Disconnected → this hides the row entirely
-            if (NetworkManager.Singleton.IsHost && disconnectedPlayerIds.Contains(player.Id))
-            {
-                Debug.Log($"Skipping Disconnected playerId {player.Id} in UI");
-                continue;
-            }
-
             GameObject entryGO = Instantiate(playerListEntryPrefab, playerListContent);
             PlayerListEntry entry = entryGO.GetComponent<PlayerListEntry>();
 
@@ -459,7 +452,16 @@ public class LobbyManager : MonoBehaviour
             if (currentLobby.HostId == player.Id)
                 displayName += " (Host)";
 
-            // NO need to show "(Disconnected)" anymore — we skip showing them entirely now.
+            if (NetworkManager.Singleton.IsHost && player.Id != AuthenticationService.Instance.PlayerId)
+            {
+                bool isDisconnected = playerIdIsConnected.ContainsKey(player.Id) && !playerIdIsConnected[player.Id];
+
+                if (isDisconnected)
+                {
+                    displayName += " (Disconnected)";
+                    Debug.Log($"Showing playerId {player.Id} as (Disconnected) in UI");
+                }
+            }
 
             bool isHost = NetworkManager.Singleton.IsHost;
             bool isSelf = player.Id == AuthenticationService.Instance.PlayerId;
@@ -518,60 +520,39 @@ public class LobbyManager : MonoBehaviour
         {
             Debug.LogWarning("Local player disconnected → performing Leave cleanup.");
 
-            // Perform Leave logic safely:
             StopLobbyPolling();
             StopLobbyHeartbeat();
             StopPingCoroutine();
             currentLobby = null;
 
-            // Update UI
             UpdateUIState(false);
 
-            // Unsubscribe to prevent double call:
             NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
         }
         else
         {
-            // Another client disconnected -> Host stays in Lobby.
             Debug.Log($"Another client ({clientId}) disconnected. Host stays in Lobby.");
 
-            // Try to map playerId -> from playerIdToClientId first
+            // DO NOT use fallback anymore — only trust playerIdToClientId
             string playerIdToMark = playerIdToClientId.FirstOrDefault(kv => kv.Value == clientId).Key;
-
-            // Fallback: If playerIdToMark is empty, try to find it from Lobby.Players
-            if (string.IsNullOrEmpty(playerIdToMark) && currentLobby != null)
-            {
-                foreach (var player in currentLobby.Players)
-                {
-                    if (player.Data != null && player.Data.ContainsKey("ClientId"))
-                    {
-                        if (ulong.TryParse(player.Data["ClientId"].Value, out ulong lobbyClientId) && lobbyClientId == clientId)
-                        {
-                            playerIdToMark = player.Id;
-                            Debug.Log($"[Fallback] Matched playerId {playerIdToMark} from Lobby.Players → clientId {clientId}");
-                            break;
-                        }
-                    }
-                }
-            }
 
             if (!string.IsNullOrEmpty(playerIdToMark))
             {
-                if (!disconnectedPlayerIds.Contains(playerIdToMark))
-                {
-                    disconnectedPlayerIds.Add(playerIdToMark);
-                    Debug.Log($"Marked playerId {playerIdToMark} as Disconnected.");
-                }
+                playerIdIsConnected[playerIdToMark] = false;
 
-                // Force remove from playerIdToClientId → ensures UI hides player even if Lobby.Players lags
-                playerIdToClientId.Remove(playerIdToMark);
-                Debug.Log($"Removed playerId {playerIdToMark} from playerIdToClientId.");
+                Debug.Log($"Marked playerId {playerIdToMark} as Disconnected (playerIdIsConnected = false).");
+            }
+            else
+            {
+                Debug.LogWarning($"Could not find playerId for clientId {clientId} → PlayerJoinMessage may not have arrived.");
+                // This is OK — in this case, the player row will not show in UI → correct behavior.
             }
 
-            // Update UI after marking
             UpdatePlayerListUI();
         }
     }
+
+
 
     private void OnClientConnected(ulong clientId)
     {
@@ -596,12 +577,13 @@ public class LobbyManager : MonoBehaviour
         reader.ReadValueSafe(out msg);
 
         playerIdToClientId[msg.PlayerId.ToString()] = senderClientId;
-        disconnectedPlayerIds.Remove(msg.PlayerId.ToString());
+        playerIdIsConnected[msg.PlayerId.ToString()] = true;
 
         Debug.Log($"[OnPlayerJoinMessageReceived] Mapped playerId {msg.PlayerId} → clientId {senderClientId} (via message)");
 
         UpdatePlayerListUI();
     }
+
 
 }
 
