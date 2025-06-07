@@ -252,7 +252,7 @@ public class LobbyManager : MonoBehaviour
             }
 
             NetworkManager.Singleton.Shutdown();
-            // NEW: Force cleanup of any remaining NetworkObjects (fixes host player sticking bug)
+            // Force cleanup of any remaining NetworkObjects (fixes host player sticking bug). Update: wasn't the issue but is still good practice.
             foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.ToList())
             {
                 Destroy(obj.gameObject);
@@ -490,7 +490,7 @@ public class LobbyManager : MonoBehaviour
         }
         else
         {
-            // Another client disconnected → just log it → no UI changes
+            // Another client disconnected → just log it - no UI changes
             Debug.Log($"Another client ({clientId}) disconnected. Host stays in Lobby.");
         }
     }
