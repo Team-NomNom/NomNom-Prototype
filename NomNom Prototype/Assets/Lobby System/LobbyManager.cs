@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,6 +13,7 @@ using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using Unity.Networking.Transport.Relay;
+using System.Linq;
 
 public class LobbyManager : MonoBehaviour
 {
@@ -23,8 +24,12 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private Text lobbyCodeText;
     [SerializeField] private Button copyLobbyCodeButton;
     [SerializeField] private Button leaveLobbyButton;
-    [SerializeField] private Text playerListText;
     [SerializeField] private InputField playerNameInputField;
+    [SerializeField] private Text pingText;
+
+    [Header("Player List")]
+    [SerializeField] private Transform playerListContent;
+    [SerializeField] private GameObject playerListEntryPrefab;
 
     [Header("Panels")]
     [SerializeField] private GameObject preLobbyPanel;
@@ -38,6 +43,7 @@ public class LobbyManager : MonoBehaviour
     private float lobbyPollInterval = 3f;
     private Coroutine heartbeatCoroutine;
     private Coroutine lobbyPollCoroutine;
+    private Coroutine pingCoroutine;
 
     private async void Awake()
     {
@@ -94,7 +100,7 @@ public class LobbyManager : MonoBehaviour
             Debug.Log($"Lobby created! Lobby ID: {currentLobby.Id}, Lobby Code: {currentLobbyCode}, RelayJoinCode: {relayJoinCode}");
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = $"{currentLobbyCode}";
+                lobbyCodeText.text = $"Lobby Code: {currentLobbyCode}";
 
             // Auto-copy Lobby Code
             GUIUtility.systemCopyBuffer = currentLobbyCode;
@@ -110,6 +116,7 @@ public class LobbyManager : MonoBehaviour
 
             StartLobbyHeartbeat();
             StartLobbyPolling();
+            StartPingCoroutine();
 
             // Switch to in-lobby UI
             UpdateUIState(true);
@@ -147,7 +154,7 @@ public class LobbyManager : MonoBehaviour
             SetRelayTransportAsClient(joinAllocation);
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = $"{currentLobbyCode}";
+                lobbyCodeText.text = $"Lobby Code: {currentLobbyCode}";
 
             // Save player name
             SavePlayerName();
@@ -156,6 +163,7 @@ public class LobbyManager : MonoBehaviour
             Debug.Log("Client started using Relay.");
 
             StartLobbyPolling();
+            StartPingCoroutine();
 
             // Switch to in-lobby UI
             UpdateUIState(true);
@@ -245,11 +253,13 @@ public class LobbyManager : MonoBehaviour
 
             StopLobbyHeartbeat();
             StopLobbyPolling();
+            StopPingCoroutine();
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = "(none)";
-            if (playerListText != null)
-                playerListText.text = "";
+                lobbyCodeText.text = "Lobby Code: (none)";
+            if (pingText != null)
+                pingText.text = "Ping: -";
+            ClearPlayerListUI();
 
             Debug.Log("Left Lobby and shutdown network.");
 
@@ -259,6 +269,22 @@ public class LobbyManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Failed to leave lobby: {e}");
+        }
+    }
+
+    public async void KickPlayer(string playerId)
+    {
+        if (currentLobby != null && NetworkManager.Singleton.IsHost)
+        {
+            try
+            {
+                await Lobbies.Instance.RemovePlayerAsync(currentLobby.Id, playerId);
+                Debug.Log($"Kicked player {playerId}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to kick player: {e}");
+            }
         }
     }
 
@@ -317,24 +343,68 @@ public class LobbyManager : MonoBehaviour
                 }
 
                 currentLobby = getLobbyTask.Result;
+
+                // Detect if I was kicked:
+                bool isInLobby = currentLobby.Players.Any(p => p.Id == AuthenticationService.Instance.PlayerId);
+                if (!isInLobby)
+                {
+                    Debug.LogWarning("You were kicked from the lobby!");
+
+                    // Perform Leave logic:
+                    NetworkManager.Singleton.Shutdown();
+                    StopLobbyPolling();
+                    StopLobbyHeartbeat();
+                    StopPingCoroutine();
+                    currentLobby = null;
+
+                    // Update UI
+                    UpdateUIState(false);
+
+                    // Early exit → no need to process further
+                    yield break;
+                }
+
                 UpdatePlayerListUI();
             }
             catch (Exception e)
             {
                 Debug.LogError($"Failed to poll lobby: {e}");
+
+                // Check if exception means lobby was deleted (host ended game)
+                if (e is LobbyServiceException lobbyEx &&
+                    (lobbyEx.Reason == LobbyExceptionReason.Forbidden || lobbyEx.Reason == LobbyExceptionReason.LobbyNotFound))
+                {
+                    Debug.LogWarning("Lobby was deleted (host ended the game). Leaving lobby.");
+
+                    // Perform Leave logic:
+                    NetworkManager.Singleton.Shutdown();
+                    StopLobbyPolling();
+                    StopLobbyHeartbeat();
+                    StopPingCoroutine();
+                    currentLobby = null;
+
+                    // Update UI
+                    UpdateUIState(false);
+
+                    yield break;
+                }
             }
         }
     }
 
+
     private void UpdatePlayerListUI()
     {
-        if (playerListText == null || currentLobby == null)
+        if (playerListContent == null || currentLobby == null)
             return;
 
-        string playerList = $"Players ({currentLobby.Players.Count} / {MaxPlayers}):\n";
+        ClearPlayerListUI();
 
         foreach (var player in currentLobby.Players)
         {
+            GameObject entryGO = Instantiate(playerListEntryPrefab, playerListContent);
+            PlayerListEntry entry = entryGO.GetComponent<PlayerListEntry>();
+
             string displayName = player.Data != null && player.Data.ContainsKey("DisplayName")
                 ? player.Data["DisplayName"].Value
                 : player.Id;
@@ -342,11 +412,54 @@ public class LobbyManager : MonoBehaviour
             if (currentLobby.HostId == player.Id)
                 displayName += " (Host)";
 
-            playerList += $"{displayName}\n";
-        }
+            bool isHost = currentLobby.HostId == AuthenticationService.Instance.PlayerId;
+            bool isSelf = player.Id == AuthenticationService.Instance.PlayerId;
 
-        playerListText.text = playerList;
+            entry.Setup(displayName, player.Id, isHost, isSelf, this);
+        }
     }
+
+    private void ClearPlayerListUI()
+    {
+        foreach (Transform child in playerListContent)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    private void StartPingCoroutine()
+    {
+        if (pingCoroutine != null)
+            StopCoroutine(pingCoroutine);
+        pingCoroutine = StartCoroutine(PingCoroutine());
+    }
+
+    private void StopPingCoroutine()
+    {
+        if (pingCoroutine != null)
+            StopCoroutine(pingCoroutine);
+        pingCoroutine = null;
+    }
+
+    private IEnumerator PingCoroutine()
+    {
+        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+
+        while (true)
+        {
+            ulong targetClientId = NetworkManager.Singleton.IsHost
+                ? NetworkManager.Singleton.LocalClientId
+                : NetworkManager.ServerClientId;
+
+            float pingMs = transport.GetCurrentRtt(targetClientId);
+
+            if (pingText != null)
+                pingText.text = $"Ping: {Mathf.RoundToInt(pingMs)} ms";
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
 
     private void UpdateUIState(bool inLobby)
     {
