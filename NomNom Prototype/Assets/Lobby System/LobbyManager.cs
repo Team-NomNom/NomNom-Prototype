@@ -495,9 +495,6 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-
-
-
     private void UpdateUIState(bool inLobby)
     {
         if (preLobbyPanel != null)
