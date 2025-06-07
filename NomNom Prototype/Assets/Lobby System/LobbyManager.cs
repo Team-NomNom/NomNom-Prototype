@@ -124,7 +124,6 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.StartHost();
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
-            // NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
             Debug.Log("Host started using Relay.");
 
             StartLobbyHeartbeat();
@@ -167,7 +166,7 @@ public class LobbyManager : MonoBehaviour
             SetRelayTransportAsClient(joinAllocation);
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = $"Lobby Code: {currentLobbyCode}";
+                lobbyCodeText.text = $"{currentLobbyCode}";
 
             // Save player name
             SavePlayerName();
@@ -175,7 +174,7 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.StartClient();
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
-            // NEW → Setup OnClientConnectedCallback → send PlayerJoinMessage:
+            // Setup OnClientConnectedCallback -> send PlayerJoinMessage:
             NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
             {
                 if (!NetworkManager.Singleton.IsHost && clientId == NetworkManager.Singleton.LocalClientId)
@@ -545,7 +544,7 @@ public class LobbyManager : MonoBehaviour
             else
             {
                 Debug.LogWarning($"Could not find playerId for clientId {clientId} → PlayerJoinMessage may not have arrived.");
-                // This is OK — in this case, the player row will not show in UI → correct behavior.
+                // This is OK — in this case, the player row will not show in UI -> correct behavior.
             }
 
             UpdatePlayerListUI();
@@ -558,7 +557,7 @@ public class LobbyManager : MonoBehaviour
     {
         Debug.Log($"Client connected: {clientId}");
 
-        // Host waits for PlayerJoinMessage to map players → nothing to do here
+        // Host waits for PlayerJoinMessage to map players -> nothing to do here
         UpdatePlayerListUI();
     }
 
