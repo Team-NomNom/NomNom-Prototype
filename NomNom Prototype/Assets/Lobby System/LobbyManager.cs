@@ -112,6 +112,7 @@ public class LobbyManager : MonoBehaviour
             SetRelayTransportAsHost(allocation);
 
             NetworkManager.Singleton.StartHost();
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
             Debug.Log("Host started using Relay.");
 
             StartLobbyHeartbeat();
@@ -160,6 +161,7 @@ public class LobbyManager : MonoBehaviour
             SavePlayerName();
 
             NetworkManager.Singleton.StartClient();
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
             Debug.Log("Client started using Relay.");
 
             StartLobbyPolling();
@@ -250,6 +252,12 @@ public class LobbyManager : MonoBehaviour
             }
 
             NetworkManager.Singleton.Shutdown();
+            // NEW: Force cleanup of any remaining NetworkObjects (fixes host player sticking bug)
+            foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.ToList())
+            {
+                Destroy(obj.gameObject);
+            }
+
 
             StopLobbyHeartbeat();
             StopLobbyPolling();
@@ -459,6 +467,35 @@ public class LobbyManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
     }
+
+    private void OnClientDisconnect(ulong clientId)
+    {
+        Debug.LogWarning($"Client disconnected from server: {clientId}");
+
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.LogWarning("Local player disconnected → performing Leave cleanup.");
+
+            // Perform Leave logic safely:
+            StopLobbyPolling();
+            StopLobbyHeartbeat();
+            StopPingCoroutine();
+            currentLobby = null;
+
+            // Update UI
+            UpdateUIState(false);
+
+            // Unsubscribe to prevent double call:
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
+        }
+        else
+        {
+            // Another client disconnected → just log it → no UI changes
+            Debug.Log($"Another client ({clientId}) disconnected. Host stays in Lobby.");
+        }
+    }
+
+
 
 
     private void UpdateUIState(bool inLobby)
