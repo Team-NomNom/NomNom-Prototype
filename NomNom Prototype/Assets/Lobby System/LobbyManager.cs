@@ -56,6 +56,12 @@ public class LobbyManager : MonoBehaviour
         if (copyLobbyCodeButton != null)
             copyLobbyCodeButton.onClick.AddListener(CopyLobbyCodeToClipboard);
 
+        // Load player name if saved
+        if (PlayerPrefs.HasKey("PlayerName") && playerNameInputField != null)
+        {
+            playerNameInputField.text = PlayerPrefs.GetString("PlayerName");
+        }
+
         // Start in pre-lobby state
         UpdateUIState(false);
     }
@@ -89,6 +95,13 @@ public class LobbyManager : MonoBehaviour
 
             if (lobbyCodeText != null)
                 lobbyCodeText.text = $"{currentLobbyCode}";
+
+            // Auto-copy Lobby Code
+            GUIUtility.systemCopyBuffer = currentLobbyCode;
+            Debug.Log($"Copied Lobby Code to clipboard: {currentLobbyCode}");
+
+            // Save player name
+            SavePlayerName();
 
             SetRelayTransportAsHost(allocation);
 
@@ -136,6 +149,9 @@ public class LobbyManager : MonoBehaviour
             if (lobbyCodeText != null)
                 lobbyCodeText.text = $"{currentLobbyCode}";
 
+            // Save player name
+            SavePlayerName();
+
             NetworkManager.Singleton.StartClient();
             Debug.Log("Client started using Relay.");
 
@@ -168,6 +184,16 @@ public class LobbyManager : MonoBehaviour
                 }
             }
         };
+    }
+
+    private void SavePlayerName()
+    {
+        if (playerNameInputField != null && !string.IsNullOrWhiteSpace(playerNameInputField.text))
+        {
+            PlayerPrefs.SetString("PlayerName", playerNameInputField.text.Trim());
+            PlayerPrefs.Save();
+            Debug.Log($"Saved Player Name: {playerNameInputField.text.Trim()}");
+        }
     }
 
     private void SetRelayTransportAsHost(Allocation allocation)
@@ -223,7 +249,7 @@ public class LobbyManager : MonoBehaviour
             if (lobbyCodeText != null)
                 lobbyCodeText.text = "(none)";
             if (playerListText != null)
-                playerListText.text = "\n";
+                playerListText.text = "";
 
             Debug.Log("Left Lobby and shutdown network.");
 
@@ -305,14 +331,18 @@ public class LobbyManager : MonoBehaviour
         if (playerListText == null || currentLobby == null)
             return;
 
-        string playerList = "Players:\n";
+        string playerList = $"Players ({currentLobby.Players.Count} / {MaxPlayers}):\n";
+
         foreach (var player in currentLobby.Players)
         {
             string displayName = player.Data != null && player.Data.ContainsKey("DisplayName")
                 ? player.Data["DisplayName"].Value
                 : player.Id;
 
-            playerList += $"- {displayName}\n";
+            if (currentLobby.HostId == player.Id)
+                displayName += " (Host)";
+
+            playerList += $"{displayName}\n";
         }
 
         playerListText.text = playerList;
