@@ -100,7 +100,7 @@ public class LobbyManager : MonoBehaviour
             Debug.Log($"Lobby created! Lobby ID: {currentLobby.Id}, Lobby Code: {currentLobbyCode}, RelayJoinCode: {relayJoinCode}");
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = $"Lobby Code: {currentLobbyCode}";
+                lobbyCodeText.text = $"{currentLobbyCode}";
 
             // Auto-copy Lobby Code
             GUIUtility.systemCopyBuffer = currentLobbyCode;
@@ -155,7 +155,7 @@ public class LobbyManager : MonoBehaviour
             SetRelayTransportAsClient(joinAllocation);
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = $"Lobby Code: {currentLobbyCode}";
+                lobbyCodeText.text = $"{currentLobbyCode}";
 
             // Save player name
             SavePlayerName();
@@ -264,7 +264,7 @@ public class LobbyManager : MonoBehaviour
             StopPingCoroutine();
 
             if (lobbyCodeText != null)
-                lobbyCodeText.text = "Lobby Code: (none)";
+                lobbyCodeText.text = "(none)";
             if (pingText != null)
                 pingText.text = "Ping: -";
             ClearPlayerListUI();
