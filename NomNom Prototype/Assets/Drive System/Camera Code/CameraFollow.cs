@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(Camera))]
@@ -30,12 +30,15 @@ public class CameraFollow : MonoBehaviour
     public List<Collider> freezeZones = new List<Collider>();
     private bool followEnabled = true;
 
-    // cached Rigidbody from the target
+    // Cached Rigidbody from the target
     private Rigidbody targetRb;
+
+    // New → force snap flag
+    private bool forceSnapNextFrame = false;
 
     void Start()
     {
-        // tilt camera down
+        // Tilt camera down
         transform.rotation = Quaternion.Euler(cameraAngle, 0f, 0f);
 
         if (target != null)
@@ -51,42 +54,55 @@ public class CameraFollow : MonoBehaviour
         if (targetRb == null)
             AssignTargetRigidbody();
 
-        // compute the raw desired position
+        // Compute the raw desired position
         Vector3 desiredPos = target.position + offset;
         Vector3 cur = transform.position;
 
-        // dead-zone on X
+        // Dead-zone on X
         float x = cur.x;
         if (desiredPos.x > cur.x + deadZone.x) x = desiredPos.x - deadZone.x;
         else if (desiredPos.x < cur.x - deadZone.x) x = desiredPos.x + deadZone.x;
 
-        // dead-zone on Z (forward/back)
+        // Dead-zone on Z
         float z = cur.z;
         if (desiredPos.z > cur.z + deadZone.y) z = desiredPos.z - deadZone.y;
         else if (desiredPos.z < cur.z - deadZone.y) z = desiredPos.z + deadZone.y;
 
-        // Keep the height from desiredPos.y (so offset.y always applies) -> builds the next cam position
+        // Keep height from desiredPos.y
         Vector3 nextPos = new Vector3(x, desiredPos.y, z);
 
-        // 5) clamp to level bounds
+        // Clamp to level bounds
         nextPos.x = Mathf.Clamp(nextPos.x, minBounds.x, maxBounds.x);
         nextPos.z = Mathf.Clamp(nextPos.z, minBounds.y, maxBounds.y);
 
-        // 6) move based on target velocity?
+        // Dynamic speed
         float dynamicSpeed = speedMultiplier;
         if (targetRb != null)
             dynamicSpeed = Mathf.Max(targetRb.linearVelocity.magnitude * speedMultiplier, minFollowSpeed);
 
-        // 7) move the camera toward nextPos at that speed
-        transform.position = Vector3.MoveTowards(cur, nextPos, dynamicSpeed * Time.deltaTime);
+        // Move the camera
+        if (forceSnapNextFrame)
+        {
+            transform.position = nextPos;
+            forceSnapNextFrame = false;
+            Debug.Log("[CameraFollow] ForceSnap → camera snapped to target.");
+        }
+        else
+        {
+            transform.position = Vector3.MoveTowards(cur, nextPos, dynamicSpeed * Time.deltaTime);
+        }
     }
+
     private void AssignTargetRigidbody()
     {
         if (target != null)
             targetRb = target.GetComponent<Rigidbody>();
     }
 
-    // call these from zone triggers
+    // Call these from zone triggers
     public void FreezeFollow() => followEnabled = false;
     public void UnfreezeFollow() => followEnabled = true;
+
+    // Force camera snap
+    public void ForceSnap() => forceSnapNextFrame = true;
 }

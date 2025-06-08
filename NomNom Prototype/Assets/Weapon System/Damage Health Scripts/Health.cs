@@ -30,6 +30,8 @@ public class Health : NetworkBehaviour, IDamagable
     {
         base.OnNetworkSpawn();
 
+        Debug.Log($"[Health] OnNetworkSpawn → OwnerClientId: {OwnerClientId}, currentHealth: {currentHealth.Value}");
+
         currentHealth.OnValueChanged += OnHealthChanged;
         OnHealthChanged(0f, currentHealth.Value); // force refresh to current value
     }
@@ -41,11 +43,16 @@ public class Health : NetworkBehaviour, IDamagable
 
     public void TakeDamage(float damage)
     {
-        if (!IsServer) return;
+        if (!IsServer) return; // Only server should apply damage
+
+        Debug.Log($"[Health] TakeDamage({damage}) called → isDead: {isDead}, currentHealth BEFORE: {currentHealth.Value}");
+
         if (isDead) return;
 
         currentHealth.Value -= damage;
         currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
+
+        Debug.Log($"[Health] TakeDamage → currentHealth AFTER: {currentHealth.Value}");
 
         if (currentHealth.Value <= 0f)
         {
@@ -58,7 +65,7 @@ public class Health : NetworkBehaviour, IDamagable
         if (isDead) return;
         isDead = true;
 
-        Debug.Log($"Tank {OwnerClientId} died!");
+        Debug.Log($"[Health] Tank {OwnerClientId} died!");
 
         if (visualsRoot != null)
             visualsRoot.SetActive(false);
@@ -81,6 +88,8 @@ public class Health : NetworkBehaviour, IDamagable
         else
             gameObject.SetActive(true);
 
+        Debug.Log($"[Health] ResetHealth called → currentHealth reset to: {currentHealth.Value}");
+
         // Force UI refresh on respawn
         UpdateHealthUI();
     }
@@ -93,12 +102,16 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void UpdateHealthUI()
     {
+        string healthPart = isDead ? "DEAD" : $"{currentHealth.Value}/{maxHealth}";
+
         if (healthText != null)
         {
-            if (isDead)
-                healthText.text = "DEAD";
-            else
-                healthText.text = $"{currentHealth.Value}/{maxHealth}";
+            Debug.Log($"[Health] UpdateHealthUI → updating healthText to: {healthPart}");
+            healthText.text = healthPart;
+        }
+        else
+        {
+            Debug.LogWarning($"[Health] UpdateHealthUI → healthText is null! Intended text would be: {healthPart}");
         }
     }
 
@@ -106,6 +119,8 @@ public class Health : NetworkBehaviour, IDamagable
     public void SetHealthText(Text text)
     {
         healthText = text;
+        Debug.Log($"[Health] SetHealthText called → assigned to: {healthText?.gameObject.name ?? "NULL"} (InstanceID: {healthText?.gameObject.GetInstanceID()})");
         UpdateHealthUI(); // refresh immediately
     }
+
 }

@@ -77,14 +77,17 @@ public class NetworkTankController : NetworkBehaviour
                 // Assign Health UI to Health script
                 Health health = GetComponent<Health>();
 
-                Text sceneHealthText = playerUIInstance.transform.Find("MyHealthText")?.GetComponent<Text>();
+                // Safe flexible assignment → find any Text under PlayerUI
+                Text sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
+
                 if (sceneHealthText != null)
                 {
                     health.SetHealthText(sceneHealthText);
+                    Debug.Log($"[NetworkTankController] Assigned healthText: {sceneHealthText.gameObject.name} to Player {OwnerClientId}");
                 }
                 else
                 {
-                    Debug.LogWarning("NetworkTankController: MyHealthText not found in PlayerUI.");
+                    Debug.LogWarning("NetworkTankController: MyHealthText (Text) not found in PlayerUI (GetComponentInChildren). Check PlayerUI prefab!");
                 }
 
                 // 🚀 FIX → Force ResetHealth so UI shows correct value

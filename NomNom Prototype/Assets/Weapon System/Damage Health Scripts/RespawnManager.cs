@@ -1,51 +1,84 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Netcode;
-using System.Collections.Generic;
 using System.Collections;
 
-public class RespawnManager : NetworkBehaviour
+public class RespawnManager : MonoBehaviour
 {
-    [Header("Spawn Points")]
-    public List<Transform> spawnPoints;
+    [Header("Respawn Settings")]
+    [SerializeField] private Transform[] spawnPoints; // Assign spawn points in inspector
+    [SerializeField] private float respawnDelay = 3f;
 
-    public void RespawnTank(GameObject tank, ulong clientId)
+    public void RespawnTank(GameObject tankObject, ulong ownerClientId)
     {
-        StartCoroutine(RespawnTankRoutine(tank, clientId));
+        Debug.Log($"[RespawnManager] RespawnTank → OwnerClientId: {ownerClientId}");
+
+        StartCoroutine(RespawnTankCoroutine(tankObject, ownerClientId));
     }
 
-    private IEnumerator RespawnTankRoutine(GameObject tank, ulong clientId)
+    private IEnumerator RespawnTankCoroutine(GameObject tankObject, ulong ownerClientId)
     {
-        float respawnDelay = 3f;
-        Debug.Log($"Respawning tank {clientId} in {respawnDelay} seconds...");
-
+        // Wait for respawn delay
         yield return new WaitForSeconds(respawnDelay);
 
-        Transform spawnPoint = GetRandomSpawnPoint();
+        // Pick a spawn point
+        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
-        tank.transform.position = spawnPoint.position;
-        tank.transform.rotation = spawnPoint.rotation;
+        Debug.Log($"[RespawnManager] RespawnTankCoroutine → Using spawn point: {spawnPoint.position}, rotation Y: {spawnPoint.rotation.eulerAngles.y}");
 
-        if (!tank.GetComponent<NetworkObject>().IsSpawned)
+        // Move tank safely → using coroutine
+        Vector3 spawnPos = spawnPoint.position + Vector3.up * 0.5f; // optional small Y offset
+        float spawnRotationY = spawnPoint.rotation.eulerAngles.y;
+
+        yield return StartCoroutine(SetTankPositionSafe(tankObject, spawnPos, spawnRotationY));
+
+        // Reset health
+        Health health = tankObject.GetComponent<Health>();
+        if (health != null)
         {
-            tank.GetComponent<NetworkObject>().SpawnWithOwnership(clientId);
+            health.ResetHealth();
+            CameraFollow cam = Camera.main.GetComponent<CameraFollow>();
+            if (cam != null)
+                cam.ForceSnap();
+            Debug.Log($"[RespawnManager] Tank {tankObject.name} health reset.");
         }
-
-        tank.SetActive(true);
-
-        var health = tank.GetComponent<Health>();
-        health.ResetHealth();
-
-        Debug.Log($"Tank {clientId} respawned!");
+        else
+        {
+            Debug.LogError($"[RespawnManager] Tank {tankObject.name} is missing Health component!");
+        }
     }
 
-    private Transform GetRandomSpawnPoint()
+    private IEnumerator SetTankPositionSafe(GameObject tankObject, Vector3 newPosition, float spawnRotationY)
     {
-        if (spawnPoints.Count == 0)
+        Rigidbody rb = tankObject.GetComponent<Rigidbody>();
+
+        if (rb == null)
         {
-            Debug.LogError("No spawn points assigned!");
-            return null;
+            Debug.LogError($"[RespawnManager] SetTankPositionSafe → Tank {tankObject.name} is missing Rigidbody!");
+            yield break;
         }
 
-        return spawnPoints[Random.Range(0, spawnPoints.Count)];
+        // TEMP disable physics
+        rb.isKinematic = true;
+
+        // Move tank
+        tankObject.transform.position = newPosition;
+
+        // Set tank rotation to match spawn point Y rotation
+        Quaternion targetRotation = Quaternion.Euler(0f, spawnRotationY, 0f);
+        tankObject.transform.rotation = targetRotation;
+
+        // Reset velocity
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        Debug.Log($"[RespawnManager] SetTankPositionSafe → Tank {tankObject.name} moved to {newPosition} with Y rotation: {spawnRotationY}");
+
+        // Wait 1 physics frame → let Physics resolve any overlap
+        yield return null;
+
+        // Re-enable physics
+        rb.isKinematic = false;
+
+        Debug.Log($"[RespawnManager] Rigidbody isKinematic AFTER: {rb.isKinematic}, velocity: {rb.linearVelocity}, angularVelocity: {rb.angularVelocity}");
     }
 }

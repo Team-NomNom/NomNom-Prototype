@@ -650,8 +650,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
-  healthBar: {fileID: 0}
-  healthText: {fileID: 6361773430751341472, guid: 04ce3bac4be5f0d459fb7c4cc928694b, type: 3}
+  healthText: {fileID: 0}
   visualsRoot: {fileID: 437274649785054083}
 --- !u!114 &1432667664924225826
 MonoBehaviour:

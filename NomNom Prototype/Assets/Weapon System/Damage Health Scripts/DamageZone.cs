@@ -1,56 +1,45 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 public class DamageZone : MonoBehaviour
 {
-    [SerializeField] private float damagePerSecond = 20f;
-    [SerializeField] private float damageDelaySeconds = 0.5f; // NEW → delay before starting damage
-
-    // Track entry time per collider
-    private Dictionary<Health, float> tankEntryTimes = new Dictionary<Health, float>();
+    [Header("Damage Settings")]
+    [SerializeField] private float damagePerSecond = 10f;
 
     private void OnTriggerEnter(Collider other)
     {
-        var health = other.GetComponent<Health>();
-        if (health != null && !tankEntryTimes.ContainsKey(health))
+        IDamagable damagable = other.GetComponentInParent<IDamagable>();
+        if (damagable != null)
         {
-            // Record time of entry
-            tankEntryTimes[health] = Time.time;
+            Debug.Log($"[DamageZone] OnTriggerEnter → {other.name} entered the zone.");
+            // Optional → apply instant damage here if you want
+            // damagable.TakeDamage(initialDamageAmount);
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        var health = other.GetComponent<Health>();
-        if (health != null)
+        IDamagable damagable = other.GetComponentInParent<IDamagable>();
+        if (damagable != null)
         {
-            if (!health.IsAlive)
+            // Check if it's a Health component → skip dead tanks
+            Health health = other.GetComponentInParent<Health>();
+            if (health != null && !health.IsAlive)
+            {
+                // Skip dead tanks → no damage applied
                 return;
+            }
 
-            // Check how long this tank has been inside the zone
-            if (tankEntryTimes.TryGetValue(health, out float entryTime))
-            {
-                if (Time.time - entryTime >= damageDelaySeconds)
-                {
-                    // Start applying damage
-                    health.TakeDamage(damagePerSecond * Time.deltaTime);
-                }
-            }
-            else
-            {
-                // Edge case: somehow OnTriggerStay called before OnTriggerEnter
-                tankEntryTimes[health] = Time.time;
-            }
+            // Apply damage
+            damagable.TakeDamage(damagePerSecond * Time.deltaTime);
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        var health = other.GetComponent<Health>();
-        if (health != null && tankEntryTimes.ContainsKey(health))
+        IDamagable damagable = other.GetComponentInParent<IDamagable>();
+        if (damagable != null)
         {
-            // Reset timer when leaving zone
-            tankEntryTimes.Remove(health);
+            Debug.Log($"[DamageZone] OnTriggerExit → {other.name} left the zone.");
         }
     }
 }
