@@ -652,6 +652,10 @@ MonoBehaviour:
   maxHealth: 100
   healthText: {fileID: 0}
   visualsRoot: {fileID: 437274649785054083}
+  invincibilityDuration: 2.25
+  visualsRenderer: {fileID: 383720627698554095}
+  invincibleColor: {r: 1, g: 0.9687183, b: 0.47358483, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &1432667664924225826
 MonoBehaviour:
   m_ObjectHideFlags: 0

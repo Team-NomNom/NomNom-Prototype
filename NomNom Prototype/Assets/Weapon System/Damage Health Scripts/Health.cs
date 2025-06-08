@@ -20,6 +20,11 @@ public class Health : NetworkBehaviour, IDamagable
     private bool isInvincible = false;
     public bool IsInvincible => isInvincible;
 
+    [Header("Invincibility Visuals")]
+    [SerializeField] private Renderer visualsRenderer; // assign this to your VisualsRoot's MeshRenderer
+    [SerializeField] private Color invincibleColor = Color.cyan;
+    [SerializeField] private Color normalColor = Color.white;
+
     public event System.Action<Health> OnDeath;
 
     private bool isDead = false;
@@ -105,9 +110,36 @@ public class Health : NetworkBehaviour, IDamagable
     {
         isInvincible = true;
         Debug.Log($"[Health] Invincibility started for {invincibilityDuration} seconds.");
-        yield return new WaitForSeconds(invincibilityDuration);
+
+        float timer = 0f;
+        while (timer < invincibilityDuration)
+        {
+            timer += Time.deltaTime;
+
+            if (visualsRenderer != null)
+            {
+                // PingPong between 0.5 and 1.0 intensity
+                float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
+                Color pulseColor = invincibleColor * pulse;
+                pulseColor.a = 1f; // force alpha = 1
+
+                visualsRenderer.material.color = pulseColor;
+
+                // Emission glow
+                visualsRenderer.material.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+            }
+
+            yield return null;
+        }
+
         isInvincible = false;
         Debug.Log("[Health] Invincibility ended.");
+
+        if (visualsRenderer != null)
+        {
+            visualsRenderer.material.color = normalColor;
+            visualsRenderer.material.SetColor("_EmissionColor", Color.black);
+        }
     }
 
     private void OnHealthChanged(float oldValue, float newValue)
