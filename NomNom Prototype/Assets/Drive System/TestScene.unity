@@ -7648,6 +7648,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1430494013168892564, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
+      propertyPath: forceSnapSpeed
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 1430494013168892564, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
+      propertyPath: forceSnapDuration
+      value: 2.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1430494013168892564, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
       propertyPath: 'freezeZones.Array.data[0]'
       value: 
       objectReference: {fileID: 442117167}

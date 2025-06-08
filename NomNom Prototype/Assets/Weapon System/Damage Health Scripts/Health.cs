@@ -17,13 +17,24 @@ public class Health : NetworkBehaviour, IDamagable
 
     [Header("Respawn Invincibility")]
     [SerializeField] private float invincibilityDuration = 1.5f;
-    private bool isInvincible = false;
-    public bool IsInvincible => isInvincible;
+    private NetworkVariable<bool> isInvincible = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public bool IsInvincible => isInvincible.Value;
+    public float InvincibilityDuration => invincibilityDuration;
 
     [Header("Invincibility Visuals")]
-    [SerializeField] private Renderer visualsRenderer; // assign this to your VisualsRoot's MeshRenderer
+    [SerializeField] private Renderer visualsRenderer;
     [SerializeField] private Color invincibleColor = Color.cyan;
     [SerializeField] private Color normalColor = Color.white;
+
+    [Header("Low Health Flicker")]
+    [SerializeField] private float lowHealthThresholdPercent = 25f;
+    [SerializeField] private Color lowHealthFlickerColor = Color.red;
+    [SerializeField] private float flickerSpeed = 8f;
+
+    private Coroutine lowHealthFlickerCoroutine;
+    private bool isFlickering = false;
+
+    private bool isInvincibleVisualActive = false;
 
     public event System.Action<Health> OnDeath;
 
@@ -44,21 +55,47 @@ public class Health : NetworkBehaviour, IDamagable
         Debug.Log($"[Health] OnNetworkSpawn → OwnerClientId: {OwnerClientId}, currentHealth: {currentHealth.Value}");
 
         currentHealth.OnValueChanged += OnHealthChanged;
-        OnHealthChanged(0f, currentHealth.Value); // force refresh to current value
+        isInvincible.OnValueChanged += OnInvincibleChanged;
+
+        OnHealthChanged(0f, currentHealth.Value);
     }
 
     private void OnDestroy()
     {
         currentHealth.OnValueChanged -= OnHealthChanged;
+        isInvincible.OnValueChanged -= OnInvincibleChanged;
+    }
+
+    private void Update()
+    {
+        if (isInvincibleVisualActive && visualsRenderer != null)
+        {
+            float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
+            Color pulseColor = invincibleColor * pulse;
+            pulseColor.a = 1f;
+
+            visualsRenderer.material.color = pulseColor;
+            visualsRenderer.material.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+        }
     }
 
     public void TakeDamage(float damage)
     {
         if (!IsServer) return;
 
-        Debug.Log($"[Health] TakeDamage({damage}) called → isDead: {isDead}, isInvincible: {isInvincible}, currentHealth BEFORE: {currentHealth.Value}");
+        if (isDead)
+        {
+            Debug.Log($"[Health] TakeDamage({damage}) blocked → already dead.");
+            return;
+        }
 
-        if (isDead || isInvincible) return;
+        if (isInvincible.Value)
+        {
+            Debug.Log($"[Health] TakeDamage({damage}) blocked → invincible!");
+            return;
+        }
+
+        Debug.Log($"[Health] TakeDamage({damage}) accepted → currentHealth BEFORE: {currentHealth.Value}");
 
         currentHealth.Value -= damage;
         currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
@@ -102,43 +139,41 @@ public class Health : NetworkBehaviour, IDamagable
 
         UpdateHealthUI();
 
-        // Start invincibility window
         StartCoroutine(InvincibilityCoroutine());
     }
 
     private IEnumerator InvincibilityCoroutine()
     {
-        isInvincible = true;
+        SetInvincibleServerRpc(true);
         Debug.Log($"[Health] Invincibility started for {invincibilityDuration} seconds.");
 
-        float timer = 0f;
-        while (timer < invincibilityDuration)
-        {
-            timer += Time.deltaTime;
+        yield return new WaitForSeconds(invincibilityDuration);
 
+        SetInvincibleServerRpc(false);
+        Debug.Log("[Health] Invincibility ended.");
+    }
+
+    [ServerRpc]
+    private void SetInvincibleServerRpc(bool value)
+    {
+        isInvincible.Value = value;
+    }
+
+    private void OnInvincibleChanged(bool oldValue, bool newValue)
+    {
+        Debug.Log($"[Health] OnInvincibleChanged → old: {oldValue}, new: {newValue}");
+
+        isInvincibleVisualActive = newValue;
+
+        if (!newValue)
+        {
             if (visualsRenderer != null)
             {
-                // PingPong between 0.5 and 1.0 intensity
-                float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
-                Color pulseColor = invincibleColor * pulse;
-                pulseColor.a = 1f; // force alpha = 1
-
-                visualsRenderer.material.color = pulseColor;
-
-                // Emission glow
-                visualsRenderer.material.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+                visualsRenderer.material.color = normalColor;
+                visualsRenderer.material.SetColor("_EmissionColor", Color.black);
             }
 
-            yield return null;
-        }
-
-        isInvincible = false;
-        Debug.Log("[Health] Invincibility ended.");
-
-        if (visualsRenderer != null)
-        {
-            visualsRenderer.material.color = normalColor;
-            visualsRenderer.material.SetColor("_EmissionColor", Color.black);
+            CheckLowHealthFlicker();
         }
     }
 
@@ -146,6 +181,7 @@ public class Health : NetworkBehaviour, IDamagable
     {
         Debug.Log($"[Health] OnHealthChanged → OwnerClientId: {OwnerClientId}, old: {oldValue}, new: {newValue}, isDead: {isDead}, IsOwner: {IsOwner}");
         UpdateHealthUI();
+        CheckLowHealthFlicker();
     }
 
     private void UpdateHealthUI()
@@ -168,5 +204,50 @@ public class Health : NetworkBehaviour, IDamagable
         healthText = text;
         Debug.Log($"[Health] SetHealthText called → assigned to: {healthText?.gameObject.name ?? "NULL"}");
         UpdateHealthUI();
+    }
+
+    private void CheckLowHealthFlicker()
+    {
+        float healthPercent = (currentHealth.Value / maxHealth) * 100f;
+
+        if (healthPercent <= lowHealthThresholdPercent && !isFlickering && IsAlive && !isInvincible.Value)
+        {
+            lowHealthFlickerCoroutine = StartCoroutine(LowHealthFlickerCoroutine());
+        }
+        else if ((healthPercent > lowHealthThresholdPercent || !IsAlive || isInvincible.Value) && isFlickering)
+        {
+            StopCoroutine(lowHealthFlickerCoroutine);
+            isFlickering = false;
+
+            if (visualsRenderer != null)
+            {
+                visualsRenderer.material.color = normalColor;
+                visualsRenderer.material.SetColor("_EmissionColor", Color.black);
+            }
+
+            Debug.Log("[Health] Low health flicker stopped.");
+        }
+    }
+
+    private IEnumerator LowHealthFlickerCoroutine()
+    {
+        isFlickering = true;
+        Debug.Log("[Health] Low health flicker started.");
+
+        while (true)
+        {
+            float pulse = Mathf.PingPong(Time.time * flickerSpeed, 1f);
+
+            if (visualsRenderer != null)
+            {
+                Color flickerColor = Color.Lerp(normalColor, lowHealthFlickerColor, pulse);
+                flickerColor.a = 1f;
+
+                visualsRenderer.material.color = flickerColor;
+                visualsRenderer.material.SetColor("_EmissionColor", lowHealthFlickerColor * pulse * 2f);
+            }
+
+            yield return null;
+        }
     }
 }

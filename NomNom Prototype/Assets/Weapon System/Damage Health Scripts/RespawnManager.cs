@@ -35,17 +35,39 @@ public class RespawnManager : MonoBehaviour
         Health health = tankObject.GetComponent<Health>();
         if (health != null)
         {
+            // Disable collider FIRST
+            Collider col = tankObject.GetComponent<Collider>();
+            if (col != null)
+            {
+                col.enabled = false;
+                Debug.Log($"[RespawnManager] Tank {tankObject.name} collider DISABLED during invincibility.");
+            }
+
+            // Reset health and trigger invincibility
             health.ResetHealth();
+
             CameraFollow cam = Camera.main.GetComponent<CameraFollow>();
             if (cam != null)
                 cam.ForceSnap();
+
             Debug.Log($"[RespawnManager] Tank {tankObject.name} health reset.");
+
+            // Wait for invincibility window
+            yield return new WaitForSeconds(health.InvincibilityDuration);
+
+            // Re-enable collider AFTER invincibility ends
+            if (col != null)
+            {
+                col.enabled = true;
+                Debug.Log($"[RespawnManager] Tank {tankObject.name} collider RE-ENABLED after invincibility.");
+            }
         }
         else
         {
             Debug.LogError($"[RespawnManager] Tank {tankObject.name} is missing Health component!");
         }
     }
+
 
     private IEnumerator SetTankPositionSafe(GameObject tankObject, Vector3 newPosition, float spawnRotationY)
     {
