@@ -10,7 +10,7 @@ public class RespawnManager : MonoBehaviour
 
     public void RespawnTank(GameObject tankObject, ulong ownerClientId)
     {
-        Debug.Log($"[RespawnManager] RespawnTank → OwnerClientId: {ownerClientId}");
+        Debug.Log($"[RespawnManager] RespawnTank -> OwnerClientId: {ownerClientId}");
 
         StartCoroutine(RespawnTankCoroutine(tankObject, ownerClientId));
     }
@@ -25,7 +25,7 @@ public class RespawnManager : MonoBehaviour
 
         Debug.Log($"[RespawnManager] RespawnTankCoroutine → Using spawn point: {spawnPoint.position}, rotation Y: {spawnPoint.rotation.eulerAngles.y}");
 
-        // Move tank safely → using coroutine
+        // Move tank safely -> using coroutine
         Vector3 spawnPos = spawnPoint.position + Vector3.up * 0.5f; // optional small Y offset
         float spawnRotationY = spawnPoint.rotation.eulerAngles.y;
 
@@ -95,7 +95,7 @@ public class RespawnManager : MonoBehaviour
 
         Debug.Log($"[RespawnManager] SetTankPositionSafe → Tank {tankObject.name} moved to {newPosition} with Y rotation: {spawnRotationY}");
 
-        // Wait 1 physics frame → let Physics resolve any overlap
+        // Wait 1 physics frame -> let Physics resolve any overlap
         yield return null;
 
         // Re-enable physics
