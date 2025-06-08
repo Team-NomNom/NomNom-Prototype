@@ -53,7 +53,7 @@ public class RespawnManager : MonoBehaviour
 
         if (rb == null)
         {
-            Debug.LogError($"[RespawnManager] SetTankPositionSafe → Tank {tankObject.name} is missing Rigidbody!");
+            Debug.LogError($"[RespawnManager] SetTankPositionSafe -> Tank {tankObject.name} is missing Rigidbody!");
             yield break;
         }
 

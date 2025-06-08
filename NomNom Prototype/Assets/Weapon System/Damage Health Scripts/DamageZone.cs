@@ -11,8 +11,6 @@ public class DamageZone : MonoBehaviour
         if (damagable != null)
         {
             Debug.Log($"[DamageZone] OnTriggerEnter → {other.name} entered the zone.");
-            // Optional → apply instant damage here if you want
-            // damagable.TakeDamage(initialDamageAmount);
         }
     }
 
@@ -21,15 +19,13 @@ public class DamageZone : MonoBehaviour
         IDamagable damagable = other.GetComponentInParent<IDamagable>();
         if (damagable != null)
         {
-            // Check if it's a Health component → skip dead tanks
             Health health = other.GetComponentInParent<Health>();
-            if (health != null && !health.IsAlive)
+            if (health != null && (!health.IsAlive || health.IsInvincible))
             {
-                // Skip dead tanks → no damage applied
+                // Skip dead tanks or invincible tanks → no damage applied
                 return;
             }
 
-            // Apply damage
             damagable.TakeDamage(damagePerSecond * Time.deltaTime);
         }
     }

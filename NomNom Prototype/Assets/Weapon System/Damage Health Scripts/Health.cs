@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
+using System.Collections;
 
 public class Health : NetworkBehaviour, IDamagable
 {
@@ -13,6 +14,11 @@ public class Health : NetworkBehaviour, IDamagable
 
     [Header("Optional Visuals Root")]
     [SerializeField] private GameObject visualsRoot;
+
+    [Header("Respawn Invincibility")]
+    [SerializeField] private float invincibilityDuration = 1.5f;
+    private bool isInvincible = false;
+    public bool IsInvincible => isInvincible;
 
     public event System.Action<Health> OnDeath;
 
@@ -43,11 +49,11 @@ public class Health : NetworkBehaviour, IDamagable
 
     public void TakeDamage(float damage)
     {
-        if (!IsServer) return; // Only server should apply damage
+        if (!IsServer) return;
 
-        Debug.Log($"[Health] TakeDamage({damage}) called → isDead: {isDead}, currentHealth BEFORE: {currentHealth.Value}");
+        Debug.Log($"[Health] TakeDamage({damage}) called → isDead: {isDead}, isInvincible: {isInvincible}, currentHealth BEFORE: {currentHealth.Value}");
 
-        if (isDead) return;
+        if (isDead || isInvincible) return;
 
         currentHealth.Value -= damage;
         currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
@@ -74,7 +80,6 @@ public class Health : NetworkBehaviour, IDamagable
 
         OnDeath?.Invoke(this);
 
-        // Force UI refresh to show "DEAD"
         UpdateHealthUI();
     }
 
@@ -90,8 +95,19 @@ public class Health : NetworkBehaviour, IDamagable
 
         Debug.Log($"[Health] ResetHealth called → currentHealth reset to: {currentHealth.Value}");
 
-        // Force UI refresh on respawn
         UpdateHealthUI();
+
+        // Start invincibility window
+        StartCoroutine(InvincibilityCoroutine());
+    }
+
+    private IEnumerator InvincibilityCoroutine()
+    {
+        isInvincible = true;
+        Debug.Log($"[Health] Invincibility started for {invincibilityDuration} seconds.");
+        yield return new WaitForSeconds(invincibilityDuration);
+        isInvincible = false;
+        Debug.Log("[Health] Invincibility ended.");
     }
 
     private void OnHealthChanged(float oldValue, float newValue)
@@ -115,12 +131,10 @@ public class Health : NetworkBehaviour, IDamagable
         }
     }
 
-    // Allows assigning health text from scene / NetworkTankController
     public void SetHealthText(Text text)
     {
         healthText = text;
-        Debug.Log($"[Health] SetHealthText called → assigned to: {healthText?.gameObject.name ?? "NULL"} (InstanceID: {healthText?.gameObject.GetInstanceID()})");
-        UpdateHealthUI(); // refresh immediately
+        Debug.Log($"[Health] SetHealthText called → assigned to: {healthText?.gameObject.name ?? "NULL"}");
+        UpdateHealthUI();
     }
-
 }
