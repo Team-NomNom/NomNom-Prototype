@@ -27,12 +27,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 300028327665249388}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.25, y: 0.319, z: 0.42}
-  m_LocalScale: {x: 0.13, y: 0.15, z: 0.2}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.25, y: 0.638, z: 0.29999998}
+  m_LocalScale: {x: 0.13, y: 0.3, z: 0.14285713}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 541183507845158404}
+  m_Father: {fileID: 517837872231141844}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5715988788519037390
 MeshFilter:
@@ -139,7 +139,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 0.5, z: 1.4}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5836745498548329132}
+  - {fileID: 7922484407848449966}
   m_Father: {fileID: 541183507845158404}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1375997357871602437
@@ -243,12 +245,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 961296338148633042}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.25, y: 0.319, z: 0.42}
-  m_LocalScale: {x: 0.13, y: 0.15, z: 0.2}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.25, y: 0.638, z: 0.29999998}
+  m_LocalScale: {x: 0.13, y: 0.3, z: 0.14285713}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 541183507845158404}
+  m_Father: {fileID: 517837872231141844}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8149817361954153854
 MeshFilter:
@@ -472,8 +474,6 @@ Transform:
   m_Children:
   - {fileID: 517837872231141844}
   - {fileID: 4023948712459931573}
-  - {fileID: 5836745498548329132}
-  - {fileID: 7922484407848449966}
   - {fileID: 7003691086340539106}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -635,6 +635,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  playerUIPrefab: {fileID: 7172332835824873818, guid: 04ce3bac4be5f0d459fb7c4cc928694b, type: 3}
 --- !u!114 &3223559092925386599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -650,7 +651,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
   healthBar: {fileID: 0}
-  healthText: {fileID: 7751844799248634326, guid: ca50a42dfc51b0547a4e81415e45207f, type: 3}
+  healthText: {fileID: 6361773430751341472, guid: 04ce3bac4be5f0d459fb7c4cc928694b, type: 3}
+  visualsRoot: {fileID: 437274649785054083}
 --- !u!114 &1432667664924225826
 MonoBehaviour:
   m_ObjectHideFlags: 0

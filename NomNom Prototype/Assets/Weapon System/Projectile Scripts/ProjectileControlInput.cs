@@ -20,14 +20,20 @@ public class ProjectileControlInput : MonoBehaviour
     [SerializeField] private string turretVerticalAxis = "Mouse Y";   // or "RightStickVertical"
 
     private ProjectileFactory factory;
+    private Health health; // cache Health reference
 
     private void Awake()
     {
         factory = GetComponent<ProjectileFactory>();
+        health = GetComponent<Health>(); // cache Health once
     }
 
     private void Update()
     {
+        // Prevent firing & turret rotation if tank is dead
+        if (health != null && !health.IsAlive)
+            return; // skip firing & turret rotation if dead
+
         HandleFiring();
         HandleTurretRotation();
     }

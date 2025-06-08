@@ -1,24 +1,25 @@
-﻿using Unity.Netcode;
-using UnityEngine;
-using UnityEngine.UI; // only if you want to update a UI element (optional)
+﻿using UnityEngine;
+using Unity.Netcode;
+using UnityEngine.UI;
 
 public class Health : NetworkBehaviour, IDamagable
 {
     [Header("Health Settings")]
-    [Tooltip("Maximum health value.")]
     [SerializeField] private float maxHealth = 100f;
-
-    // This NetworkVariable synchronizes health across clients.
-    private NetworkVariable<float> currentHealth = new NetworkVariable<float>(
-        100f,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
+    private NetworkVariable<float> currentHealth = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [Header("Optional UI")]
-    [Tooltip("Drag a UI Slider or Text here to show current health (for debugging).")]
-    [SerializeField] private Slider healthBar; // or Text healthText;
     [SerializeField] private Text healthText;
+
+    [Header("Optional Visuals Root")]
+    [SerializeField] private GameObject visualsRoot;
+
+    public event System.Action<Health> OnDeath;
+
+    private bool isDead = false;
+    public bool IsAlive => !isDead;
+
+    public float MaxHealth => maxHealth;
 
     private void Awake()
     {
@@ -30,7 +31,7 @@ public class Health : NetworkBehaviour, IDamagable
         base.OnNetworkSpawn();
 
         currentHealth.OnValueChanged += OnHealthChanged;
-
+        OnHealthChanged(0f, currentHealth.Value); // force refresh to current value
     }
 
     private void OnDestroy()
@@ -38,15 +39,13 @@ public class Health : NetworkBehaviour, IDamagable
         currentHealth.OnValueChanged -= OnHealthChanged;
     }
 
-
-    // Subtracts from currentHealth.
-    public void TakeDamage(float amount)
+    public void TakeDamage(float damage)
     {
-        // Only the server should ever modify health.
         if (!IsServer) return;
+        if (isDead) return;
 
-        currentHealth.Value -= amount;
-        Debug.Log($"[Health] {gameObject.name} took {amount} damage, now at {currentHealth.Value}/{maxHealth}");
+        currentHealth.Value -= damage;
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
 
         if (currentHealth.Value <= 0f)
         {
@@ -54,31 +53,59 @@ public class Health : NetworkBehaviour, IDamagable
         }
     }
 
-    private void OnHealthChanged(float previousValue, float newValue)
-    {
-        if (healthBar != null)
-        {
-            healthBar.value = newValue / maxHealth;
-        }
-        // If you had a Text field:
-        if (healthText != null) healthText.text = $"{newValue:0}/{maxHealth:0}";
-    }
-
-
     private void Die()
     {
-        Debug.Log($"[Health] {gameObject.name} died.");
+        if (isDead) return;
+        isDead = true;
 
+        Debug.Log($"Tank {OwnerClientId} died!");
 
-        GetComponent<NetworkObject>().Despawn();
+        if (visualsRoot != null)
+            visualsRoot.SetActive(false);
+        else
+            gameObject.SetActive(false);
+
+        OnDeath?.Invoke(this);
+
+        // Force UI refresh to show "DEAD"
+        UpdateHealthUI();
     }
 
-    // Example of a ClientRpc to play a death VFX on everyone:
-    /*
-    [ClientRpc]
-    private void SpawnDeathVFXClientRpc()
+    public void ResetHealth()
     {
-        // Instantiate your particle prefab at transform.position, etc.
+        currentHealth.Value = maxHealth;
+        isDead = false;
+
+        if (visualsRoot != null)
+            visualsRoot.SetActive(true);
+        else
+            gameObject.SetActive(true);
+
+        // Force UI refresh on respawn
+        UpdateHealthUI();
     }
-    */
+
+    private void OnHealthChanged(float oldValue, float newValue)
+    {
+        Debug.Log($"[Health] OnHealthChanged → OwnerClientId: {OwnerClientId}, old: {oldValue}, new: {newValue}, isDead: {isDead}, IsOwner: {IsOwner}");
+        UpdateHealthUI();
+    }
+
+    private void UpdateHealthUI()
+    {
+        if (healthText != null)
+        {
+            if (isDead)
+                healthText.text = "DEAD";
+            else
+                healthText.text = $"{currentHealth.Value}/{maxHealth}";
+        }
+    }
+
+    // Allows assigning health text from scene / NetworkTankController
+    public void SetHealthText(Text text)
+    {
+        healthText = text;
+        UpdateHealthUI(); // refresh immediately
+    }
 }

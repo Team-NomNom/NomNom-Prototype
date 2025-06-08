@@ -1,77 +1,56 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(Collider))]
 public class DamageZone : MonoBehaviour
 {
-    [Header("Damage Zone Settings")]
-    [Tooltip("Damage applied per tick interval to objects inside the zone.")]
-    [SerializeField] private float damagePerTick = 10f;
+    [SerializeField] private float damagePerSecond = 20f;
+    [SerializeField] private float damageDelaySeconds = 0.5f; // NEW → delay before starting damage
 
-    [Tooltip("How often to apply damage (in seconds).")]
-    [SerializeField] private float damageInterval = 0.5f;
-
-    private readonly Dictionary<Health, float> trackedHealths = new Dictionary<Health, float>();
-
-    private void Awake()
-    {
-        Collider col = GetComponent<Collider>();
-        col.isTrigger = true;
-
-        Debug.Log("[DamageZone] Awake � ready.");
-    }
+    // Track entry time per collider
+    private Dictionary<Health, float> tankEntryTimes = new Dictionary<Health, float>();
 
     private void OnTriggerEnter(Collider other)
     {
-        Health health = other.GetComponentInParent<Health>();
-        if (health != null && !trackedHealths.ContainsKey(health))
+        var health = other.GetComponent<Health>();
+        if (health != null && !tankEntryTimes.ContainsKey(health))
         {
-            trackedHealths[health] = 0f; // start timer at 0
-            Debug.Log($"[DamageZone] {other.gameObject.name} entered zone. Now tracking {health.gameObject.name}.");
+            // Record time of entry
+            tankEntryTimes[health] = Time.time;
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        var health = other.GetComponent<Health>();
+        if (health != null)
+        {
+            if (!health.IsAlive)
+                return;
+
+            // Check how long this tank has been inside the zone
+            if (tankEntryTimes.TryGetValue(health, out float entryTime))
+            {
+                if (Time.time - entryTime >= damageDelaySeconds)
+                {
+                    // Start applying damage
+                    health.TakeDamage(damagePerSecond * Time.deltaTime);
+                }
+            }
+            else
+            {
+                // Edge case: somehow OnTriggerStay called before OnTriggerEnter
+                tankEntryTimes[health] = Time.time;
+            }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        Health health = other.GetComponentInParent<Health>();
-        if (health != null && trackedHealths.Remove(health))
+        var health = other.GetComponent<Health>();
+        if (health != null && tankEntryTimes.ContainsKey(health))
         {
-            Debug.Log($"[DamageZone] {other.gameObject.name} exited zone. Stopped tracking {health.gameObject.name}.");
-        }
-    }
-
-    private void Update()
-    {
-        if (trackedHealths.Count == 0) return;
-
-        List<Health> toRemove = new List<Health>();
-
-        foreach (var pair in trackedHealths)
-        {
-            Health health = pair.Key;
-            float timer = pair.Value;
-
-            if (health == null)
-            {
-                toRemove.Add(health);
-                continue;
-            }
-
-            timer += Time.deltaTime;
-
-            if (timer >= damageInterval)
-            {
-                Debug.Log($"[DamageZone] Damaging {health.gameObject.name} for {damagePerTick}.");
-                health.TakeDamage(damagePerTick);
-                timer = 0f;
-            }
-
-            trackedHealths[health] = timer; 
-        }
-
-        foreach (var health in toRemove)
-        {
-            trackedHealths.Remove(health);
+            // Reset timer when leaving zone
+            tankEntryTimes.Remove(health);
         }
     }
 }
