@@ -283,11 +283,11 @@ public class LobbyManager : MonoBehaviour
             }
 
             NetworkManager.Singleton.Shutdown();
-            // Force cleanup of any remaining NetworkObjects (fixes host player sticking bug). Update: wasn't the issue but is still good practice.
+/*            // Force cleanup of any remaining NetworkObjects (fixes host player sticking bug). Update: wasn't the issue but is still good practice.
             foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.ToList())
             {
                 Destroy(obj.gameObject);
-            }
+            }*/
 
 
             StopLobbyHeartbeat();
