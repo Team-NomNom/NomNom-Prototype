@@ -43,7 +43,7 @@ public class NetworkTankController : NetworkBehaviour
                 Debug.Log($"[NetworkTankController] Registered tank {gameObject.name} OnNetworkSpawn.");
             }
 
-            // ✅ Correct → tank fully spawned → ResetHealth here
+            // Tank fully spawned -> ResetHealth here
             var health = GetComponent<Health>();
             if (health != null)
             {
@@ -59,6 +59,9 @@ public class NetworkTankController : NetworkBehaviour
                 mainCamFollow.target = transform;
                 mainCamFollow.enabled = true;
                 mainCamFollow.GetComponent<Camera>().enabled = true;
+
+                // Camera snaps after respawn
+                mainCamFollow.ForceSnap();
             }
 
             var other = Camera.main;
@@ -92,7 +95,7 @@ public class NetworkTankController : NetworkBehaviour
                 }
             }
 
-            // Movement safe delay → prevents DeferredOnSpawn warning
+            // Movement safe delay -> prevents DeferredOnSpawn warning
             StartCoroutine(EnableMovementAfterSpawn());
         }
     }
@@ -117,7 +120,7 @@ public class NetworkTankController : NetworkBehaviour
 
         SubmitMovementServerRpc(forward, strafe, turn);
 
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.JoystickButton3))
         {
             if (IsServer)
                 health.TakeDamage(health.MaxHealth);

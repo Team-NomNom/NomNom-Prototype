@@ -147,7 +147,7 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        // No-op → we rely on Update() to show the visual now.
+        // No-op -> we rely on Update() to show the visual now.
     }
 
     private void OnHealthChanged(float oldValue, float newValue)

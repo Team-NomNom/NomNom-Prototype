@@ -7651,7 +7651,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1430494013168892564, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
       propertyPath: forceSnapSpeed
-      value: 100
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 1430494013168892564, guid: 0fcbe5b3a3c67ea448a91a285efb4102, type: 3}
       propertyPath: forceSnapDuration

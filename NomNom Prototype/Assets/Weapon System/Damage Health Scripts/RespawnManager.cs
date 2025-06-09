@@ -58,7 +58,7 @@ public class RespawnManager : MonoBehaviour
         newNetObj.SpawnWithOwnership(ownerClientId);
         Debug.Log($"[RespawnManager] Spawned new tank for client {ownerClientId} at spawn point {spawnPoint.position}");
 
-        // Wait small delay → ensure clients are fully synced
+        // Wait small delay -> ensure clients are fully synced
         yield return new WaitForSeconds(0.1f);
 
         var newTankHealth = newTankInstance.GetComponent<Health>();
@@ -68,7 +68,7 @@ public class RespawnManager : MonoBehaviour
         }
         else
         {
-            // Option 2: ForceSetInvincible and delayed clear
+            // ForceSetInvincible and delayed clear
             newTankHealth.ForceSetInvincible(true);
             Debug.Log($"[RespawnManager] ForceSetInvincible(true) called on new tank {newTankInstance.name}");
 

@@ -35,7 +35,7 @@ public class GameManager : NetworkBehaviour
 
     private void OnClientConnected(ulong clientId)
     {
-        // Only server spawns tanks!
+        // Only server spawns tanks
         if (IsServer)
         {
             SpawnTankForClient(clientId);
