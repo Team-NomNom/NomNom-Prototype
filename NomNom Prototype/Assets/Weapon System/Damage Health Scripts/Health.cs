@@ -35,8 +35,6 @@ public class Health : NetworkBehaviour, IDamagable
 
     public float MaxHealth => maxHealth;
 
-    private bool isInvincibleVisualActive = false;
-
     private void Awake()
     {
         currentHealth.Value = maxHealth;
@@ -65,14 +63,38 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void Update()
     {
-        if (isInvincibleVisualActive && cachedMaterial != null)
+        if (cachedMaterial != null)
         {
-            float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
-            Color pulseColor = invincibleColor * pulse;
-            pulseColor.a = 1f;
+            if (IsInvincible)
+            {
+                // Invincibility pulse → always works even if OnValueChanged was missed
+                float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
+                Color pulseColor = invincibleColor * pulse;
+                pulseColor.a = 1f;
 
-            cachedMaterial.color = pulseColor;
-            cachedMaterial.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+                cachedMaterial.color = pulseColor;
+                cachedMaterial.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+            }
+            else
+            {
+                // Low health pulse
+                float healthPercent = currentHealth.Value / maxHealth;
+                if (healthPercent < 0.3f) // Example: pulse below 30% HP
+                {
+                    float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
+                    Color pulseColor = Color.red * pulse;
+                    pulseColor.a = 1f;
+
+                    cachedMaterial.color = pulseColor;
+                    cachedMaterial.SetColor("_EmissionColor", Color.red * pulse * 2f);
+                }
+                else
+                {
+                    // Normal visuals
+                    cachedMaterial.color = normalColor;
+                    cachedMaterial.SetColor("_EmissionColor", Color.black);
+                }
+            }
         }
     }
 
@@ -115,7 +137,7 @@ public class Health : NetworkBehaviour, IDamagable
         else
             gameObject.SetActive(true);
 
-        // Invincibility now handled by RespawnManager → correct architecture!
+        // Invincibility now handled by RespawnManager
     }
 
     [ServerRpc]
@@ -141,13 +163,8 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        isInvincibleVisualActive = newValue;
-
-        if (!newValue && cachedMaterial != null)
-        {
-            cachedMaterial.color = normalColor;
-            cachedMaterial.SetColor("_EmissionColor", Color.black);
-        }
+        // No longer needed → Update() now always checks IsInvincible.Value
+        // This is now just here in case you want other effects when switching invincibility on/off
     }
 
     private void OnHealthChanged(float oldValue, float newValue)
