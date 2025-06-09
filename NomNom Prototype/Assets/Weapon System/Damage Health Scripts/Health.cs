@@ -26,14 +26,14 @@ public class Health : NetworkBehaviour, IDamagable
     [SerializeField] private Color invincibleColor = Color.cyan;
     [SerializeField] private Color normalColor = Color.white;
 
-    private Material cachedMaterial; // NEW → cache material once!
+    private Material cachedMaterial;
 
     public event System.Action<Health> OnDeath;
 
     private bool isDead = false;
     public bool IsAlive => !isDead;
 
-    public float MaxHealth => maxHealth; // ← RESTORED → required for NetworkTankController!
+    public float MaxHealth => maxHealth;
 
     private bool isInvincibleVisualActive = false;
 
@@ -41,7 +41,6 @@ public class Health : NetworkBehaviour, IDamagable
     {
         currentHealth.Value = maxHealth;
 
-        // Cache material once → avoids Unity Netcode material bug
         if (visualsRenderer != null)
         {
             cachedMaterial = visualsRenderer.material;
@@ -116,6 +115,12 @@ public class Health : NetworkBehaviour, IDamagable
         else
             gameObject.SetActive(true);
 
+        // Invincibility now handled by RespawnManager → correct architecture!
+    }
+
+    [ServerRpc]
+    public void StartInvincibilityServerRpc()
+    {
         StartCoroutine(InvincibilityCoroutine());
     }
 

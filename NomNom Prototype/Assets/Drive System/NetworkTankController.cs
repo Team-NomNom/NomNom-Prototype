@@ -1,6 +1,7 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class NetworkTankController : NetworkBehaviour
 {
@@ -11,7 +12,7 @@ public class NetworkTankController : NetworkBehaviour
     public GameObject playerUIPrefab;
 
     private GameObject playerUIInstance;
-    private bool isReadyToSendMovement = false; // NEW → fix Deferred OnSpawn
+    private bool isReadyToSendMovement = false; // movement safe delay flag
 
     private void Awake()
     {
@@ -40,6 +41,14 @@ public class NetworkTankController : NetworkBehaviour
             {
                 gm.RegisterTank(gameObject);
                 Debug.Log($"[NetworkTankController] Registered tank {gameObject.name} OnNetworkSpawn.");
+            }
+
+            // ✅ Correct → tank fully spawned → ResetHealth here
+            var health = GetComponent<Health>();
+            if (health != null)
+            {
+                health.ResetHealth();
+                Debug.Log($"[NetworkTankController] ResetHealth called on server for tank {gameObject.name} (safe OnNetworkSpawn)");
             }
         }
 
@@ -83,12 +92,12 @@ public class NetworkTankController : NetworkBehaviour
                 }
             }
 
-            // NEW → Enable movement after spawn delay → prevents Deferred OnSpawn warning
+            // Movement safe delay → prevents DeferredOnSpawn warning
             StartCoroutine(EnableMovementAfterSpawn());
         }
     }
 
-    private System.Collections.IEnumerator EnableMovementAfterSpawn()
+    private IEnumerator EnableMovementAfterSpawn()
     {
         yield return null;
         isReadyToSendMovement = true;
