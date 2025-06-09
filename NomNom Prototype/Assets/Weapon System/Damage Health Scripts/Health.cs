@@ -26,33 +26,31 @@ public class Health : NetworkBehaviour, IDamagable
     [SerializeField] private Color invincibleColor = Color.cyan;
     [SerializeField] private Color normalColor = Color.white;
 
-    [Header("Low Health Flicker")]
-    [SerializeField] private float lowHealthThresholdPercent = 25f;
-    [SerializeField] private Color lowHealthFlickerColor = Color.red;
-    [SerializeField] private float flickerSpeed = 8f;
-
-    private Coroutine lowHealthFlickerCoroutine;
-    private bool isFlickering = false;
-
-    private bool isInvincibleVisualActive = false;
+    private Material cachedMaterial; // NEW → cache material once!
 
     public event System.Action<Health> OnDeath;
 
     private bool isDead = false;
     public bool IsAlive => !isDead;
 
-    public float MaxHealth => maxHealth;
+    public float MaxHealth => maxHealth; // ← RESTORED → required for NetworkTankController!
+
+    private bool isInvincibleVisualActive = false;
 
     private void Awake()
     {
         currentHealth.Value = maxHealth;
+
+        // Cache material once → avoids Unity Netcode material bug
+        if (visualsRenderer != null)
+        {
+            cachedMaterial = visualsRenderer.material;
+        }
     }
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
-        Debug.Log($"[Health] OnNetworkSpawn → OwnerClientId: {OwnerClientId}, currentHealth: {currentHealth.Value}");
 
         currentHealth.OnValueChanged += OnHealthChanged;
         isInvincible.OnValueChanged += OnInvincibleChanged;
@@ -68,14 +66,14 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void Update()
     {
-        if (isInvincibleVisualActive && visualsRenderer != null)
+        if (isInvincibleVisualActive && cachedMaterial != null)
         {
             float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
             Color pulseColor = invincibleColor * pulse;
             pulseColor.a = 1f;
 
-            visualsRenderer.material.color = pulseColor;
-            visualsRenderer.material.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+            cachedMaterial.color = pulseColor;
+            cachedMaterial.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
         }
     }
 
@@ -83,24 +81,11 @@ public class Health : NetworkBehaviour, IDamagable
     {
         if (!IsServer) return;
 
-        if (isDead)
-        {
-            Debug.Log($"[Health] TakeDamage({damage}) blocked → already dead.");
-            return;
-        }
-
-        if (isInvincible.Value)
-        {
-            Debug.Log($"[Health] TakeDamage({damage}) blocked → invincible!");
-            return;
-        }
-
-        Debug.Log($"[Health] TakeDamage({damage}) accepted → currentHealth BEFORE: {currentHealth.Value}");
+        if (isDead) return;
+        if (isInvincible.Value) return;
 
         currentHealth.Value -= damage;
         currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
-
-        Debug.Log($"[Health] TakeDamage → currentHealth AFTER: {currentHealth.Value}");
 
         if (currentHealth.Value <= 0f)
         {
@@ -113,16 +98,12 @@ public class Health : NetworkBehaviour, IDamagable
         if (isDead) return;
         isDead = true;
 
-        Debug.Log($"[Health] Tank {OwnerClientId} died!");
+        OnDeath?.Invoke(this);
 
         if (visualsRoot != null)
             visualsRoot.SetActive(false);
         else
             gameObject.SetActive(false);
-
-        OnDeath?.Invoke(this);
-
-        UpdateHealthUI();
     }
 
     public void ResetHealth()
@@ -135,22 +116,16 @@ public class Health : NetworkBehaviour, IDamagable
         else
             gameObject.SetActive(true);
 
-        Debug.Log($"[Health] ResetHealth called → currentHealth reset to: {currentHealth.Value}");
-
-        UpdateHealthUI();
-
         StartCoroutine(InvincibilityCoroutine());
     }
 
     private IEnumerator InvincibilityCoroutine()
     {
         SetInvincibleServerRpc(true);
-        Debug.Log($"[Health] Invincibility started for {invincibilityDuration} seconds.");
 
         yield return new WaitForSeconds(invincibilityDuration);
 
         SetInvincibleServerRpc(false);
-        Debug.Log("[Health] Invincibility ended.");
     }
 
     [ServerRpc]
@@ -161,93 +136,25 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        Debug.Log($"[Health] OnInvincibleChanged → old: {oldValue}, new: {newValue}");
-
         isInvincibleVisualActive = newValue;
 
-        if (!newValue)
+        if (!newValue && cachedMaterial != null)
         {
-            if (visualsRenderer != null)
-            {
-                visualsRenderer.material.color = normalColor;
-                visualsRenderer.material.SetColor("_EmissionColor", Color.black);
-            }
-
-            CheckLowHealthFlicker();
+            cachedMaterial.color = normalColor;
+            cachedMaterial.SetColor("_EmissionColor", Color.black);
         }
     }
 
     private void OnHealthChanged(float oldValue, float newValue)
     {
-        Debug.Log($"[Health] OnHealthChanged → OwnerClientId: {OwnerClientId}, old: {oldValue}, new: {newValue}, isDead: {isDead}, IsOwner: {IsOwner}");
-        UpdateHealthUI();
-        CheckLowHealthFlicker();
-    }
-
-    private void UpdateHealthUI()
-    {
-        string healthPart = isDead ? "DEAD" : $"{currentHealth.Value}/{maxHealth}";
-
         if (healthText != null)
         {
-            Debug.Log($"[Health] UpdateHealthUI → updating healthText to: {healthPart}");
-            healthText.text = healthPart;
-        }
-        else
-        {
-            Debug.LogWarning($"[Health] UpdateHealthUI → healthText is null! Intended text would be: {healthPart}");
+            healthText.text = isDead ? "DEAD" : $"{currentHealth.Value}/{maxHealth}";
         }
     }
 
     public void SetHealthText(Text text)
     {
         healthText = text;
-        Debug.Log($"[Health] SetHealthText called → assigned to: {healthText?.gameObject.name ?? "NULL"}");
-        UpdateHealthUI();
-    }
-
-    private void CheckLowHealthFlicker()
-    {
-        float healthPercent = (currentHealth.Value / maxHealth) * 100f;
-
-        if (healthPercent <= lowHealthThresholdPercent && !isFlickering && IsAlive && !isInvincible.Value)
-        {
-            lowHealthFlickerCoroutine = StartCoroutine(LowHealthFlickerCoroutine());
-        }
-        else if ((healthPercent > lowHealthThresholdPercent || !IsAlive || isInvincible.Value) && isFlickering)
-        {
-            StopCoroutine(lowHealthFlickerCoroutine);
-            isFlickering = false;
-
-            if (visualsRenderer != null)
-            {
-                visualsRenderer.material.color = normalColor;
-                visualsRenderer.material.SetColor("_EmissionColor", Color.black);
-            }
-
-            Debug.Log("[Health] Low health flicker stopped.");
-        }
-    }
-
-    private IEnumerator LowHealthFlickerCoroutine()
-    {
-        isFlickering = true;
-        Debug.Log("[Health] Low health flicker started.");
-
-        while (true)
-        {
-            float pulse = Mathf.PingPong(Time.time * flickerSpeed, 1f);
-
-            if (visualsRenderer != null)
-            {
-                Color flickerColor = Color.Lerp(normalColor, lowHealthFlickerColor, pulse);
-                flickerColor.a = 1f;
-
-                visualsRenderer.material.color = flickerColor;
-                visualsRenderer.material.SetColor("_EmissionColor", lowHealthFlickerColor * pulse * 2f);
-            }
-
-            yield return null;
-        }
     }
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
 
@@ -58,9 +58,22 @@ public class GameManager : NetworkBehaviour
     public void RegisterTank(GameObject tank)
     {
         var health = tank.GetComponent<Health>();
+
+        if (health == null)
+        {
+            Debug.LogError($"[GameManager] RegisterTank → Tank {tank.name} is missing Health component!");
+            return;
+        }
+
+        //  Correct OnDeath subscription -> always passes correct GameObject (h.gameObject)
         health.OnDeath += (h) =>
         {
-            respawnManager.RespawnTank(tank, h.OwnerClientId);
+            Debug.Log($"[GameManager] OnDeath triggered for tank {h.gameObject.name}, OwnerClientId: {h.OwnerClientId}");
+
+            respawnManager.RespawnTank(h.gameObject, h.OwnerClientId);
         };
+
+        Debug.Log($"[GameManager] Registered OnDeath for tank {tank.name}, OwnerClientId: {tank.GetComponent<NetworkObject>()?.OwnerClientId}");
     }
+
 }

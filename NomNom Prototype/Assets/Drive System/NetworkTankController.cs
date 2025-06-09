@@ -1,6 +1,6 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI; // for Text
+using UnityEngine.UI;
 
 public class NetworkTankController : NetworkBehaviour
 {
@@ -10,7 +10,8 @@ public class NetworkTankController : NetworkBehaviour
     [Header("Player UI Prefab")]
     public GameObject playerUIPrefab;
 
-    private GameObject playerUIInstance; // track instance so we can clean up if needed
+    private GameObject playerUIInstance;
+    private bool isReadyToSendMovement = false; // NEW → fix Deferred OnSpawn
 
     private void Awake()
     {
@@ -32,9 +33,18 @@ public class NetworkTankController : NetworkBehaviour
             localTank.enabled = false;
         }
 
+        if (IsServer)
+        {
+            GameManager gm = FindObjectOfType<GameManager>();
+            if (gm != null)
+            {
+                gm.RegisterTank(gameObject);
+                Debug.Log($"[NetworkTankController] Registered tank {gameObject.name} OnNetworkSpawn.");
+            }
+        }
+
         if (IsOwner)
         {
-            // Enable and retarget the local camera
             if (mainCamFollow != null)
             {
                 mainCamFollow.target = transform;
@@ -42,99 +52,55 @@ public class NetworkTankController : NetworkBehaviour
                 mainCamFollow.GetComponent<Camera>().enabled = true;
             }
 
-            // Disable any other main camera in the scene
             var other = Camera.main;
             if (other != null && (mainCamFollow == null || other != mainCamFollow.GetComponent<Camera>()))
                 other.enabled = false;
 
-            // Instantiate PlayerUI for local player
             if (playerUIPrefab != null)
             {
                 playerUIInstance = Instantiate(playerUIPrefab);
 
-                // Parent it to InLobbyPanel (inside Canvas), fallback to Canvas
                 GameObject inLobbyPanel = GameObject.Find("InLobbyPanel");
                 if (inLobbyPanel != null)
                 {
                     playerUIInstance.transform.SetParent(inLobbyPanel.transform, false);
-                    Debug.Log("NetworkTankController: PlayerUI parented to InLobbyPanel.");
                 }
                 else
                 {
-                    Debug.LogWarning("NetworkTankController: Could not find InLobbyPanel. Falling back to Canvas.");
                     GameObject canvas = GameObject.Find("Canvas");
                     if (canvas != null)
                     {
                         playerUIInstance.transform.SetParent(canvas.transform, false);
-                        Debug.Log("NetworkTankController: PlayerUI parented to Canvas.");
-                    }
-                    else
-                    {
-                        Debug.LogError("NetworkTankController: Could not find Canvas either!");
                     }
                 }
 
-                // Assign Health UI to Health script
                 Health health = GetComponent<Health>();
-
-                // Safe flexible assignment → find any Text under PlayerUI
                 Text sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
 
                 if (sceneHealthText != null)
                 {
                     health.SetHealthText(sceneHealthText);
-                    Debug.Log($"[NetworkTankController] Assigned healthText: {sceneHealthText.gameObject.name} to Player {OwnerClientId}");
                 }
-                else
-                {
-                    Debug.LogWarning("NetworkTankController: MyHealthText (Text) not found in PlayerUI (GetComponentInChildren). Check PlayerUI prefab!");
-                }
-
-                // 🚀 FIX → Force ResetHealth so UI shows correct value
-                health.ResetHealth();
             }
-            else
-            {
-                Debug.LogError("NetworkTankController: PlayerUIPrefab not assigned!");
-            }
-        }
 
-        // Register this tank with RespawnManager (server only)
-        if (IsServer)
-        {
-            RespawnManager respawnManager = FindObjectOfType<RespawnManager>();
-
-            if (respawnManager != null)
-            {
-                Health health = GetComponent<Health>();
-
-                health.OnDeath -= OnTankDeathForRespawn;
-                health.OnDeath += OnTankDeathForRespawn;
-            }
-            else
-            {
-                Debug.LogError("NetworkTankController: Could not find RespawnManager in scene.");
-            }
+            // NEW → Enable movement after spawn delay → prevents Deferred OnSpawn warning
+            StartCoroutine(EnableMovementAfterSpawn());
         }
     }
 
-    private void OnTankDeathForRespawn(Health h)
+    private System.Collections.IEnumerator EnableMovementAfterSpawn()
     {
-        RespawnManager respawnManager = FindObjectOfType<RespawnManager>();
-
-        if (respawnManager != null)
-        {
-            respawnManager.RespawnTank(gameObject, h.OwnerClientId);
-        }
+        yield return null;
+        isReadyToSendMovement = true;
     }
 
     void Update()
     {
-        if (!IsOwner) return;
+        if (!IsOwner || !isReadyToSendMovement) return;
 
         var health = GetComponent<Health>();
         if (health != null && !health.IsAlive)
-            return; // skip input if dead
+            return;
 
         float forward = Input.GetAxis(localTank.profile.forwardAxis);
         float strafe = Input.GetAxis(localTank.profile.strafeAxis);
@@ -142,7 +108,6 @@ public class NetworkTankController : NetworkBehaviour
 
         SubmitMovementServerRpc(forward, strafe, turn);
 
-        // TEST: Press K to force tank death for respawn testing
         if (Input.GetKeyDown(KeyCode.K))
         {
             if (IsServer)
@@ -166,14 +131,12 @@ public class NetworkTankController : NetworkBehaviour
         var health = GetComponent<Health>();
         if (health != null)
         {
-            Debug.Log("[Debug] Forcing tank death (via ServerRpc).");
             health.TakeDamage(health.MaxHealth);
         }
     }
 
     private void OnDestroy()
     {
-        // Clean up PlayerUI if we own it
         if (IsOwner && playerUIInstance != null)
         {
             Destroy(playerUIInstance);

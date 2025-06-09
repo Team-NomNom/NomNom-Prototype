@@ -3410,6 +3410,8 @@ MonoBehaviour:
   - {fileID: 1261455291}
   - {fileID: 352341421}
   respawnDelay: 3
+  tankPrefab: {fileID: 3626744771387545982, guid: 2630947ce07051c4fad6ab23ec56f44b, type: 3}
+  gameManager: {fileID: 620414135}
 --- !u!1001 &896057648
 PrefabInstance:
   m_ObjectHideFlags: 0
