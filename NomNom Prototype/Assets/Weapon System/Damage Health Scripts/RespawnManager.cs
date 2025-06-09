@@ -58,6 +58,9 @@ public class RespawnManager : MonoBehaviour
         newNetObj.SpawnWithOwnership(ownerClientId);
         Debug.Log($"[RespawnManager] Spawned new tank for client {ownerClientId} at spawn point {spawnPoint.position}");
 
+        // Wait small delay → ensure clients are fully synced
+        yield return new WaitForSeconds(0.1f);
+
         var newTankHealth = newTankInstance.GetComponent<Health>();
         if (newTankHealth == null)
         {
@@ -65,8 +68,18 @@ public class RespawnManager : MonoBehaviour
         }
         else
         {
-            newTankHealth.StartInvincibilityServerRpc();
-            Debug.Log($"[RespawnManager] Started invincibility on new tank {newTankInstance.name}");
+            // Option 2: ForceSetInvincible and delayed clear
+            newTankHealth.ForceSetInvincible(true);
+            Debug.Log($"[RespawnManager] ForceSetInvincible(true) called on new tank {newTankInstance.name}");
+
+            StartCoroutine(DelayedClearInvincible(newTankHealth));
         }
+    }
+
+    private IEnumerator DelayedClearInvincible(Health health)
+    {
+        yield return new WaitForSeconds(health.InvincibilityDuration);
+        health.ForceSetInvincible(false);
+        Debug.Log($"[RespawnManager] ForceSetInvincible(false) called after invincibility duration for tank {health.gameObject.name}");
     }
 }

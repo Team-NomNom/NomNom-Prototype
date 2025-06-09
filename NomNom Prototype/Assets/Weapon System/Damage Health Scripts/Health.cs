@@ -53,6 +53,8 @@ public class Health : NetworkBehaviour, IDamagable
         isInvincible.OnValueChanged += OnInvincibleChanged;
 
         OnHealthChanged(0f, currentHealth.Value);
+
+        Debug.Log($"[Health] OnNetworkSpawn → isInvincible initial value = {isInvincible.Value}, OwnerClientId = {OwnerClientId}");
     }
 
     private void OnDestroy()
@@ -67,7 +69,7 @@ public class Health : NetworkBehaviour, IDamagable
         {
             if (IsInvincible)
             {
-                // Invincibility pulse → always works even if OnValueChanged was missed
+                // Invincibility pulse
                 float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
                 Color pulseColor = invincibleColor * pulse;
                 pulseColor.a = 1f;
@@ -79,7 +81,7 @@ public class Health : NetworkBehaviour, IDamagable
             {
                 // Low health pulse
                 float healthPercent = currentHealth.Value / maxHealth;
-                if (healthPercent < 0.3f) // Example: pulse below 30% HP
+                if (healthPercent < 0.3f)
                 {
                     float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
                     Color pulseColor = Color.red * pulse;
@@ -136,35 +138,16 @@ public class Health : NetworkBehaviour, IDamagable
             visualsRoot.SetActive(true);
         else
             gameObject.SetActive(true);
-
-        // Invincibility now handled by RespawnManager
     }
 
-    [ServerRpc]
-    public void StartInvincibilityServerRpc()
-    {
-        StartCoroutine(InvincibilityCoroutine());
-    }
-
-    private IEnumerator InvincibilityCoroutine()
-    {
-        SetInvincibleServerRpc(true);
-
-        yield return new WaitForSeconds(invincibilityDuration);
-
-        SetInvincibleServerRpc(false);
-    }
-
-    [ServerRpc]
-    private void SetInvincibleServerRpc(bool value)
+    public void ForceSetInvincible(bool value)
     {
         isInvincible.Value = value;
     }
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        // No longer needed → Update() now always checks IsInvincible.Value
-        // This is now just here in case you want other effects when switching invincibility on/off
+        // No-op → we rely on Update() to show the visual now.
     }
 
     private void OnHealthChanged(float oldValue, float newValue)
