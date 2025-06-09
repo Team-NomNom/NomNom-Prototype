@@ -26,6 +26,8 @@ public class Health : NetworkBehaviour, IDamagable
     [SerializeField] private Color invincibleColor = Color.cyan;
     [SerializeField] private Color normalColor = Color.white;
 
+    [SerializeField] private Color lowHealthPulseColor = Color.red;
+
     private Material cachedMaterial;
 
     public event System.Action<Health> OnDeath;
@@ -84,11 +86,11 @@ public class Health : NetworkBehaviour, IDamagable
                 if (healthPercent < 0.3f)
                 {
                     float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
-                    Color pulseColor = Color.red * pulse;
+                    Color pulseColor = lowHealthPulseColor * pulse;
                     pulseColor.a = 1f;
 
                     cachedMaterial.color = pulseColor;
-                    cachedMaterial.SetColor("_EmissionColor", Color.red * pulse * 2f);
+                    cachedMaterial.SetColor("_EmissionColor", lowHealthPulseColor * pulse * 2f);
                 }
                 else
                 {

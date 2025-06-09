@@ -14,6 +14,8 @@ public class RespawnManager : MonoBehaviour
     [Header("Game Manager Reference")]
     [SerializeField] private GameManager gameManager;
 
+    public float RespawnDelay => respawnDelay;
+
     public void RespawnTank(GameObject oldTankObject, ulong ownerClientId)
     {
         Debug.Log($"[RespawnManager] RespawnTank → OwnerClientId: {ownerClientId}");
@@ -82,4 +84,5 @@ public class RespawnManager : MonoBehaviour
         health.ForceSetInvincible(false);
         Debug.Log($"[RespawnManager] ForceSetInvincible(false) called after invincibility duration for tank {health.gameObject.name}");
     }
+
 }

@@ -12,7 +12,10 @@ public class NetworkTankController : NetworkBehaviour
     public GameObject playerUIPrefab;
 
     private GameObject playerUIInstance;
-    private bool isReadyToSendMovement = false; // movement safe delay flag
+    private Text respawnCountdownText; // Respawn countdown UI element
+    private Coroutine respawnCountdownCoroutine; // Track coroutine
+
+    private bool isReadyToSendMovement = false; // Movement safe delay flag
 
     private void Awake()
     {
@@ -60,7 +63,7 @@ public class NetworkTankController : NetworkBehaviour
                 mainCamFollow.enabled = true;
                 mainCamFollow.GetComponent<Camera>().enabled = true;
 
-                // Camera snaps after respawn
+                // 🚀 Force snap camera after respawn
                 mainCamFollow.ForceSnap();
             }
 
@@ -87,16 +90,42 @@ public class NetworkTankController : NetworkBehaviour
                 }
 
                 Health health = GetComponent<Health>();
-                Text sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
 
+                // Health text
+                Text sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
                 if (sceneHealthText != null)
                 {
                     health.SetHealthText(sceneHealthText);
                 }
+
+                // Respawn countdown text → find and cache
+                respawnCountdownText = playerUIInstance.transform.Find("RespawnCountdownText")?.GetComponent<Text>();
+                if (respawnCountdownText != null)
+                {
+                    respawnCountdownText.gameObject.SetActive(false); // start hidden
+                }
+
+                // Subscribe to OnDeath to show countdown
+                if (health != null)
+                {
+                    health.OnDeath += OnTankDeath;
+                }
             }
 
-            // Movement safe delay -> prevents DeferredOnSpawn warning
+            // Movement safe delay → prevents DeferredOnSpawn warning
             StartCoroutine(EnableMovementAfterSpawn());
+
+            // Hide respawn countdown if re-spawning!
+            if (respawnCountdownText != null)
+            {
+                respawnCountdownText.gameObject.SetActive(false);
+
+                if (respawnCountdownCoroutine != null)
+                {
+                    StopCoroutine(respawnCountdownCoroutine);
+                    respawnCountdownCoroutine = null;
+                }
+            }
         }
     }
 
@@ -153,5 +182,46 @@ public class NetworkTankController : NetworkBehaviour
         {
             Destroy(playerUIInstance);
         }
+
+        var health = GetComponent<Health>();
+        if (IsOwner && health != null)
+        {
+            health.OnDeath -= OnTankDeath;
+        }
+    }
+
+    // OnDeath handler for showing respawn countdown
+    private void OnTankDeath(Health health)
+    {
+        if (respawnCountdownText != null)
+        {
+            respawnCountdownText.gameObject.SetActive(true);
+
+            // Cancel previous coroutine if needed
+            if (respawnCountdownCoroutine != null)
+                StopCoroutine(respawnCountdownCoroutine);
+
+            // Get respawnDelay dynamically from RespawnManager
+            RespawnManager respawnManager = FindObjectOfType<RespawnManager>();
+            float respawnDelay = respawnManager != null ? respawnManager.RespawnDelay : 3f; // fallback default
+
+            respawnCountdownCoroutine = StartCoroutine(RespawnCountdownCoroutine(respawnDelay));
+        }
+    }
+
+
+    private IEnumerator RespawnCountdownCoroutine(float duration)
+    {
+        float timer = duration;
+
+        while (timer > 0f)
+        {
+            respawnCountdownText.text = $"{Mathf.CeilToInt(timer)}";
+            yield return null;
+            timer -= Time.deltaTime;
+        }
+
+        respawnCountdownText.text = ""; // optional final message
+        yield return null;
     }
 }
