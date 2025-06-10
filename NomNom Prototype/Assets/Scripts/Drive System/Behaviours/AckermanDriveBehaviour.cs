@@ -1,13 +1,24 @@
 using UnityEngine;
 using System;
-// [RequireComponent(typeof(TankController))]
+using Unity.Netcode;
+
 public class AckermanDriveBehaviour : MonoBehaviour, IDriveBehaviour
 {
     [Tooltip("Distance between front and rear axles")]
     public float wheelBase = 2f;
 
+    private NetworkObject netObj;
+
+    void Awake()
+    {
+        netObj = GetComponent<NetworkObject>();
+    }
+
     public void HandleDrive(Rigidbody rb, DriveInput input, DriveProfile profile, float deltaTime)
     {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
         TankController tc = rb.GetComponent<TankController>();
 
         // Determine desired linear acceleration
@@ -27,7 +38,10 @@ public class AckermanDriveBehaviour : MonoBehaviour, IDriveBehaviour
         {
             float radius = wheelBase / Mathf.Tan(steerAngle * Mathf.Deg2Rad);
             float angularVelDeg = newAccel / radius * Mathf.Rad2Deg;
-            rb.MoveRotation(rb.rotation * Quaternion.Euler(0, angularVelDeg * deltaTime, 0));
+            float yawDegreesThisFrame = angularVelDeg * deltaTime;
+
+            // Use shared ground-aligned rotation helper
+            GroundAlignedRotationHelper.ApplyRotation(rb, transform, yawDegreesThisFrame);
         }
     }
 }
