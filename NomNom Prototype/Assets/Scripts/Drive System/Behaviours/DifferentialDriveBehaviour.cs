@@ -37,6 +37,6 @@ public class DifferentialDriveBehaviour : MonoBehaviour, IDriveBehaviour
         float yawDegreesThisFrame = newRotAccel * deltaTime;
 
         // Use shared ground-aligned rotation helper
-        GroundAlignedRotationHelper.ApplyRotation(rb, transform, yawDegreesThisFrame);
+        GroundAlignedRotationHelper.ApplyRotation(rb, transform, yawDegreesThisFrame, 1.5f);
     }
 }

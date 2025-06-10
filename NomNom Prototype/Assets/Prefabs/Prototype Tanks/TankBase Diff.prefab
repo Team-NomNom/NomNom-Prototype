@@ -448,10 +448,11 @@ GameObject:
   - component: {fileID: 3255127945892570634}
   - component: {fileID: 237159153903873539}
   - component: {fileID: 1159630504380882482}
-  - component: {fileID: 7602811718447538566}
   - component: {fileID: 6357561973925527749}
   - component: {fileID: 3223559092925386599}
   - component: {fileID: 1432667664924225826}
+  - component: {fileID: 7602811718447538566}
+  - component: {fileID: 5127660390309923142}
   m_Layer: 0
   m_Name: TankBase Diff
   m_TagString: Player
@@ -516,8 +517,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19093a1005c3ff344beac22e7f17e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  profile: {fileID: 11400000, guid: 8090840b936a0854db5e41907278b835, type: 2}
-  driveBehaviourMono: {fileID: 3255127945892570634}
+  profile: {fileID: 11400000, guid: c5243b95391da1b47b22d247187e20b9, type: 2}
+  driveBehaviourMono: {fileID: 5127660390309923142}
 --- !u!114 &3255127945892570634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -576,52 +577,6 @@ MonoBehaviour:
   homingConfig: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
   arcConfig: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
   muzzleTransform: {fileID: 7003691086340539106}
---- !u!114 &7602811718447538566
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3626744771387545982}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 0
-  AutoOwnerAuthorityTickOffset: 1
-  PositionInterpolationType: 0
-  RotationInterpolationType: 0
-  ScaleInterpolationType: 0
-  PositionLerpSmoothing: 1
-  PositionMaxInterpolationTime: 0.1
-  RotationLerpSmoothing: 1
-  RotationMaxInterpolationTime: 0.1
-  ScaleLerpSmoothing: 1
-  ScaleMaxInterpolationTime: 0.1
-  AuthorityMode: 0
-  TickSyncChildren: 0
-  UseUnreliableDeltas: 0
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 1
-  SyncScaleY: 1
-  SyncScaleZ: 1
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
-  UseQuaternionCompression: 0
-  UseHalfFloatPrecision: 0
-  InLocalSpace: 0
-  SwitchTransformSpaceWhenParented: 0
-  Interpolate: 1
-  SlerpPosition: 0
 --- !u!114 &6357561973925527749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -680,6 +635,65 @@ MonoBehaviour:
   turretRotateSpeed: 100
   turretHorizontalAxis: Mouse X
   turretVerticalAxis: Mouse Y
+--- !u!114 &7602811718447538566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3626744771387545982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
+  Interpolate: 1
+  SlerpPosition: 0
+--- !u!114 &5127660390309923142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3626744771387545982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f0378bc0ae0ea6429d6a853f4074989, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxStrafeSpeed: 10
 --- !u!1 &7209051376469364900
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,7 +5,7 @@ public static class GroundAlignedRotationHelper
     /// <summary>
     /// Performs ground-aligned rotation for a tank, with fallback to world-up if no ground detected.
     /// </summary>
-    public static void ApplyRotation(Rigidbody rb, Transform tankTransform, float yawDegreesThisFrame, float rayLength = 1.5f)
+    public static void ApplyRotation(Rigidbody rb, Transform tankTransform, float yawDegreesThisFrame, float rayLength)
     {
         Vector3 rayOrigin = rb.position + Vector3.up * 0.5f;
         Vector3 rayDir = Vector3.down;

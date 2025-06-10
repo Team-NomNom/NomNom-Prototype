@@ -45,6 +45,6 @@ public class ArcadeDriveBehaviour : MonoBehaviour, IDriveBehaviour
         rb.MovePosition(rb.position + newAccel * deltaTime * transform.forward);
 
         // Apply rotation via shared ground-aligned helper
-        GroundAlignedRotationHelper.ApplyRotation(rb, transform, yawDegreesThisFrame);
+        GroundAlignedRotationHelper.ApplyRotation(rb, transform, yawDegreesThisFrame, 1.5f);
     }
 }
