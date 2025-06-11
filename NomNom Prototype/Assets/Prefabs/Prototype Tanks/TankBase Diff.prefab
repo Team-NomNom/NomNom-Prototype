@@ -577,6 +577,18 @@ MonoBehaviour:
   homingConfig: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
   arcConfig: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
   muzzleTransform: {fileID: 7003691086340539106}
+  simpleAmmoSettings:
+    maxAmmo: 3
+    cooldownBetweenShots: 0.5
+    reloadTimePerShot: 1
+  homingAmmoSettings:
+    maxAmmo: 5
+    cooldownBetweenShots: 0.5
+    reloadTimePerShot: 1
+  arcAmmoSettings:
+    maxAmmo: 3
+    cooldownBetweenShots: 0.5
+    reloadTimePerShot: 1
 --- !u!114 &6357561973925527749
 MonoBehaviour:
   m_ObjectHideFlags: 0

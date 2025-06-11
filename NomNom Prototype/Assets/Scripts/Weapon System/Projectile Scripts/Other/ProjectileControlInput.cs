@@ -42,15 +42,15 @@ public class ProjectileControlInput : MonoBehaviour
     {
         if (Input.GetKeyDown(fireSimpleKey) || Input.GetButtonDown(fireSimpleAxis))
         {
-            factory.FireSimpleProjectile();
+            factory.TryFireSimpleProjectile();
         }
         if (Input.GetKeyDown(fireHomingKey) || Input.GetButtonDown(fireHomingAxis))
         {
-            factory.FireHomingMissile();
+            factory.TryFireHomingMissile();
         }
         if (Input.GetKeyDown(fireArcKey) || Input.GetButtonDown(fireArcAxis))
         {
-            factory.FireArcGrenade();
+            factory.TryFireArcGrenade();
         }
     }
 

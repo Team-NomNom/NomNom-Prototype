@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Responsible for instantiating different types of projectiles.
-/// Reads from modular configuration (ScriptableObjects).
-/// </summary>
 public class ProjectileFactory : NetworkBehaviour
 {
     [Header("Projectile Prefabs")]
@@ -19,32 +16,112 @@ public class ProjectileFactory : NetworkBehaviour
     [SerializeField] private ProjectileConfig arcConfig;
 
     [Header("Spawn Info")]
-    [Tooltip("Where projectiles originate from.")]
     [SerializeField] private Transform muzzleTransform;
+
+    [System.Serializable]
+    public class WeaponAmmoSettings
+    {
+        public int maxAmmo = 3;
+        public float cooldownBetweenShots = 0.5f;
+        public float reloadTimePerShot = 1.0f;
+    }
+
+    [Header("Ammo Settings")]
+    public WeaponAmmoSettings simpleAmmoSettings = new WeaponAmmoSettings();
+    public WeaponAmmoSettings homingAmmoSettings = new WeaponAmmoSettings();
+    public WeaponAmmoSettings arcAmmoSettings = new WeaponAmmoSettings();
+
+    private class AmmoState
+    {
+        public int currentAmmo;
+        public float reloadTimer;
+        public bool isShotCooldown;
+    }
+
+    private AmmoState simpleAmmo = new AmmoState();
+    private AmmoState homingAmmo = new AmmoState();
+    private AmmoState arcAmmo = new AmmoState();
 
     private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
 
-    // --------- Public firing methods ---------
-
-    public void FireSimpleProjectile()
+    private void Start()
     {
-        if (!IsOwner || simpleProjectilePrefab == null) return;
-        SpawnProjectileServerRpc(simpleProjectilePrefab.name, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
+        simpleAmmo.currentAmmo = simpleAmmoSettings.maxAmmo;
+        homingAmmo.currentAmmo = homingAmmoSettings.maxAmmo;
+        arcAmmo.currentAmmo = arcAmmoSettings.maxAmmo;
     }
 
-    public void FireHomingMissile()
+    private void Update()
     {
-        if (!IsOwner || homingMissilePrefab == null) return;
-        SpawnProjectileServerRpc(homingMissilePrefab.name, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
+        HandleReload(simpleAmmo, simpleAmmoSettings);
+        HandleReload(homingAmmo, homingAmmoSettings);
+        HandleReload(arcAmmo, arcAmmoSettings);
     }
 
-    public void FireArcGrenade()
+    public void TryFireSimpleProjectile()
     {
-        if (!IsOwner || arcGrenadePrefab == null) return;
-        SpawnProjectileServerRpc(arcGrenadePrefab.name, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
+        TryFire(simpleAmmo, simpleAmmoSettings, simpleProjectilePrefab.name, simpleConfig);
     }
 
-    // --------- Server side spawn logic ---------
+    public void TryFireHomingMissile()
+    {
+        TryFire(homingAmmo, homingAmmoSettings, homingMissilePrefab.name, homingConfig);
+    }
+
+    public void TryFireArcGrenade()
+    {
+        TryFire(arcAmmo, arcAmmoSettings, arcGrenadePrefab.name, arcConfig);
+    }
+
+    private void TryFire(AmmoState ammoState, WeaponAmmoSettings settings, string prefabName, ProjectileConfig config)
+    {
+        if (!IsOwner) return;
+
+        if (ammoState.isShotCooldown)
+        {
+            Debug.Log($"[ProjectileFactory] Cannot fire {prefabName} → cooldown in progress.");
+            return;
+        }
+
+        if (ammoState.currentAmmo <= 0)
+        {
+            Debug.Log($"[ProjectileFactory] Cannot fire {prefabName} → no ammo.");
+            return;
+        }
+
+        // Fire!
+        SpawnProjectileServerRpc(prefabName, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
+
+        ammoState.currentAmmo--;
+        ammoState.isShotCooldown = true;
+        StartCoroutine(ShotCooldownCoroutine(ammoState, settings.cooldownBetweenShots));
+
+        Debug.Log($"[ProjectileFactory] Fired {prefabName}. Ammo left: {ammoState.currentAmmo}/{settings.maxAmmo}");
+    }
+
+    private IEnumerator ShotCooldownCoroutine(AmmoState ammoState, float cooldown)
+    {
+        yield return new WaitForSeconds(cooldown);
+        ammoState.isShotCooldown = false;
+    }
+
+    private void HandleReload(AmmoState ammoState, WeaponAmmoSettings settings)
+    {
+        if (ammoState.currentAmmo >= settings.maxAmmo)
+        {
+            ammoState.reloadTimer = 0f;
+            return;
+        }
+
+        ammoState.reloadTimer += Time.deltaTime;
+
+        if (ammoState.reloadTimer >= settings.reloadTimePerShot)
+        {
+            ammoState.currentAmmo++;
+            ammoState.reloadTimer = 0f;
+            Debug.Log($"[ProjectileFactory] Reloaded 1 ammo. Ammo: {ammoState.currentAmmo}/{settings.maxAmmo}");
+        }
+    }
 
     [ServerRpc]
     private void SpawnProjectileServerRpc(string prefabName, Vector3 position, Quaternion rotation, ulong shooterId, ServerRpcParams rpcParams = default)
@@ -72,14 +149,10 @@ public class ProjectileFactory : NetworkBehaviour
         {
             proj.Initialize(shooterId, gameObject); // Pass factory's gameObject as shooter root
             proj.ApplyConfig(LookupProjectileConfig(prefabName));
-            // Ensure config is applied correctly
         }
 
         IgnoreCollisionWithShooter(instance, shooterId);
     }
-
-
-    // --------- Helper methods ---------
 
     private GameObject LookupProjectilePrefab(string name)
     {
