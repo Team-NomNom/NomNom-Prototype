@@ -181,4 +181,39 @@ public class ProjectileFactory : NetworkBehaviour
             foreach (var pCol in projectileColliders)
                 Physics.IgnoreCollision(sCol, pCol, true);
     }
+
+    // ----- UI support -----
+
+    public struct AmmoInfo
+    {
+        public int currentAmmo;
+        public int maxAmmo;
+    }
+
+    public AmmoInfo GetSimpleAmmoInfo()
+    {
+        return new AmmoInfo
+        {
+            currentAmmo = simpleAmmo.currentAmmo,
+            maxAmmo = simpleAmmoSettings.maxAmmo
+        };
+    }
+
+    public AmmoInfo GetHomingAmmoInfo()
+    {
+        return new AmmoInfo
+        {
+            currentAmmo = homingAmmo.currentAmmo,
+            maxAmmo = homingAmmoSettings.maxAmmo
+        };
+    }
+
+    public AmmoInfo GetArcAmmoInfo()
+    {
+        return new AmmoInfo
+        {
+            currentAmmo = arcAmmo.currentAmmo,
+            maxAmmo = arcAmmoSettings.maxAmmo
+        };
+    }
 }

@@ -10,6 +10,9 @@ public class GameManager : NetworkBehaviour
     [Header("Spawn Points")]
     [SerializeField] private List<Transform> spawnPoints;
 
+    public static ProjectileFactory LocalPlayerFactory { get; set; }
+    public static System.Action OnLocalPlayerFactoryAssigned;
+
     private RespawnManager respawnManager;
 
     private void Start()
@@ -44,11 +47,22 @@ public class GameManager : NetworkBehaviour
 
     private void SpawnTankForClient(ulong clientId)
     {
+        Debug.Log("[GameManager] SpawnTankForClient STARTED."); // <== Added this line
+
         int spawnIndex = (int)(clientId % (ulong)spawnPoints.Count);
         Transform spawnPoint = spawnPoints[spawnIndex];
 
         GameObject tankInstance = Instantiate(tankPrefab, spawnPoint.position, spawnPoint.rotation);
         tankInstance.GetComponent<NetworkObject>().SpawnWithOwnership(clientId);
+
+        Debug.Log($"[GameManager] Checking LocalPlayerFactory assignment → clientId={clientId}, LocalClientId={NetworkManager.Singleton.LocalClientId}");
+
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            LocalPlayerFactory = tankInstance.GetComponent<ProjectileFactory>();
+            Debug.Log("[GameManager] LocalPlayerFactory assigned.");
+            OnLocalPlayerFactoryAssigned?.Invoke();
+        }
 
         RegisterTank(tankInstance);
 
@@ -65,7 +79,6 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        //  Correct OnDeath subscription -> always passes correct GameObject (h.gameObject)
         health.OnDeath += (h) =>
         {
             Debug.Log($"[GameManager] OnDeath triggered for tank {h.gameObject.name}, OwnerClientId: {h.OwnerClientId}");
@@ -75,5 +88,4 @@ public class GameManager : NetworkBehaviour
 
         Debug.Log($"[GameManager] Registered OnDeath for tank {tank.name}, OwnerClientId: {tank.GetComponent<NetworkObject>()?.OwnerClientId}");
     }
-
 }

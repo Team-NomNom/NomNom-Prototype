@@ -587,7 +587,7 @@ MonoBehaviour:
     reloadTimePerShot: 1
   arcAmmoSettings:
     maxAmmo: 3
-    cooldownBetweenShots: 0.5
+    cooldownBetweenShots: 0.2
     reloadTimePerShot: 1
 --- !u!114 &6357561973925527749
 MonoBehaviour:

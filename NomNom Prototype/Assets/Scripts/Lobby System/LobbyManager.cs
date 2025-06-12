@@ -552,14 +552,47 @@ public class LobbyManager : MonoBehaviour
     }
 
 
-
+    // may need to revert this
     private void OnClientConnected(ulong clientId)
     {
         Debug.Log($"Client connected: {clientId}");
 
         // Host waits for PlayerJoinMessage to map players -> nothing to do here
         UpdatePlayerListUI();
+
+        // If this is the local player → force assign LocalPlayerFactory:
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.Log("[LobbyManager] Local player connected → attempting to assign LocalPlayerFactory.");
+
+            // Assuming your tank is the "player object" (NetworkManager PlayerPrefab):
+            var playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+
+            if (playerObject != null)
+            {
+                Debug.Log($"[LobbyManager] Found LocalPlayerObject: {playerObject.name}");
+
+                var projectileFactory = playerObject.GetComponent<ProjectileFactory>();
+
+                if (projectileFactory != null)
+                {
+                    GameManager.LocalPlayerFactory = projectileFactory;
+                    GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
+
+                    Debug.Log("[LobbyManager] LocalPlayerFactory assigned successfully from player object.");
+                }
+                else
+                {
+                    Debug.LogWarning("[LobbyManager] Local player object does not have ProjectileFactory!");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[LobbyManager] Could not find LocalPlayerObject → LocalPlayerFactory not assigned.");
+            }
+        }
     }
+
 
     private void UpdateUIState(bool inLobby)
     {
