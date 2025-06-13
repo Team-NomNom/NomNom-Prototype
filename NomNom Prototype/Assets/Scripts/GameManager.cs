@@ -17,6 +17,9 @@ public class GameManager : NetworkBehaviour
 
     private RespawnManager respawnManager;
 
+    // 🚀 Track tanks per client
+    private Dictionary<ulong, GameObject> clientTanks = new Dictionary<ulong, GameObject>();
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -55,8 +58,12 @@ public class GameManager : NetworkBehaviour
         // Only server spawns tanks
         if (IsServer)
         {
-            SpawnTankForClient(clientId);
-            Debug.Log("OMG ITS OMG OMG IGS OMG");
+            // 🚀 For host → we already spawned manually → skip
+            if (clientId != NetworkManager.Singleton.LocalClientId)
+            {
+                Debug.Log($"[LobbyManager] Spawning tank for connected client {clientId}");
+                SpawnTankForClient(clientId);
+            }
         }
     }
 
@@ -80,6 +87,13 @@ public class GameManager : NetworkBehaviour
         }
 
         RegisterTank(tankInstance);
+
+        // 🚀 Track this tank per client
+        if (clientTanks.ContainsKey(clientId))
+        {
+            clientTanks.Remove(clientId);
+        }
+        clientTanks[clientId] = tankInstance;
 
         Debug.Log($"Spawned tank for client {clientId} at spawn {spawnIndex}");
     }
@@ -108,5 +122,24 @@ public class GameManager : NetworkBehaviour
 
         // Start RespawnTankCoroutine safely
         respawnManager.StartCoroutine(respawnManager.RespawnTankCoroutine(h.gameObject, h.OwnerClientId));
+    }
+
+    // 🚀 New method → cleanly despawn tank for a given client
+    public void DespawnTankForClient(ulong clientId)
+    {
+        if (clientTanks.TryGetValue(clientId, out GameObject tank))
+        {
+            if (tank != null && tank.GetComponent<NetworkObject>() != null && tank.GetComponent<NetworkObject>().IsSpawned)
+            {
+                tank.GetComponent<NetworkObject>().Despawn(true);  // true = destroy GameObject
+                Debug.Log($"[GameManager] Despawned tank for client {clientId}");
+            }
+
+            clientTanks.Remove(clientId);
+        }
+        else
+        {
+            Debug.LogWarning($"[GameManager] DespawnTankForClient → no tank found for client {clientId}");
+        }
     }
 }

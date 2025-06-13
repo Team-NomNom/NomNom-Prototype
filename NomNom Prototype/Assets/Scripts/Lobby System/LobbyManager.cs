@@ -336,6 +336,12 @@ public class LobbyManager : MonoBehaviour
             {
                 await Lobbies.Instance.RemovePlayerAsync(currentLobby.Id, playerId);
                 Debug.Log($"Kicked player {playerId}");
+
+                // 🚀 Despawn tank for kicked player
+                if (playerIdToClientId.TryGetValue(playerId, out ulong kickedClientId))
+                {
+                    GameManager.Instance.DespawnTankForClient(kickedClientId);
+                }
             }
             catch (Exception e)
             {
@@ -343,6 +349,7 @@ public class LobbyManager : MonoBehaviour
             }
         }
     }
+
 
     private void StartLobbyHeartbeat()
     {
@@ -532,6 +539,12 @@ public class LobbyManager : MonoBehaviour
     {
         Debug.LogWarning($"Client disconnected from server: {clientId}");
 
+        if (NetworkManager.Singleton.IsServer)
+        {
+            // 🚀 Despawn tank for the disconnected client
+            GameManager.Instance.DespawnTankForClient(clientId);
+        }
+
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             Debug.LogWarning("Local player disconnected → performing Leave cleanup.");
@@ -549,7 +562,7 @@ public class LobbyManager : MonoBehaviour
         {
             Debug.Log($"Another client ({clientId}) disconnected. Host stays in Lobby.");
 
-            // DO NOT use fallback anymore — only trust playerIdToClientId
+            // Update disconnected UI status
             string playerIdToMark = playerIdToClientId.FirstOrDefault(kv => kv.Value == clientId).Key;
 
             if (!string.IsNullOrEmpty(playerIdToMark))
@@ -561,12 +574,12 @@ public class LobbyManager : MonoBehaviour
             else
             {
                 Debug.LogWarning($"Could not find playerId for clientId {clientId} → PlayerJoinMessage may not have arrived.");
-                // This is OK — in this case, the player row will not show in UI -> correct behavior.
             }
 
             UpdatePlayerListUI();
         }
     }
+
 
 
     // may need to revert this
