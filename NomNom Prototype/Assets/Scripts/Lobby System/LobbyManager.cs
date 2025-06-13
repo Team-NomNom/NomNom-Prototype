@@ -36,6 +36,10 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private GameObject preLobbyPanel;
     [SerializeField] private GameObject inLobbyPanel;
 
+    [Header("Prefabs")]
+    [SerializeField] private GameObject networkManagerPrefab;
+
+
     private Lobby currentLobby;
     private string currentLobbyCode;
     private const int MaxPlayers = 4;
@@ -84,6 +88,13 @@ public class LobbyManager : MonoBehaviour
 
     public async void CreateLobby()
     {
+
+        if (NetworkManager.Singleton == null)
+        {
+            Debug.Log("[LobbyManager] NetworkManager was destroyed → recreating.");
+            Instantiate(networkManagerPrefab);
+        }
+
         try
         {
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxPlayers);
@@ -158,6 +169,13 @@ public class LobbyManager : MonoBehaviour
 
     public async void JoinLobby(string lobbyCode)
     {
+
+        if (NetworkManager.Singleton == null)
+        {
+            Debug.Log("[LobbyManager] NetworkManager was destroyed → recreating.");
+            Instantiate(networkManagerPrefab);
+        }
+
         try
         {
             if (string.IsNullOrEmpty(lobbyCode))
@@ -299,13 +317,17 @@ public class LobbyManager : MonoBehaviour
                 currentLobby = null;
             }
 
+            // Shutdown network and despawn local owned objects
             NetworkManager.Singleton.Shutdown();
-/*            // Force cleanup of any remaining NetworkObjects (fixes host player sticking bug). Update: wasn't the issue but is still good practice.
+
             foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.ToList())
             {
-                Destroy(obj.gameObject);
-            }*/
-
+                if (obj.OwnerClientId == NetworkManager.Singleton.LocalClientId)
+                {
+                    obj.Despawn(true);
+                    Debug.Log($"[LeaveLobby] Despawned local owned object: {obj.name}");
+                }
+            }
 
             StopLobbyHeartbeat();
             StopLobbyPolling();
@@ -319,14 +341,18 @@ public class LobbyManager : MonoBehaviour
 
             Debug.Log("Left Lobby and shutdown network.");
 
-            // Switch back to pre-lobby UI
             UpdateUIState(false);
+
+            // 🚀 Ultimate fix → destroy NetworkManager → force clean state next time
+            Destroy(NetworkManager.Singleton.gameObject);
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to leave lobby: {e}");
         }
     }
+
+
 
     public async void KickPlayer(string playerId)
     {
@@ -337,7 +363,7 @@ public class LobbyManager : MonoBehaviour
                 await Lobbies.Instance.RemovePlayerAsync(currentLobby.Id, playerId);
                 Debug.Log($"Kicked player {playerId}");
 
-                // 🚀 Despawn tank for kicked player
+                // Despawn tank for kicked player
                 if (playerIdToClientId.TryGetValue(playerId, out ulong kickedClientId))
                 {
                     GameManager.Instance.DespawnTankForClient(kickedClientId);
