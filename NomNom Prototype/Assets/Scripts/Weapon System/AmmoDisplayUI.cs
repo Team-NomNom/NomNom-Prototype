@@ -85,30 +85,51 @@ public class AmmoDisplayUI : MonoBehaviour
 
     private void Update()
     {
-        if (projectileFactory == null) return;
+        if (projectileFactory == null)
+        {
+            Debug.Log("[AmmoDisplayUI] Update → projectileFactory is null → skipping.");
+            return;
+        }
+
+        Debug.Log("[AmmoDisplayUI] Update running.");
 
         for (int slotIndex = 0; slotIndex < projectileFactory.weaponSlots.Count; slotIndex++)
         {
-            if (slotIndex >= barImagesPerSlot.Count) continue;
+            if (slotIndex >= barImagesPerSlot.Count)
+            {
+                Debug.LogWarning($"[AmmoDisplayUI] SlotIndex {slotIndex} has no corresponding BarImages list → skipping.");
+                continue;
+            }
 
             var ammoInfo = projectileFactory.GetAmmoInfo(slotIndex);
+
+            Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → currentAmmo={ammoInfo.currentAmmo}, maxAmmo={ammoInfo.maxAmmo}, reloadProgress={ammoInfo.reloadProgress}");
+
             var barImages = barImagesPerSlot[slotIndex];
 
             for (int i = 0; i < barImages.Count; i++)
             {
+                float targetFill = 0f;
+
                 if (i < ammoInfo.currentAmmo)
                 {
-                    barImages[i].fillAmount = 1.0f; // Full ammo bar
+                    targetFill = 1.0f; // Full ammo bar
                 }
                 else if (i == ammoInfo.currentAmmo)
                 {
-                    barImages[i].fillAmount = ammoInfo.reloadProgress; // Currently reloading bar
+                    targetFill = ammoInfo.reloadProgress; // Currently reloading bar
                 }
                 else
                 {
-                    barImages[i].fillAmount = 0.0f; // Empty bar
+                    targetFill = 0.0f; // Empty bar
                 }
+
+                // Log per-bar fill (optional → can comment out if spammy)
+                Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → Bar {i} → targetFill={targetFill}");
+
+                barImages[i].fillAmount = targetFill;
             }
         }
     }
+
 }
