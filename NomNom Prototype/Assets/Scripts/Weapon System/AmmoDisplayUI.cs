@@ -1,111 +1,113 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class AmmoDisplayUI : MonoBehaviour
 {
-    [Header("Update Settings")]
-    [SerializeField] private float updateInterval = 0.1f;
+    [Header("UI Prefabs")]
+    [SerializeField] private GameObject weaponSlotContainerPrefab;
+    [SerializeField] private GameObject barImagePrefab;
+
+    [Header("Parent Container")]
+    [SerializeField] private Transform weaponSlotsParentContainer; // Vertical Layout Group
 
     private ProjectileFactory projectileFactory;
-    private float updateTimer = 0f;
 
-    [Header("Ammo Bar Images")]
-    [SerializeField] private Image[] simpleAmmoBars;
-    [SerializeField] private Image[] homingAmmoBars;
-    [SerializeField] private Image[] arcAmmoBars;
-
-    [Header("Simple Weapon Colors")]
-    [SerializeField] private Color simpleFullColor = Color.green;
-    [SerializeField] private Color simpleReloadColor = Color.yellow;
-    [SerializeField] private Color simpleEmptyColor = Color.red;
-
-    [Header("Homing Weapon Colors")]
-    [SerializeField] private Color homingFullColor = Color.cyan;
-    [SerializeField] private Color homingReloadColor = Color.blue;
-    [SerializeField] private Color homingEmptyColor = Color.gray;
-
-    [Header("Arc Weapon Colors")]
-    [SerializeField] private Color arcFullColor = new Color(1f, 0.5f, 0f); // orange
-    [SerializeField] private Color arcReloadColor = Color.yellow;
-    [SerializeField] private Color arcEmptyColor = Color.gray;
+    // Internal tracking
+    private List<List<Image>> barImagesPerSlot = new List<List<Image>>();
 
     private void OnEnable()
     {
-        Debug.Log("[AmmoDisplayUI] OnEnable() called.");
-
-        // 🚀 Always subscribe → ensures we track new tank after respawn
-        GameManager.OnLocalPlayerFactoryAssigned += OnLocalPlayerFactoryReady;
-
-        // 🚀 If already assigned → assign now
-        if (GameManager.LocalPlayerFactory != null)
-        {
-            OnLocalPlayerFactoryReady();
-        }
+        GameManager.OnLocalPlayerFactoryAssigned += HandleLocalPlayerFactoryAssigned;
     }
 
     private void OnDisable()
     {
-        Debug.Log("[AmmoDisplayUI] OnDisable() → Unsubscribing from OnLocalPlayerFactoryAssigned.");
-        GameManager.OnLocalPlayerFactoryAssigned -= OnLocalPlayerFactoryReady;
+        GameManager.OnLocalPlayerFactoryAssigned -= HandleLocalPlayerFactoryAssigned;
     }
 
-    private void OnLocalPlayerFactoryReady()
+    private void HandleLocalPlayerFactoryAssigned()
     {
-        projectileFactory = GameManager.LocalPlayerFactory;
-        Debug.Log("[AmmoDisplayUI] Found LocalPlayerFactory → AmmoDisplayUI active (via callback).");
+        SetProjectileFactory(GameManager.LocalPlayerFactory);
+    }
+
+    public void SetProjectileFactory(ProjectileFactory factory)
+    {
+        projectileFactory = factory;
+        RebuildWeaponSlots();
+    }
+
+    private void RebuildWeaponSlots()
+    {
+        // Clear existing weapon slot containers
+        foreach (Transform child in weaponSlotsParentContainer)
+        {
+            Destroy(child.gameObject);
+        }
+
+        barImagesPerSlot.Clear();
+
+        if (projectileFactory == null) return;
+
+        // For each weapon slot
+        for (int weaponSlotIndex = 0; weaponSlotIndex < projectileFactory.weaponSlots.Count; weaponSlotIndex++)
+        {
+            var weaponSlot = projectileFactory.weaponSlots[weaponSlotIndex];
+
+            // Instantiate WeaponSlotContainer
+            GameObject slotContainerGO = Instantiate(weaponSlotContainerPrefab, weaponSlotsParentContainer);
+            slotContainerGO.name = $"WeaponSlot{weaponSlotIndex}_Container";
+
+            // List to track bar images for this slot
+            List<Image> barImages = new List<Image>();
+
+            int maxAmmo = weaponSlot.ammoSettings.maxAmmo;
+
+            // Instantiate BarImages
+            for (int i = 0; i < maxAmmo; i++)
+            {
+                GameObject barObj = Instantiate(barImagePrefab, slotContainerGO.transform);
+                Image barImage = barObj.GetComponent<Image>();
+
+                if (barImage == null)
+                {
+                    Debug.LogError("[AmmoDisplayUI] BarImagePrefab is missing an Image component!");
+                    continue;
+                }
+
+                barImage.fillAmount = 1.0f; // full by default
+                barImages.Add(barImage);
+            }
+
+            barImagesPerSlot.Add(barImages);
+        }
     }
 
     private void Update()
     {
         if (projectileFactory == null) return;
 
-        updateTimer += Time.deltaTime;
-        if (updateTimer >= updateInterval)
+        for (int slotIndex = 0; slotIndex < projectileFactory.weaponSlots.Count; slotIndex++)
         {
-            UpdateAmmoUI();
-            updateTimer = 0f;
-        }
-    }
+            if (slotIndex >= barImagesPerSlot.Count) continue;
 
-    private void UpdateAmmoUI()
-    {
-        var simpleAmmo = projectileFactory.GetSimpleAmmoInfo();
-        var homingAmmo = projectileFactory.GetHomingAmmoInfo();
-        var arcAmmo = projectileFactory.GetArcAmmoInfo();
+            var ammoInfo = projectileFactory.GetAmmoInfo(slotIndex);
+            var barImages = barImagesPerSlot[slotIndex];
 
-        UpdateWeaponAmmoBars(simpleAmmo, simpleAmmoBars, simpleFullColor, simpleReloadColor, simpleEmptyColor);
-        UpdateWeaponAmmoBars(homingAmmo, homingAmmoBars, homingFullColor, homingReloadColor, homingEmptyColor);
-        UpdateWeaponAmmoBars(arcAmmo, arcAmmoBars, arcFullColor, arcReloadColor, arcEmptyColor);
-    }
-
-    private void UpdateWeaponAmmoBars(
-        ProjectileFactory.AmmoInfo ammoInfo,
-        Image[] ammoBars,
-        Color fullColor,
-        Color reloadColor,
-        Color emptyColor)
-    {
-        for (int i = 0; i < ammoBars.Length; i++)
-        {
-            if (ammoBars[i] == null) continue;
-
-            if (i < ammoInfo.currentAmmo)
+            for (int i = 0; i < barImages.Count; i++)
             {
-                // Full
-                ammoBars[i].fillAmount = 1f;
-                ammoBars[i].color = fullColor;
-            }
-            else if (i == ammoInfo.currentAmmo && ammoInfo.currentAmmo < ammoInfo.maxAmmo)
-            {
-                // Reloading this bullet
-                ammoBars[i].fillAmount = ammoInfo.reloadProgress;
-                ammoBars[i].color = Color.Lerp(emptyColor, reloadColor, ammoInfo.reloadProgress);
-            }
-            else
-            {
-                // Empty
-                ammoBars[i].fillAmount = 0f;
-                ammoBars[i].color = emptyColor;
+                if (i < ammoInfo.currentAmmo)
+                {
+                    barImages[i].fillAmount = 1.0f; // Full ammo bar
+                }
+                else if (i == ammoInfo.currentAmmo)
+                {
+                    barImages[i].fillAmount = ammoInfo.reloadProgress; // Currently reloading bar
+                }
+                else
+                {
+                    barImages[i].fillAmount = 0.0f; // Empty bar
+                }
             }
         }
     }

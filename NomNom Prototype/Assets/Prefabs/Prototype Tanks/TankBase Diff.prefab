@@ -570,25 +570,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  simpleProjectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
-  homingMissilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
-  arcGrenadePrefab: {fileID: 1343818377063820803, guid: 934a467abe6a0f34a9a3061bc2591349, type: 3}
-  simpleConfig: {fileID: 11400000, guid: fdaef374b93c2ce40b9a31e3cde1cd53, type: 2}
-  homingConfig: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
-  arcConfig: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
+  weaponSlots:
+  - name: Simple
+    projectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
+    config: {fileID: 11400000, guid: fdaef374b93c2ce40b9a31e3cde1cd53, type: 2}
+    ammoSettings:
+      maxAmmo: 3
+      cooldownBetweenShots: 3.25
+      reloadTimePerShot: 2
+  - name: Homing
+    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
+    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+    ammoSettings:
+      maxAmmo: 5
+      cooldownBetweenShots: 1
+      reloadTimePerShot: 1
+  - name: Arc Grenade
+    projectilePrefab: {fileID: 1343818377063820803, guid: 934a467abe6a0f34a9a3061bc2591349, type: 3}
+    config: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
+    ammoSettings:
+      maxAmmo: 4
+      cooldownBetweenShots: 0.2
+      reloadTimePerShot: 1
   muzzleTransform: {fileID: 7003691086340539106}
-  simpleAmmoSettings:
-    maxAmmo: 3
-    cooldownBetweenShots: 0.5
-    reloadTimePerShot: 1
-  homingAmmoSettings:
-    maxAmmo: 5
-    cooldownBetweenShots: 0.5
-    reloadTimePerShot: 1
-  arcAmmoSettings:
-    maxAmmo: 3
-    cooldownBetweenShots: 0.2
-    reloadTimePerShot: 1
 --- !u!114 &6357561973925527749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -636,12 +640,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2732ddd4ff59932499ecdaee79648092, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireSimpleKey: 323
-  fireHomingKey: 113
-  fireArcKey: 101
-  fireSimpleAxis: Fire1
-  fireHomingAxis: Fire2
-  fireArcAxis: Fire3
+  weaponInputs:
+  - weaponSlotIndex: 0
+    fireKey: 99
+    fireAxis: 
+  - weaponSlotIndex: 1
+    fireKey: 120
+    fireAxis: 
+  - weaponSlotIndex: 2
+    fireKey: 116
+    fireAxis: 
   movesIndependently: 0
   turretTransform: {fileID: 7003691086340539106}
   turretRotateSpeed: 100

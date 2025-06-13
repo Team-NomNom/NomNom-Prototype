@@ -1,15 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(ProjectileFactory))]
 public class ProjectileControlInput : MonoBehaviour
 {
-    [Header("Fire Keys / Buttons")]
-    [SerializeField] private KeyCode fireSimpleKey = KeyCode.Mouse0;     // Also supports controller button via axis
-    [SerializeField] private KeyCode fireHomingKey = KeyCode.Q;
-    [SerializeField] private KeyCode fireArcKey = KeyCode.E;
-    [SerializeField] private string fireSimpleAxis = "Fire1"; // Mapped to controller input (e.g., RT)
-    [SerializeField] private string fireHomingAxis = "Fire2"; // (e.g., X or L1)
-    [SerializeField] private string fireArcAxis = "Fire3";    // (e.g., Y or R1)
+    [System.Serializable]
+    public class WeaponInputMapping
+    {
+        public int weaponSlotIndex;
+        public KeyCode fireKey = KeyCode.None;
+        public string fireAxis = "";
+    }
+
+    [Header("Weapon Input Mappings")]
+    [Tooltip("Define which key/axis fires which weapon slot.")]
+    [SerializeField] private List<WeaponInputMapping> weaponInputs = new List<WeaponInputMapping>();
 
     [Header("Turret Rotation")]
     [Tooltip("Enable turret to rotate independently of tank base.")]
@@ -20,19 +25,18 @@ public class ProjectileControlInput : MonoBehaviour
     [SerializeField] private string turretVerticalAxis = "Mouse Y";   // or "RightStickVertical"
 
     private ProjectileFactory factory;
-    private Health health; // cache Health reference
+    private Health health;
 
     private void Awake()
     {
         factory = GetComponent<ProjectileFactory>();
-        health = GetComponent<Health>(); // cache Health once
+        health = GetComponent<Health>();
     }
 
     private void Update()
     {
-        // Prevent firing & turret rotation if tank is dead
         if (health != null && !health.IsAlive)
-            return; // skip firing & turret rotation if dead
+            return;
 
         HandleFiring();
         HandleTurretRotation();
@@ -40,17 +44,24 @@ public class ProjectileControlInput : MonoBehaviour
 
     private void HandleFiring()
     {
-        if (Input.GetKeyDown(fireSimpleKey) || Input.GetButtonDown(fireSimpleAxis))
+        foreach (var mapping in weaponInputs)
         {
-            factory.TryFireSimpleProjectile();
-        }
-        if (Input.GetKeyDown(fireHomingKey) || Input.GetButtonDown(fireHomingAxis))
-        {
-            factory.TryFireHomingMissile();
-        }
-        if (Input.GetKeyDown(fireArcKey) || Input.GetButtonDown(fireArcAxis))
-        {
-            factory.TryFireArcGrenade();
+            // Validate weapon index
+            if (mapping.weaponSlotIndex < 0 || mapping.weaponSlotIndex >= factory.weaponSlots.Count)
+                continue;
+
+            bool firePressed = false;
+
+            if (mapping.fireKey != KeyCode.None && Input.GetKeyDown(mapping.fireKey))
+                firePressed = true;
+
+            if (!string.IsNullOrEmpty(mapping.fireAxis) && Input.GetButtonDown(mapping.fireAxis))
+                firePressed = true;
+
+            if (firePressed)
+            {
+                factory.TryFireWeapon(mapping.weaponSlotIndex);
+            }
         }
     }
 

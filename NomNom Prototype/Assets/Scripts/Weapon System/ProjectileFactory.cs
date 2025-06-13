@@ -5,15 +5,8 @@ using UnityEngine;
 
 public class ProjectileFactory : NetworkBehaviour
 {
-    [Header("Projectile Prefabs")]
-    [SerializeField] private GameObject simpleProjectilePrefab;
-    [SerializeField] private GameObject homingMissilePrefab;
-    [SerializeField] private GameObject arcGrenadePrefab;
-
-    [Header("Projectile Configs")]
-    [SerializeField] private ProjectileConfig simpleConfig;
-    [SerializeField] private ProjectileConfig homingConfig;
-    [SerializeField] private ProjectileConfig arcConfig;
+    [Header("Weapon Slots")]
+    public List<WeaponSlot> weaponSlots = new List<WeaponSlot>();
 
     [Header("Spawn Info")]
     [SerializeField] private Transform muzzleTransform;
@@ -26,77 +19,78 @@ public class ProjectileFactory : NetworkBehaviour
         public float reloadTimePerShot = 1.0f;
     }
 
-    [Header("Ammo Settings")]
-    public WeaponAmmoSettings simpleAmmoSettings = new WeaponAmmoSettings();
-    public WeaponAmmoSettings homingAmmoSettings = new WeaponAmmoSettings();
-    public WeaponAmmoSettings arcAmmoSettings = new WeaponAmmoSettings();
-
-    private class AmmoState
+    public class AmmoState
     {
         public int currentAmmo;
         public float reloadTimer;
         public bool isShotCooldown;
     }
 
-    private AmmoState simpleAmmo = new AmmoState();
-    private AmmoState homingAmmo = new AmmoState();
-    private AmmoState arcAmmo = new AmmoState();
+    [System.Serializable]
+    public class WeaponSlot
+    {
+        public string name;
+        public GameObject projectilePrefab;
+        public ProjectileConfig config;
+        public WeaponAmmoSettings ammoSettings = new WeaponAmmoSettings();
+
+        [System.NonSerialized] public AmmoState ammoState = new AmmoState();
+    }
+
+    public struct AmmoInfo
+    {
+        public int currentAmmo;
+        public int maxAmmo;
+        public float reloadProgress; // 0 → reloading, 1 → full
+    }
 
     private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
 
     private void Start()
     {
-        simpleAmmo.currentAmmo = simpleAmmoSettings.maxAmmo;
-        homingAmmo.currentAmmo = homingAmmoSettings.maxAmmo;
-        arcAmmo.currentAmmo = arcAmmoSettings.maxAmmo;
+        foreach (var slot in weaponSlots)
+        {
+            slot.ammoState.currentAmmo = slot.ammoSettings.maxAmmo;
+        }
     }
 
     private void Update()
     {
-        HandleReload(simpleAmmo, simpleAmmoSettings);
-        HandleReload(homingAmmo, homingAmmoSettings);
-        HandleReload(arcAmmo, arcAmmoSettings);
+        foreach (var slot in weaponSlots)
+        {
+            HandleReload(slot.ammoState, slot.ammoSettings);
+        }
     }
 
-    public void TryFireSimpleProjectile()
+    public void TryFireWeapon(int weaponIndex)
     {
-        TryFire(simpleAmmo, simpleAmmoSettings, simpleProjectilePrefab.name, simpleConfig);
-    }
+        if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count) return;
 
-    public void TryFireHomingMissile()
-    {
-        TryFire(homingAmmo, homingAmmoSettings, homingMissilePrefab.name, homingConfig);
-    }
+        var slot = weaponSlots[weaponIndex];
+        var ammoState = slot.ammoState;
 
-    public void TryFireArcGrenade()
-    {
-        TryFire(arcAmmo, arcAmmoSettings, arcGrenadePrefab.name, arcConfig);
-    }
-
-    private void TryFire(AmmoState ammoState, WeaponAmmoSettings settings, string prefabName, ProjectileConfig config)
-    {
         if (!IsOwner) return;
 
         if (ammoState.isShotCooldown)
         {
-            Debug.Log($"[ProjectileFactory] Cannot fire {prefabName} → cooldown in progress.");
+            Debug.Log($"[ProjectileFactory] Cannot fire {slot.name} → cooldown in progress.");
             return;
         }
 
         if (ammoState.currentAmmo <= 0)
         {
-            Debug.Log($"[ProjectileFactory] Cannot fire {prefabName} → no ammo.");
+            Debug.Log($"[ProjectileFactory] Cannot fire {slot.name} → no ammo.");
             return;
         }
 
         // Fire!
-        SpawnProjectileServerRpc(prefabName, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
+        SpawnProjectileServerRpc(weaponIndex, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
 
         ammoState.currentAmmo--;
         ammoState.isShotCooldown = true;
-        StartCoroutine(ShotCooldownCoroutine(ammoState, settings.cooldownBetweenShots));
+        StartCoroutine(ShotCooldownCoroutine(ammoState, slot.ammoSettings.cooldownBetweenShots));
 
-        Debug.Log($"[ProjectileFactory] Fired {prefabName}. Ammo left: {ammoState.currentAmmo}/{settings.maxAmmo}");
+        Debug.Log($"[ProjectileFactory] Fired {slot.name}. Ammo left: {ammoState.currentAmmo}/{slot.ammoSettings.maxAmmo}");
     }
 
     private IEnumerator ShotCooldownCoroutine(AmmoState ammoState, float cooldown)
@@ -124,12 +118,16 @@ public class ProjectileFactory : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void SpawnProjectileServerRpc(string prefabName, Vector3 position, Quaternion rotation, ulong shooterId, ServerRpcParams rpcParams = default)
+    private void SpawnProjectileServerRpc(int weaponIndex, Vector3 position, Quaternion rotation, ulong shooterId, ServerRpcParams rpcParams = default)
     {
-        GameObject prefab = LookupProjectilePrefab(prefabName);
+        if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count) return;
+
+        var slot = weaponSlots[weaponIndex];
+        var prefab = slot.projectilePrefab;
+
         if (prefab == null)
         {
-            Debug.LogError($"ProjectileFactory: Could not find prefab named {prefabName}.");
+            Debug.LogError($"ProjectileFactory: Weapon slot {weaponIndex} has no prefab assigned.");
             return;
         }
 
@@ -147,27 +145,11 @@ public class ProjectileFactory : NetworkBehaviour
         var proj = instance.GetComponent<IProjectile>();
         if (proj != null)
         {
-            proj.Initialize(shooterId, gameObject); // Pass factory's gameObject as shooter root
-            proj.ApplyConfig(LookupProjectileConfig(prefabName));
+            proj.Initialize(shooterId, gameObject);
+            proj.ApplyConfig(slot.config);
         }
 
         IgnoreCollisionWithShooter(instance, shooterId);
-    }
-
-    private GameObject LookupProjectilePrefab(string name)
-    {
-        if (name == simpleProjectilePrefab.name) return simpleProjectilePrefab;
-        if (name == homingMissilePrefab.name) return homingMissilePrefab;
-        if (name == arcGrenadePrefab.name) return arcGrenadePrefab;
-        return null;
-    }
-
-    private ProjectileConfig LookupProjectileConfig(string name)
-    {
-        if (name == simpleProjectilePrefab.name) return simpleConfig;
-        if (name == homingMissilePrefab.name) return homingConfig;
-        if (name == arcGrenadePrefab.name) return arcConfig;
-        return null;
     }
 
     private void IgnoreCollisionWithShooter(GameObject projectile, ulong shooterId)
@@ -182,50 +164,21 @@ public class ProjectileFactory : NetworkBehaviour
                 Physics.IgnoreCollision(sCol, pCol, true);
     }
 
-    // ----- UI support -----
+    // ----- UI Support -----
 
-    public struct AmmoInfo
+    public AmmoInfo GetAmmoInfo(int weaponIndex)
     {
-        public int currentAmmo;
-        public int maxAmmo;
-        public float reloadProgress; // 0.0 → fully reloading, 1.0 → ready to fire
-    }
+        if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count)
+            return new AmmoInfo();
 
-    public AmmoInfo GetSimpleAmmoInfo()
-    {
+        var slot = weaponSlots[weaponIndex];
         return new AmmoInfo
         {
-            currentAmmo = simpleAmmo.currentAmmo,
-            maxAmmo = simpleAmmoSettings.maxAmmo,
-            reloadProgress = (simpleAmmo.currentAmmo < simpleAmmoSettings.maxAmmo)
-                ? Mathf.Clamp01(simpleAmmo.reloadTimer / simpleAmmoSettings.reloadTimePerShot)
+            currentAmmo = slot.ammoState.currentAmmo,
+            maxAmmo = slot.ammoSettings.maxAmmo,
+            reloadProgress = (slot.ammoState.currentAmmo < slot.ammoSettings.maxAmmo)
+                ? Mathf.Clamp01(slot.ammoState.reloadTimer / slot.ammoSettings.reloadTimePerShot)
                 : 1.0f
         };
     }
-
-
-    public AmmoInfo GetHomingAmmoInfo()
-    {
-        return new AmmoInfo
-        {
-            currentAmmo = homingAmmo.currentAmmo,
-            maxAmmo = homingAmmoSettings.maxAmmo,
-            reloadProgress = (homingAmmo.currentAmmo < homingAmmoSettings.maxAmmo)
-                ? Mathf.Clamp01(homingAmmo.reloadTimer / homingAmmoSettings.reloadTimePerShot)
-                : 1.0f
-        };
-    }
-
-    public AmmoInfo GetArcAmmoInfo()
-    {
-        return new AmmoInfo
-        {
-            currentAmmo = arcAmmo.currentAmmo,
-            maxAmmo = arcAmmoSettings.maxAmmo,
-            reloadProgress = (arcAmmo.currentAmmo < arcAmmoSettings.maxAmmo)
-                ? Mathf.Clamp01(arcAmmo.reloadTimer / arcAmmoSettings.reloadTimePerShot)
-                : 1.0f
-        };
-    }
-
 }
