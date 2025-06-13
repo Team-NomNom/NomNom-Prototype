@@ -571,13 +571,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   weaponSlots:
-  - name: Simple
-    projectilePrefab: {fileID: 5360946703021234778, guid: d9482a6aa9b5b0744b25772d4ca9116d, type: 3}
-    config: {fileID: 11400000, guid: fdaef374b93c2ce40b9a31e3cde1cd53, type: 2}
+  - name: Boomerang
+    projectilePrefab: {fileID: 5343757920291467510, guid: 06695bb8626eb2c42a7c5ee947b08d7a, type: 3}
+    config: {fileID: 11400000, guid: 1294cac5c145dd9438d0854bdc883ccf, type: 2}
     ammoSettings:
-      maxAmmo: 3
-      cooldownBetweenShots: 3.25
-      reloadTimePerShot: 2
+      maxAmmo: 1
+      cooldownBetweenShots: 0
+      reloadTimePerShot: 4
   - name: Homing
     projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
     config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
