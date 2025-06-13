@@ -17,7 +17,7 @@ public class GameManager : NetworkBehaviour
 
     private RespawnManager respawnManager;
 
-    // 🚀 Track tanks per client
+    // Track tanks per client
     private Dictionary<ulong, GameObject> clientTanks = new Dictionary<ulong, GameObject>();
 
     private void Awake()
@@ -58,7 +58,7 @@ public class GameManager : NetworkBehaviour
         // Only server spawns tanks
         if (IsServer)
         {
-            // 🚀 For host → we already spawned manually → skip
+            // For host -> we already spawned manually → skip
             if (clientId != NetworkManager.Singleton.LocalClientId)
             {
                 Debug.Log($"[LobbyManager] Spawning tank for connected client {clientId}");
@@ -88,7 +88,7 @@ public class GameManager : NetworkBehaviour
 
         RegisterTank(tankInstance);
 
-        // 🚀 Track this tank per client
+        // Track this tank per client
         if (clientTanks.ContainsKey(clientId))
         {
             clientTanks.Remove(clientId);
@@ -124,7 +124,7 @@ public class GameManager : NetworkBehaviour
         respawnManager.StartCoroutine(respawnManager.RespawnTankCoroutine(h.gameObject, h.OwnerClientId));
     }
 
-    // 🚀 New method → cleanly despawn tank for a given client
+    // Cleanly despawn tank for a given client
     public void DespawnTankForClient(ulong clientId)
     {
         if (clientTanks.TryGetValue(clientId, out GameObject tank))

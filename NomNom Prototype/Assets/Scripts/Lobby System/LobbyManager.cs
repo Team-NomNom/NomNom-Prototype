@@ -567,7 +567,7 @@ public class LobbyManager : MonoBehaviour
 
         if (NetworkManager.Singleton.IsServer)
         {
-            // 🚀 Despawn tank for the disconnected client
+            // Despawn tank for the disconnected client
             GameManager.Instance.DespawnTankForClient(clientId);
         }
 
@@ -608,7 +608,6 @@ public class LobbyManager : MonoBehaviour
 
 
 
-    // may need to revert this
     private void OnClientConnected(ulong clientId)
     {
         Debug.Log($"Client connected: {clientId}");
