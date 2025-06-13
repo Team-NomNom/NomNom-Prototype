@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class ProjectileFactory : NetworkBehaviour
+public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
 {
     [Header("Weapon Slots")]
     public List<WeaponSlot> weaponSlots = new List<WeaponSlot>();
@@ -41,7 +41,7 @@ public class ProjectileFactory : NetworkBehaviour
     {
         public int currentAmmo;
         public int maxAmmo;
-        public float reloadProgress; // 0 → reloading, 1 → full
+        public float reloadProgress;
     }
 
     private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
@@ -83,7 +83,6 @@ public class ProjectileFactory : NetworkBehaviour
             return;
         }
 
-        // Fire!
         SpawnProjectileServerRpc(weaponIndex, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
 
         ammoState.currentAmmo--;
@@ -145,7 +144,7 @@ public class ProjectileFactory : NetworkBehaviour
         var proj = instance.GetComponent<IProjectile>();
         if (proj != null)
         {
-            proj.Initialize(shooterId, gameObject);
+            proj.Initialize(shooterId, gameObject, this, weaponIndex);
             proj.ApplyConfig(slot.config);
         }
 
@@ -164,8 +163,6 @@ public class ProjectileFactory : NetworkBehaviour
                 Physics.IgnoreCollision(sCol, pCol, true);
     }
 
-    // ----- UI Support -----
-
     public AmmoInfo GetAmmoInfo(int weaponIndex)
     {
         if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count)
@@ -180,5 +177,18 @@ public class ProjectileFactory : NetworkBehaviour
                 ? Mathf.Clamp01(slot.ammoState.reloadTimer / slot.ammoSettings.reloadTimePerShot)
                 : 1.0f
         };
+    }
+
+    // IProjectileFactoryUser implementation
+    public void OnProjectileReturned(int weaponIndex)
+    {
+        if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count) return;
+
+        var ammoState = weaponSlots[weaponIndex].ammoState;
+        if (ammoState.currentAmmo < weaponSlots[weaponIndex].ammoSettings.maxAmmo)
+        {
+            ammoState.currentAmmo++;
+            Debug.Log($"[ProjectileFactory] Projectile returned → granted 1 ammo to {weaponSlots[weaponIndex].name}. Ammo: {ammoState.currentAmmo}/{weaponSlots[weaponIndex].ammoSettings.maxAmmo}");
+        }
     }
 }

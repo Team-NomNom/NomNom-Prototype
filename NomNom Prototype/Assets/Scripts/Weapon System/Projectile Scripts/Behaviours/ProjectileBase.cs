@@ -7,15 +7,19 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
     protected Rigidbody rb;
     protected ProjectileConfig config;
     protected Transform shooterRoot;
+    protected IProjectileFactoryUser factoryUser;
+    protected int weaponIndex = -1;
 
     public NetworkVariable<ulong> ownerId = new(0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
-    public virtual void Initialize(ulong shooterId, GameObject shooterRootObj)
+    public virtual void Initialize(ulong shooterId, GameObject shooterRootObj, IProjectileFactoryUser factoryUser = null, int weaponIndex = -1)
     {
         ownerId.Value = shooterId;
         shooterRoot = shooterRootObj.transform;
+        this.factoryUser = factoryUser;
+        this.weaponIndex = weaponIndex;
     }
 
     public virtual void ApplyConfig(ProjectileConfig cfg)
