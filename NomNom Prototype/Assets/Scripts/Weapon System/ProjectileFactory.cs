@@ -188,6 +188,7 @@ public class ProjectileFactory : NetworkBehaviour
     {
         public int currentAmmo;
         public int maxAmmo;
+        public float reloadProgress; // 0.0 → fully reloading, 1.0 → ready to fire
     }
 
     public AmmoInfo GetSimpleAmmoInfo()
@@ -195,16 +196,23 @@ public class ProjectileFactory : NetworkBehaviour
         return new AmmoInfo
         {
             currentAmmo = simpleAmmo.currentAmmo,
-            maxAmmo = simpleAmmoSettings.maxAmmo
+            maxAmmo = simpleAmmoSettings.maxAmmo,
+            reloadProgress = (simpleAmmo.currentAmmo < simpleAmmoSettings.maxAmmo)
+                ? Mathf.Clamp01(simpleAmmo.reloadTimer / simpleAmmoSettings.reloadTimePerShot)
+                : 1.0f
         };
     }
+
 
     public AmmoInfo GetHomingAmmoInfo()
     {
         return new AmmoInfo
         {
             currentAmmo = homingAmmo.currentAmmo,
-            maxAmmo = homingAmmoSettings.maxAmmo
+            maxAmmo = homingAmmoSettings.maxAmmo,
+            reloadProgress = (homingAmmo.currentAmmo < homingAmmoSettings.maxAmmo)
+                ? Mathf.Clamp01(homingAmmo.reloadTimer / homingAmmoSettings.reloadTimePerShot)
+                : 1.0f
         };
     }
 
@@ -213,7 +221,11 @@ public class ProjectileFactory : NetworkBehaviour
         return new AmmoInfo
         {
             currentAmmo = arcAmmo.currentAmmo,
-            maxAmmo = arcAmmoSettings.maxAmmo
+            maxAmmo = arcAmmoSettings.maxAmmo,
+            reloadProgress = (arcAmmo.currentAmmo < arcAmmoSettings.maxAmmo)
+                ? Mathf.Clamp01(arcAmmo.reloadTimer / arcAmmoSettings.reloadTimePerShot)
+                : 1.0f
         };
     }
+
 }
