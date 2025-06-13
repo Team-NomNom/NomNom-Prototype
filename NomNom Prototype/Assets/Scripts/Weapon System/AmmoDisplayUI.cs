@@ -91,7 +91,7 @@ public class AmmoDisplayUI : MonoBehaviour
             return;
         }
 
-        Debug.Log("[AmmoDisplayUI] Update running.");
+        // Debug.Log("[AmmoDisplayUI] Update running.");
 
         for (int slotIndex = 0; slotIndex < projectileFactory.weaponSlots.Count; slotIndex++)
         {
@@ -103,7 +103,7 @@ public class AmmoDisplayUI : MonoBehaviour
 
             var ammoInfo = projectileFactory.GetAmmoInfo(slotIndex);
 
-            Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → currentAmmo={ammoInfo.currentAmmo}, maxAmmo={ammoInfo.maxAmmo}, reloadProgress={ammoInfo.reloadProgress}");
+            // Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → currentAmmo={ammoInfo.currentAmmo}, maxAmmo={ammoInfo.maxAmmo}, reloadProgress={ammoInfo.reloadProgress}");
 
             var barImages = barImagesPerSlot[slotIndex];
 
@@ -125,7 +125,7 @@ public class AmmoDisplayUI : MonoBehaviour
                 }
 
                 // Log per-bar fill (optional → can comment out if spammy)
-                Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → Bar {i} → targetFill={targetFill}");
+                // Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → Bar {i} → targetFill={targetFill}");
 
                 barImages[i].fillAmount = targetFill;
             }
