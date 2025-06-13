@@ -23,58 +23,43 @@ public class RespawnManager : MonoBehaviour
         StartCoroutine(RespawnTankCoroutine(oldTankObject, ownerClientId));
     }
 
-    private IEnumerator RespawnTankCoroutine(GameObject oldTankObject, ulong ownerClientId)
+    public IEnumerator RespawnTankCoroutine(GameObject tankObject, ulong ownerClientId)
     {
+        // Wait for respawn delay
         yield return new WaitForSeconds(respawnDelay);
 
+        // Pick a spawn point
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
         Debug.Log($"[RespawnManager] RespawnTankCoroutine → Using spawn point: {spawnPoint.position}, rotation Y: {spawnPoint.rotation.eulerAngles.y}");
 
-        var netObj = oldTankObject.GetComponent<NetworkObject>();
-        if (netObj != null && netObj.IsSpawned)
+        // 🚀 Clean up old tank (optional → recommended to avoid "ghost" tanks)
+        if (tankObject != null && tankObject.GetComponent<NetworkObject>() != null && tankObject.GetComponent<NetworkObject>().IsSpawned)
         {
-            Debug.Log($"[RespawnManager] Despawning and destroying old tank: {oldTankObject.name} (OwnerClientId: {ownerClientId})");
-
-            netObj.Despawn(true);
-        }
-        else
-        {
-            Debug.LogWarning($"[RespawnManager] Tried to despawn tank but NetworkObject was not spawned or missing.");
+            tankObject.GetComponent<NetworkObject>().Despawn(true);  // true = destroy GameObject
+            Debug.Log($"[RespawnManager] Despawned old tank for client {ownerClientId}");
         }
 
-        yield return new WaitForSeconds(0.1f);
-
+        // Spawn new tank
         GameObject newTankInstance = Instantiate(tankPrefab, spawnPoint.position, spawnPoint.rotation);
+        newTankInstance.GetComponent<NetworkObject>().SpawnWithOwnership(ownerClientId);
 
-        Debug.Log($"[RespawnManager] Instantiate SUCCESS → newTankInstance name: {newTankInstance.name}");
+        // 🚀 Force invincibility ON, then start delayed clear
+        var health = newTankInstance.GetComponent<Health>();
+        health.ForceSetInvincible(true);
+        StartCoroutine(DelayedClearInvincible(health));
 
-        var newNetObj = newTankInstance.GetComponent<NetworkObject>();
+        Debug.Log($"[RespawnManager] Spawned tank → NetworkObjectId={newTankInstance.GetComponent<NetworkObject>().NetworkObjectId}, OwnerClientId={newTankInstance.GetComponent<NetworkObject>().OwnerClientId}, IsSpawned={newTankInstance.GetComponent<NetworkObject>().IsSpawned}");
 
-        if (newNetObj == null)
+        // Re-register OnDeath for new tank
+        GameManager.Instance.RegisterTank(newTankInstance);
+
+        // If this is the local player → assign LocalPlayerFactory → keep Ammo UI correct
+        if (ownerClientId == NetworkManager.Singleton.LocalClientId)
         {
-            Debug.LogError("[RespawnManager] New tank is missing NetworkObject!");
-            yield break;
-        }
-
-        newNetObj.SpawnWithOwnership(ownerClientId);
-        Debug.Log($"[RespawnManager] Spawned new tank for client {ownerClientId} at spawn point {spawnPoint.position}");
-
-        // Wait small delay -> ensure clients are fully synced
-        yield return new WaitForSeconds(0.1f);
-
-        var newTankHealth = newTankInstance.GetComponent<Health>();
-        if (newTankHealth == null)
-        {
-            Debug.LogError($"[RespawnManager] New tank {newTankInstance.name} is missing Health component!");
-        }
-        else
-        {
-            // ForceSetInvincible and delayed clear
-            newTankHealth.ForceSetInvincible(true);
-            Debug.Log($"[RespawnManager] ForceSetInvincible(true) called on new tank {newTankInstance.name}");
-
-            StartCoroutine(DelayedClearInvincible(newTankHealth));
+            GameManager.LocalPlayerFactory = newTankInstance.GetComponent<ProjectileFactory>();
+            GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
+            Debug.Log("[RespawnManager] Reassigned LocalPlayerFactory after respawn.");
         }
     }
 
@@ -84,5 +69,4 @@ public class RespawnManager : MonoBehaviour
         health.ForceSetInvincible(false);
         Debug.Log($"[RespawnManager] ForceSetInvincible(false) called after invincibility duration for tank {health.gameObject.name}");
     }
-
 }

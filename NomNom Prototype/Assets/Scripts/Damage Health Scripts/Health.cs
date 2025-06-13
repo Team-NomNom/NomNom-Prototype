@@ -71,7 +71,6 @@ public class Health : NetworkBehaviour, IDamagable
         {
             if (IsInvincible)
             {
-                // Invincibility pulse
                 float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
                 Color pulseColor = invincibleColor * pulse;
                 pulseColor.a = 1f;
@@ -81,7 +80,6 @@ public class Health : NetworkBehaviour, IDamagable
             }
             else
             {
-                // Low health pulse
                 float healthPercent = currentHealth.Value / maxHealth;
                 if (healthPercent < 0.3f)
                 {
@@ -94,7 +92,6 @@ public class Health : NetworkBehaviour, IDamagable
                 }
                 else
                 {
-                    // Normal visuals
                     cachedMaterial.color = normalColor;
                     cachedMaterial.SetColor("_EmissionColor", Color.black);
                 }
@@ -104,10 +101,16 @@ public class Health : NetworkBehaviour, IDamagable
 
     public void TakeDamage(float damage)
     {
-        if (!IsServer) return;
+        if (!IsServer)
+        {
+            Debug.LogWarning($"[Health] TakeDamage ignored → not server! OwnerClientId={OwnerClientId}");
+            return;
+        }
 
         if (isDead) return;
         if (isInvincible.Value) return;
+
+        Debug.Log($"[Health] TakeDamage({damage}) on tank {gameObject.name}, currentHealth={currentHealth.Value}");
 
         currentHealth.Value -= damage;
         currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
@@ -122,6 +125,8 @@ public class Health : NetworkBehaviour, IDamagable
     {
         if (isDead) return;
         isDead = true;
+
+        Debug.Log($"[Health] Die() called for tank {gameObject.name}, OwnerClientId={OwnerClientId}");
 
         OnDeath?.Invoke(this);
 
@@ -149,7 +154,7 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        // No-op -> we rely on Update() to show the visual now.
+        // No-op → we rely on Update() to show the visual now.
     }
 
     private void OnHealthChanged(float oldValue, float newValue)

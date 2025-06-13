@@ -13,7 +13,19 @@ public class GameManager : NetworkBehaviour
     public static ProjectileFactory LocalPlayerFactory { get; set; }
     public static System.Action OnLocalPlayerFactoryAssigned;
 
+    public static GameManager Instance { get; private set; }
+
     private RespawnManager respawnManager;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -23,8 +35,10 @@ public class GameManager : NetworkBehaviour
         {
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
 
-            // Also spawn host tank immediately:
+            // Always spawn host tank explicitly
             SpawnTankForClient(NetworkManager.Singleton.LocalClientId);
+
+            Debug.Log("OMG ITS OMG OMG IGS OMG");
         }
     }
 
@@ -42,12 +56,13 @@ public class GameManager : NetworkBehaviour
         if (IsServer)
         {
             SpawnTankForClient(clientId);
+            Debug.Log("OMG ITS OMG OMG IGS OMG");
         }
     }
 
-    private void SpawnTankForClient(ulong clientId)
+    public void SpawnTankForClient(ulong clientId)
     {
-        Debug.Log("[GameManager] SpawnTankForClient STARTED."); // <== Added this line
+        Debug.Log("[GameManager] SpawnTankForClient STARTED.");
 
         int spawnIndex = (int)(clientId % (ulong)spawnPoints.Count);
         Transform spawnPoint = spawnPoints[spawnIndex];
@@ -79,13 +94,19 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        health.OnDeath += (h) =>
-        {
-            Debug.Log($"[GameManager] OnDeath triggered for tank {h.gameObject.name}, OwnerClientId: {h.OwnerClientId}");
+        Debug.Log($"[GameManager] RegisterTank → Tank={tank.name}, OwnerClientId={tank.GetComponent<NetworkObject>()?.OwnerClientId}");
 
-            respawnManager.RespawnTank(h.gameObject, h.OwnerClientId);
-        };
+        // Safe pattern → use OnTankDeath method instead of inline lambda
+        health.OnDeath += OnTankDeath;
 
         Debug.Log($"[GameManager] Registered OnDeath for tank {tank.name}, OwnerClientId: {tank.GetComponent<NetworkObject>()?.OwnerClientId}");
+    }
+
+    private void OnTankDeath(Health h)
+    {
+        Debug.Log($"[GameManager] OnDeath triggered for tank {h.gameObject.name}, OwnerClientId: {h.OwnerClientId} → calling RespawnTank");
+
+        // Start RespawnTankCoroutine safely
+        respawnManager.StartCoroutine(respawnManager.RespawnTankCoroutine(h.gameObject, h.OwnerClientId));
     }
 }

@@ -46,7 +46,19 @@ public class AmmoDisplayUI : MonoBehaviour
 
     private void Update()
     {
-        if (projectileFactory == null) return;
+        if (projectileFactory == null)
+        {
+            // In case the tank was destroyed and LocalPlayerFactory was reassigned:
+            if (GameManager.LocalPlayerFactory != null && GameManager.LocalPlayerFactory != projectileFactory)
+            {
+                projectileFactory = GameManager.LocalPlayerFactory;
+                Debug.Log("[AmmoDisplayUI] Re-acquired LocalPlayerFactory (Update fallback).");
+            }
+            else
+            {
+                return;
+            }
+        }
 
         updateTimer += Time.deltaTime;
         if (updateTimer >= updateInterval)
@@ -55,6 +67,7 @@ public class AmmoDisplayUI : MonoBehaviour
             updateTimer = 0f;
         }
     }
+
 
     private void UpdateAmmoUI()
     {

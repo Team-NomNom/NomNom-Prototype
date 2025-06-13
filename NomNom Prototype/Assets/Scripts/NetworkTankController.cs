@@ -39,13 +39,6 @@ public class NetworkTankController : NetworkBehaviour
 
         if (IsServer)
         {
-            GameManager gm = FindObjectOfType<GameManager>();
-            if (gm != null)
-            {
-                gm.RegisterTank(gameObject);
-                Debug.Log($"[NetworkTankController] Registered tank {gameObject.name} OnNetworkSpawn.");
-            }
-
             // Tank fully spawned -> ResetHealth here
             var health = GetComponent<Health>();
             if (health != null)
@@ -57,6 +50,11 @@ public class NetworkTankController : NetworkBehaviour
 
         if (IsOwner)
         {
+            // 🚀 Assign LocalPlayerFactory here → this solves the Ammo UI issue
+            GameManager.LocalPlayerFactory = GetComponent<ProjectileFactory>();
+            GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
+            Debug.Log("[NetworkTankController] Assigned LocalPlayerFactory (OnNetworkSpawn, IsOwner).");
+
             if (mainCamFollow != null)
             {
                 mainCamFollow.target = transform;
@@ -105,11 +103,8 @@ public class NetworkTankController : NetworkBehaviour
                     respawnCountdownText.gameObject.SetActive(false); // start hidden
                 }
 
-                // Subscribe to OnDeath to show countdown
-                if (health != null)
-                {
-                    health.OnDeath += OnTankDeath;
-                }
+                // 🚩 TEMPORARY — removed unsafe OnDeath += OnTankDeath to avoid double subscription
+                // We will add VisualDeathListener after testing
             }
 
             // Movement safe delay → prevents DeferredOnSpawn warning
@@ -184,13 +179,14 @@ public class NetworkTankController : NetworkBehaviour
         }
 
         var health = GetComponent<Health>();
-        if (IsOwner && health != null)
+        if (health != null)
         {
-            health.OnDeath -= OnTankDeath;
+            // 🚩 TEMPORARY — we removed OnDeath += OnTankDeath → no need to unsubscribe
         }
     }
 
     // OnDeath handler for showing respawn countdown
+    // This will be re-enabled later once we add proper VisualDeathListener
     private void OnTankDeath(Health health)
     {
         if (respawnCountdownText != null)
@@ -208,7 +204,6 @@ public class NetworkTankController : NetworkBehaviour
             respawnCountdownCoroutine = StartCoroutine(RespawnCountdownCoroutine(respawnDelay));
         }
     }
-
 
     private IEnumerator RespawnCountdownCoroutine(float duration)
     {

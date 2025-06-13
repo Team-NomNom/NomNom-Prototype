@@ -94,12 +94,12 @@ public class LobbyManager : MonoBehaviour
                 IsPrivate = false,
                 Player = CreateLocalPlayerObject(),
                 Data = new Dictionary<string, DataObject>
+            {
                 {
-                    {
-                        "RelayJoinCode",
-                        new DataObject(DataObject.VisibilityOptions.Public, relayJoinCode)
-                    }
+                    "RelayJoinCode",
+                    new DataObject(DataObject.VisibilityOptions.Public, relayJoinCode)
                 }
+            }
             };
 
             currentLobby = await Lobbies.Instance.CreateLobbyAsync("MyLobby", MaxPlayers, options);
@@ -112,31 +112,48 @@ public class LobbyManager : MonoBehaviour
             if (lobbyCodeText != null)
                 lobbyCodeText.text = $"{currentLobbyCode}";
 
-            // Auto-copy Lobby Code
             GUIUtility.systemCopyBuffer = currentLobbyCode;
             Debug.Log($"Copied Lobby Code to clipboard: {currentLobbyCode}");
 
-            // Save player name
             SavePlayerName();
 
             SetRelayTransportAsHost(allocation);
 
+            // Start Host → no PlayerPrefab → tank will not spawn automatically → expected
             NetworkManager.Singleton.StartHost();
+            Debug.Log("[LobbyManager] StartHost() called.");
+
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
+
+            // 🚀 Fallback → guaranteed reliable → spawn Host tank after slight delay
+            StartCoroutine(SpawnHostTankDelayed());
+
             Debug.Log("Host started using Relay.");
 
             StartLobbyHeartbeat();
             StartLobbyPolling();
             StartPingCoroutine();
 
-            // Switch to in-lobby UI
             UpdateUIState(true);
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to create lobby: {e}");
         }
+    }
+
+    private IEnumerator SpawnHostTankDelayed()
+    {
+        // Wait 1 frame to ensure NetworkManager is ready
+        yield return null;
+
+        // Wait slight delay to ensure full server startup
+        yield return new WaitForSeconds(0.1f);
+
+        Debug.Log("[LobbyManager] SpawnHostTankDelayed → spawning Host tank manually.");
+
+        GameManager.Instance.SpawnTankForClient(NetworkManager.Singleton.LocalClientId);
     }
 
     public async void JoinLobby(string lobbyCode)
@@ -557,40 +574,17 @@ public class LobbyManager : MonoBehaviour
     {
         Debug.Log($"Client connected: {clientId}");
 
-        // Host waits for PlayerJoinMessage to map players -> nothing to do here
-        UpdatePlayerListUI();
-
-        // If this is the local player → force assign LocalPlayerFactory:
-        if (clientId == NetworkManager.Singleton.LocalClientId)
+        if (NetworkManager.Singleton.IsServer)
         {
-            Debug.Log("[LobbyManager] Local player connected → attempting to assign LocalPlayerFactory.");
-
-            // Assuming your tank is the "player object" (NetworkManager PlayerPrefab):
-            var playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-
-            if (playerObject != null)
+            // 🚀 Host should spawn tank for newly connected clients (but not again for host)
+            if (clientId != NetworkManager.Singleton.LocalClientId)
             {
-                Debug.Log($"[LobbyManager] Found LocalPlayerObject: {playerObject.name}");
-
-                var projectileFactory = playerObject.GetComponent<ProjectileFactory>();
-
-                if (projectileFactory != null)
-                {
-                    GameManager.LocalPlayerFactory = projectileFactory;
-                    GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
-
-                    Debug.Log("[LobbyManager] LocalPlayerFactory assigned successfully from player object.");
-                }
-                else
-                {
-                    Debug.LogWarning("[LobbyManager] Local player object does not have ProjectileFactory!");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[LobbyManager] Could not find LocalPlayerObject → LocalPlayerFactory not assigned.");
+                Debug.Log($"[LobbyManager] Spawning tank for connected client {clientId}");
+                GameManager.Instance.SpawnTankForClient(clientId);
             }
         }
+
+        UpdatePlayerListUI();
     }
 
 
