@@ -44,7 +44,7 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         public float reloadProgress;
     }
 
-    // ✅ Synced ammo + reload progress
+    // Synced ammo + reload progress
     private NetworkList<int> syncedAmmo = new NetworkList<int>();
     private NetworkList<float> syncedReloadProgress = new NetworkList<float>();
 
@@ -133,7 +133,7 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             if (index < syncedAmmo.Count) syncedAmmo[index] = ammoState.currentAmmo;
         }
 
-        // ✅ Always update reload progress
+        // Always update reload progress
         if (index < syncedReloadProgress.Count)
         {
             syncedReloadProgress[index] = Mathf.Clamp01(ammoState.reloadTimer / settings.reloadTimePerShot);
