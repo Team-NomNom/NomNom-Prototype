@@ -44,8 +44,9 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         public float reloadProgress;
     }
 
-    // ✅ Initialize inline to satisfy Unity Netcode
+    // ✅ Synced ammo + reload progress
     private NetworkList<int> syncedAmmo = new NetworkList<int>();
+    private NetworkList<float> syncedReloadProgress = new NetworkList<float>();
 
     private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
 
@@ -56,9 +57,12 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         if (IsServer)
         {
             syncedAmmo.Clear();
+            syncedReloadProgress.Clear();
+
             foreach (var slot in weaponSlots)
             {
                 syncedAmmo.Add(slot.ammoSettings.maxAmmo);
+                syncedReloadProgress.Add(1.0f); // fully loaded
             }
         }
     }
@@ -118,16 +122,21 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
 
         ammoState.reloadTimer += Time.deltaTime;
 
+        int index = weaponSlots.FindIndex(slot => slot.ammoState == ammoState);
+        if (index == -1) return;
+
         if (ammoState.reloadTimer >= settings.reloadTimePerShot)
         {
             ammoState.currentAmmo++;
             ammoState.reloadTimer = 0f;
 
-            int index = weaponSlots.FindIndex(slot => slot.ammoState == ammoState);
-            if (index != -1 && index < syncedAmmo.Count)
-                syncedAmmo[index] = ammoState.currentAmmo;
+            if (index < syncedAmmo.Count) syncedAmmo[index] = ammoState.currentAmmo;
+        }
 
-            Debug.Log($"[ProjectileFactory] Reloaded 1 ammo. Ammo: {ammoState.currentAmmo}/{settings.maxAmmo}");
+        // ✅ Always update reload progress
+        if (index < syncedReloadProgress.Count)
+        {
+            syncedReloadProgress[index] = Mathf.Clamp01(ammoState.reloadTimer / settings.reloadTimePerShot);
         }
     }
 
@@ -203,13 +212,15 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             ? slot.ammoState.currentAmmo
             : syncedAmmo[weaponIndex];
 
+        float reloadProgress = (IsServer || weaponIndex >= syncedReloadProgress.Count)
+            ? Mathf.Clamp01(slot.ammoState.reloadTimer / slot.ammoSettings.reloadTimePerShot)
+            : syncedReloadProgress[weaponIndex];
+
         return new AmmoInfo
         {
             currentAmmo = current,
             maxAmmo = slot.ammoSettings.maxAmmo,
-            reloadProgress = (current < slot.ammoSettings.maxAmmo)
-                ? Mathf.Clamp01(slot.ammoState.reloadTimer / slot.ammoSettings.reloadTimePerShot)
-                : 1.0f
+            reloadProgress = reloadProgress
         };
     }
 
