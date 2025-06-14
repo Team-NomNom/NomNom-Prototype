@@ -7,7 +7,11 @@ public class Health : NetworkBehaviour, IDamagable
 {
     [Header("Health Settings")]
     [SerializeField] private float maxHealth = 100f;
-    private NetworkVariable<float> currentHealth = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<float> currentHealth = new NetworkVariable<float>(
+        100f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     [Header("Optional UI")]
     [SerializeField] private Text healthText;
@@ -17,7 +21,11 @@ public class Health : NetworkBehaviour, IDamagable
 
     [Header("Respawn Invincibility")]
     [SerializeField] private float invincibilityDuration = 1.5f;
-    private NetworkVariable<bool> isInvincible = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> isInvincible = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
     public bool IsInvincible => isInvincible.Value;
     public float InvincibilityDuration => invincibilityDuration;
 
@@ -25,7 +33,6 @@ public class Health : NetworkBehaviour, IDamagable
     [SerializeField] private Renderer visualsRenderer;
     [SerializeField] private Color invincibleColor = Color.cyan;
     [SerializeField] private Color normalColor = Color.white;
-
     [SerializeField] private Color lowHealthPulseColor = Color.red;
 
     private Material cachedMaterial;
@@ -34,8 +41,9 @@ public class Health : NetworkBehaviour, IDamagable
 
     private bool isDead = false;
     public bool IsAlive => !isDead;
-
     public float MaxHealth => maxHealth;
+
+    private NetworkTankController cachedTankController;
 
     private void Awake()
     {
@@ -53,6 +61,11 @@ public class Health : NetworkBehaviour, IDamagable
 
         currentHealth.OnValueChanged += OnHealthChanged;
         isInvincible.OnValueChanged += OnInvincibleChanged;
+
+        if (IsServer)
+        {
+            cachedTankController = GetComponent<NetworkTankController>();
+        }
 
         OnHealthChanged(0f, currentHealth.Value);
 
@@ -107,8 +120,7 @@ public class Health : NetworkBehaviour, IDamagable
             return;
         }
 
-        if (isDead) return;
-        if (isInvincible.Value) return;
+        if (isDead || isInvincible.Value) return;
 
         Debug.Log($"[Health] TakeDamage({damage}) on tank {gameObject.name}, currentHealth={currentHealth.Value}");
 
@@ -134,6 +146,13 @@ public class Health : NetworkBehaviour, IDamagable
             visualsRoot.SetActive(false);
         else
             gameObject.SetActive(false);
+
+        // Trigger respawn countdown on client
+        if (IsServer && cachedTankController != null)
+        {
+            float delay = FindObjectOfType<RespawnManager>()?.RespawnDelay ?? 3f;
+            cachedTankController.ShowRespawnCountdownClientRpc(delay);
+        }
     }
 
     public void ResetHealth()
@@ -154,7 +173,7 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        // No-op → we rely on Update() to show the visual now.
+        // Visual feedback is handled in Update
     }
 
     private void OnHealthChanged(float oldValue, float newValue)

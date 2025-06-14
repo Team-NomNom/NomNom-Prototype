@@ -12,10 +12,11 @@ public class NetworkTankController : NetworkBehaviour
     public GameObject playerUIPrefab;
 
     private GameObject playerUIInstance;
-    private Text respawnCountdownText; // Respawn countdown UI element
-    private Coroutine respawnCountdownCoroutine; // Track coroutine
+    private Text respawnCountdownText;
+    private Coroutine respawnCountdownCoroutine;
 
-    private bool isReadyToSendMovement = false; // Movement safe delay flag
+    private bool isReadyToSendMovement = false;
+    private bool hasSubscribedToDeath = false; // Prevent double-subscription
 
     private void Awake()
     {
@@ -33,24 +34,20 @@ public class NetworkTankController : NetworkBehaviour
         base.OnNetworkSpawn();
 
         if (!IsServer)
-        {
             localTank.enabled = false;
-        }
 
         if (IsServer)
         {
-            // Tank fully spawned -> ResetHealth here
             var health = GetComponent<Health>();
             if (health != null)
             {
                 health.ResetHealth();
-                Debug.Log($"[NetworkTankController] ResetHealth called on server for tank {gameObject.name} (safe OnNetworkSpawn)");
+                Debug.Log($"[NetworkTankController] ResetHealth called on server for tank {gameObject.name}");
             }
         }
 
         if (IsOwner)
         {
-            // 🚀 Assign LocalPlayerFactory here → this solves the Ammo UI issue
             GameManager.LocalPlayerFactory = GetComponent<ProjectileFactory>();
             GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
             Debug.Log("[NetworkTankController] Assigned LocalPlayerFactory (OnNetworkSpawn, IsOwner).");
@@ -60,8 +57,6 @@ public class NetworkTankController : NetworkBehaviour
                 mainCamFollow.target = transform;
                 mainCamFollow.enabled = true;
                 mainCamFollow.GetComponent<Camera>().enabled = true;
-
-                // 🚀 Force snap camera after respawn
                 mainCamFollow.ForceSnap();
             }
 
@@ -75,46 +70,37 @@ public class NetworkTankController : NetworkBehaviour
 
                 GameObject inLobbyPanel = GameObject.Find("InLobbyPanel");
                 if (inLobbyPanel != null)
-                {
                     playerUIInstance.transform.SetParent(inLobbyPanel.transform, false);
-                }
                 else
                 {
                     GameObject canvas = GameObject.Find("Canvas");
                     if (canvas != null)
-                    {
                         playerUIInstance.transform.SetParent(canvas.transform, false);
-                    }
                 }
 
-                Health health = GetComponent<Health>();
-
-                // Health text
-                Text sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
+                var health = GetComponent<Health>();
+                var sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
                 if (sceneHealthText != null)
-                {
                     health.SetHealthText(sceneHealthText);
-                }
 
-                // Respawn countdown text → find and cache
                 respawnCountdownText = playerUIInstance.transform.Find("RespawnCountdownText")?.GetComponent<Text>();
                 if (respawnCountdownText != null)
-                {
-                    respawnCountdownText.gameObject.SetActive(false); // start hidden
-                }
-
-                // 🚩 TEMPORARY — removed unsafe OnDeath += OnTankDeath to avoid double subscription
-                // We will add VisualDeathListener after testing
+                    respawnCountdownText.gameObject.SetActive(false);
             }
 
-            // Movement safe delay → prevents DeferredOnSpawn warning
+            // Subscribe to OnDeath (once)
+            var localHealth = GetComponent<Health>();
+            if (localHealth != null && !hasSubscribedToDeath)
+            {
+                localHealth.OnDeath += OnTankDeath;
+                hasSubscribedToDeath = true;
+            }
+
             StartCoroutine(EnableMovementAfterSpawn());
 
-            // Hide respawn countdown if re-spawning!
             if (respawnCountdownText != null)
             {
                 respawnCountdownText.gameObject.SetActive(false);
-
                 if (respawnCountdownCoroutine != null)
                 {
                     StopCoroutine(respawnCountdownCoroutine);
@@ -135,8 +121,7 @@ public class NetworkTankController : NetworkBehaviour
         if (!IsOwner || !isReadyToSendMovement) return;
 
         var health = GetComponent<Health>();
-        if (health != null && !health.IsAlive)
-            return;
+        if (health != null && !health.IsAlive) return;
 
         float forward = Input.GetAxis(localTank.profile.forwardAxis);
         float strafe = Input.GetAxis(localTank.profile.strafeAxis);
@@ -154,9 +139,7 @@ public class NetworkTankController : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void SubmitMovementServerRpc(
-        float forward, float strafe, float turn,
-        ServerRpcParams rpcParams = default)
+    private void SubmitMovementServerRpc(float forward, float strafe, float turn, ServerRpcParams rpcParams = default)
     {
         localTank.StoreInput(forward, strafe, turn);
     }
@@ -166,40 +149,33 @@ public class NetworkTankController : NetworkBehaviour
     {
         var health = GetComponent<Health>();
         if (health != null)
-        {
             health.TakeDamage(health.MaxHealth);
-        }
     }
 
     private void OnDestroy()
     {
         if (IsOwner && playerUIInstance != null)
-        {
             Destroy(playerUIInstance);
-        }
 
         var health = GetComponent<Health>();
-        if (health != null)
+        if (health != null && hasSubscribedToDeath)
         {
-            // 🚩 TEMPORARY — we removed OnDeath += OnTankDeath → no need to unsubscribe
+            health.OnDeath -= OnTankDeath;
+            hasSubscribedToDeath = false;
         }
     }
 
-    // OnDeath handler for showing respawn countdown
-    // This will be re-enabled later once we add proper VisualDeathListener
     private void OnTankDeath(Health health)
     {
         if (respawnCountdownText != null)
         {
             respawnCountdownText.gameObject.SetActive(true);
 
-            // Cancel previous coroutine if needed
             if (respawnCountdownCoroutine != null)
                 StopCoroutine(respawnCountdownCoroutine);
 
-            // Get respawnDelay dynamically from RespawnManager
             RespawnManager respawnManager = FindObjectOfType<RespawnManager>();
-            float respawnDelay = respawnManager != null ? respawnManager.RespawnDelay : 3f; // fallback default
+            float respawnDelay = respawnManager != null ? respawnManager.RespawnDelay : 3f;
 
             respawnCountdownCoroutine = StartCoroutine(RespawnCountdownCoroutine(respawnDelay));
         }
@@ -216,7 +192,24 @@ public class NetworkTankController : NetworkBehaviour
             timer -= Time.deltaTime;
         }
 
-        respawnCountdownText.text = ""; // optional final message
+        respawnCountdownText.text = "";
         yield return null;
     }
+
+    [ClientRpc]
+    public void ShowRespawnCountdownClientRpc(float duration, ClientRpcParams rpcParams = default)
+    {
+        if (!IsOwner) return;
+
+        if (respawnCountdownText != null)
+        {
+            respawnCountdownText.gameObject.SetActive(true);
+
+            if (respawnCountdownCoroutine != null)
+                StopCoroutine(respawnCountdownCoroutine);
+
+            respawnCountdownCoroutine = StartCoroutine(RespawnCountdownCoroutine(duration));
+        }
+    }
+
 }
