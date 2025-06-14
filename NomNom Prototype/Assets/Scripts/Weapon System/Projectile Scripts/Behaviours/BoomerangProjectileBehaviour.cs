@@ -8,6 +8,13 @@ public class BoomerangProjectileBehaviour : ProjectileBase
     [SerializeField] private float returnSpeedMultiplier = 1.5f;
     [SerializeField] private float stopDistance = 1.0f;
 
+    [Header("Optional Visual Flip Fix")]
+    [Tooltip("Optional: If your mesh faces backwards, apply this offset.")]
+    [SerializeField] private Vector3 visualRotationOffset = new Vector3(0f, 180f, 0f);
+
+    [Tooltip("Assign if you want to rotate visuals separately from physics")]
+    [SerializeField] private Transform visualTransform;
+
     private bool isReturning = false;
     private float elapsedTime = 0f;
 
@@ -18,42 +25,50 @@ public class BoomerangProjectileBehaviour : ProjectileBase
 
     private void FixedUpdate()
     {
+        // ✅ Only the server controls movement and return logic
         if (!IsServer) return;
 
         elapsedTime += Time.fixedDeltaTime;
 
-        if (!isReturning)
+        if (!isReturning && elapsedTime >= forwardDuration)
         {
-            if (elapsedTime >= forwardDuration)
-            {
-                isReturning = true;
-                Debug.Log("[BoomerangProjectile] Timer expired → switching to RETURN mode");
-            }
+            isReturning = true;
+            Debug.Log("[BoomerangProjectile] Timer expired → switching to RETURN mode");
         }
 
         if (isReturning)
         {
             if (shooterRoot == null)
             {
+                Debug.LogWarning("[BoomerangProjectile] Shooter root missing — despawning.");
                 GetComponent<NetworkObject>().Despawn();
                 return;
             }
 
             Vector3 toShooter = (shooterRoot.position - transform.position).normalized;
             rb.linearVelocity = toShooter * config.speed * returnSpeedMultiplier;
-            rb.MoveRotation(Quaternion.LookRotation(toShooter));
+
+            // ✅ Flip fix: rotate visual instead of Rigidbody if provided
+            Quaternion desiredRotation = Quaternion.LookRotation(toShooter);
+            if (visualTransform != null)
+            {
+                visualTransform.rotation = desiredRotation * Quaternion.Euler(visualRotationOffset);
+            }
+            else
+            {
+                rb.MoveRotation(desiredRotation * Quaternion.Euler(visualRotationOffset));
+            }
 
             float distanceToShooter = Vector3.Distance(transform.position, shooterRoot.position);
             if (distanceToShooter <= stopDistance)
             {
                 Debug.Log("[BoomerangProjectile] Reached shooter → notifying factory and despawning");
-                factoryUser?.OnProjectileReturned(weaponIndex);
+                NotifyFactoryProjectileReturned(); // ✅ Server-authoritative
                 GetComponent<NetworkObject>().Despawn();
             }
         }
     }
 
-    // HERE IS THE KEY — we override OnCollisionEnter to STOP the base behavior from despawning!
     protected override void OnCollisionEnter(Collision collision)
     {
         if (!IsServer) return;
@@ -62,10 +77,8 @@ public class BoomerangProjectileBehaviour : ProjectileBase
 
         if (ShouldSkipTarget(collision.collider)) return;
 
-        // Call our OnHit (apply damage + force return mode)
         OnHit(collision.collider);
 
-        // Do NOT despawn here — we want the boomerang to fly back
         if (!isReturning)
         {
             isReturning = true;

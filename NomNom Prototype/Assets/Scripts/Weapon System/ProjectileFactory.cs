@@ -44,7 +44,24 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         public float reloadProgress;
     }
 
+    private NetworkVariable<int>[] syncedAmmo;
+
     private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        syncedAmmo = new NetworkVariable<int>[weaponSlots.Count];
+        for (int i = 0; i < weaponSlots.Count; i++)
+        {
+            syncedAmmo[i] = new NetworkVariable<int>(
+                weaponSlots[i].ammoSettings.maxAmmo,
+                NetworkVariableReadPermission.Everyone,
+                NetworkVariableWritePermission.Server
+            );
+        }
+    }
 
     private void Start()
     {
@@ -77,19 +94,12 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             return;
         }
 
-        if (ammoState.currentAmmo <= 0)
-        {
-            Debug.Log($"[ProjectileFactory] Cannot fire {slot.name} → no ammo.");
-            return;
-        }
-
-        SpawnProjectileServerRpc(weaponIndex, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
-
-        ammoState.currentAmmo--;
         ammoState.isShotCooldown = true;
         StartCoroutine(ShotCooldownCoroutine(ammoState, slot.ammoSettings.cooldownBetweenShots));
 
-        Debug.Log($"[ProjectileFactory] Fired {slot.name}. Ammo left: {ammoState.currentAmmo}/{slot.ammoSettings.maxAmmo}");
+        SpawnProjectileServerRpc(weaponIndex, muzzleTransform.position, muzzleTransform.rotation, OwnerId);
+
+        Debug.Log($"[ProjectileFactory] Client requested fire for {slot.name}.");
     }
 
     private IEnumerator ShotCooldownCoroutine(AmmoState ammoState, float cooldown)
@@ -112,6 +122,11 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         {
             ammoState.currentAmmo++;
             ammoState.reloadTimer = 0f;
+
+            int index = weaponSlots.FindIndex(slot => slot.ammoState == ammoState);
+            if (index != -1)
+                syncedAmmo[index].Value = ammoState.currentAmmo;
+
             Debug.Log($"[ProjectileFactory] Reloaded 1 ammo. Ammo: {ammoState.currentAmmo}/{settings.maxAmmo}");
         }
     }
@@ -122,6 +137,18 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count) return;
 
         var slot = weaponSlots[weaponIndex];
+        var ammoState = slot.ammoState;
+
+        if (ammoState.currentAmmo <= 0)
+        {
+            Debug.LogWarning($"[ProjectileFactory] Cannot spawn projectile — no ammo on server.");
+            return;
+        }
+
+        ammoState.currentAmmo--;
+        syncedAmmo[weaponIndex].Value = ammoState.currentAmmo;
+        Debug.Log($"[ProjectileFactory] Server fired {slot.name}. Ammo now: {ammoState.currentAmmo}/{slot.ammoSettings.maxAmmo}");
+
         var prefab = slot.projectilePrefab;
 
         if (prefab == null)
@@ -169,26 +196,40 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             return new AmmoInfo();
 
         var slot = weaponSlots[weaponIndex];
+        var current = IsServer ? slot.ammoState.currentAmmo : syncedAmmo[weaponIndex].Value;
+
         return new AmmoInfo
         {
-            currentAmmo = slot.ammoState.currentAmmo,
+            currentAmmo = current,
             maxAmmo = slot.ammoSettings.maxAmmo,
-            reloadProgress = (slot.ammoState.currentAmmo < slot.ammoSettings.maxAmmo)
+            reloadProgress = (current < slot.ammoSettings.maxAmmo)
                 ? Mathf.Clamp01(slot.ammoState.reloadTimer / slot.ammoSettings.reloadTimePerShot)
                 : 1.0f
         };
     }
 
-    // IProjectileFactoryUser implementation
     public void OnProjectileReturned(int weaponIndex)
     {
-        if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count) return;
+        Debug.Log($"[ProjectileFactory] OnProjectileReturned called for weapon {weaponIndex}");
 
-        var ammoState = weaponSlots[weaponIndex].ammoState;
-        if (ammoState.currentAmmo < weaponSlots[weaponIndex].ammoSettings.maxAmmo)
+        if (weaponIndex < 0 || weaponIndex >= weaponSlots.Count)
+        {
+            Debug.LogWarning($"[ProjectileFactory] Invalid weaponIndex {weaponIndex} in return callback");
+            return;
+        }
+
+        var slot = weaponSlots[weaponIndex];
+        var ammoState = slot.ammoState;
+
+        if (ammoState.currentAmmo < slot.ammoSettings.maxAmmo)
         {
             ammoState.currentAmmo++;
-            Debug.Log($"[ProjectileFactory] Projectile returned → granted 1 ammo to {weaponSlots[weaponIndex].name}. Ammo: {ammoState.currentAmmo}/{weaponSlots[weaponIndex].ammoSettings.maxAmmo}");
+            syncedAmmo[weaponIndex].Value = ammoState.currentAmmo;
+            Debug.Log($"[ProjectileFactory] Projectile returned → granted 1 ammo to {slot.name}. Ammo: {ammoState.currentAmmo}/{slot.ammoSettings.maxAmmo}");
+        }
+        else
+        {
+            Debug.Log($"[ProjectileFactory] Ammo already full — no ammo added.");
         }
     }
 }

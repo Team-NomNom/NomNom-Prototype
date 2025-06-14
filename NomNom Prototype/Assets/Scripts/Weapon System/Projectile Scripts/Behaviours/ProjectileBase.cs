@@ -2,6 +2,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public abstract class ProjectileBase : NetworkBehaviour, IProjectile
 {
     protected Rigidbody rb;
@@ -9,6 +10,8 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
     protected Transform shooterRoot;
     protected IProjectileFactoryUser factoryUser;
     protected int weaponIndex = -1;
+
+    protected ulong factoryObjectId = 0;
 
     public NetworkVariable<ulong> ownerId = new(0,
         NetworkVariableReadPermission.Everyone,
@@ -20,6 +23,11 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
         shooterRoot = shooterRootObj.transform;
         this.factoryUser = factoryUser;
         this.weaponIndex = weaponIndex;
+
+        if (factoryUser is NetworkBehaviour netBehaviour)
+            factoryObjectId = netBehaviour.NetworkObject.NetworkObjectId;
+        else
+            Debug.LogWarning("[ProjectileBase] Could not assign factoryObjectId!");
     }
 
     public virtual void ApplyConfig(ProjectileConfig cfg)
@@ -113,5 +121,41 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
             return true;
         }
         return false;
+    }
+
+    protected void NotifyFactoryProjectileReturned()
+    {
+        if (!IsServer)
+        {
+            Debug.LogWarning("[ProjectileBase] NotifyFactoryProjectileReturned called on client — ignoring");
+            return;
+        }
+
+        Debug.Log($"[ProjectileBase] Notifying factory (ObjectId: {factoryObjectId}) for weaponIndex={weaponIndex}");
+
+        if (factoryObjectId == 0)
+        {
+            Debug.LogWarning("[ProjectileBase] FactoryObjectId is 0 → not set?");
+            return;
+        }
+
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(factoryObjectId, out var netObj))
+        {
+            Debug.Log("[ProjectileBase] Found factory NetworkObject!");
+
+            if (netObj.TryGetComponent<IProjectileFactoryUser>(out var factory))
+            {
+                factory.OnProjectileReturned(weaponIndex);
+                Debug.Log("[ProjectileBase] Successfully called OnProjectileReturned!");
+            }
+            else
+            {
+                Debug.LogWarning("[ProjectileBase] NetworkObject has no IProjectileFactoryUser!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[ProjectileBase] Could not find NetworkObject by factoryObjectId!");
+        }
     }
 }
