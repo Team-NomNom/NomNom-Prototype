@@ -44,7 +44,8 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         public float reloadProgress;
     }
 
-    private NetworkVariable<int>[] syncedAmmo;
+    // ✅ Initialize inline to satisfy Unity Netcode
+    private NetworkList<int> syncedAmmo = new NetworkList<int>();
 
     private ulong OwnerId => GetComponent<NetworkObject>().NetworkObjectId;
 
@@ -52,14 +53,13 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
     {
         base.OnNetworkSpawn();
 
-        syncedAmmo = new NetworkVariable<int>[weaponSlots.Count];
-        for (int i = 0; i < weaponSlots.Count; i++)
+        if (IsServer)
         {
-            syncedAmmo[i] = new NetworkVariable<int>(
-                weaponSlots[i].ammoSettings.maxAmmo,
-                NetworkVariableReadPermission.Everyone,
-                NetworkVariableWritePermission.Server
-            );
+            syncedAmmo.Clear();
+            foreach (var slot in weaponSlots)
+            {
+                syncedAmmo.Add(slot.ammoSettings.maxAmmo);
+            }
         }
     }
 
@@ -124,8 +124,8 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             ammoState.reloadTimer = 0f;
 
             int index = weaponSlots.FindIndex(slot => slot.ammoState == ammoState);
-            if (index != -1)
-                syncedAmmo[index].Value = ammoState.currentAmmo;
+            if (index != -1 && index < syncedAmmo.Count)
+                syncedAmmo[index] = ammoState.currentAmmo;
 
             Debug.Log($"[ProjectileFactory] Reloaded 1 ammo. Ammo: {ammoState.currentAmmo}/{settings.maxAmmo}");
         }
@@ -146,7 +146,10 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         }
 
         ammoState.currentAmmo--;
-        syncedAmmo[weaponIndex].Value = ammoState.currentAmmo;
+
+        if (weaponIndex < syncedAmmo.Count)
+            syncedAmmo[weaponIndex] = ammoState.currentAmmo;
+
         Debug.Log($"[ProjectileFactory] Server fired {slot.name}. Ammo now: {ammoState.currentAmmo}/{slot.ammoSettings.maxAmmo}");
 
         var prefab = slot.projectilePrefab;
@@ -196,7 +199,9 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             return new AmmoInfo();
 
         var slot = weaponSlots[weaponIndex];
-        var current = IsServer ? slot.ammoState.currentAmmo : syncedAmmo[weaponIndex].Value;
+        var current = (IsServer || weaponIndex >= syncedAmmo.Count)
+            ? slot.ammoState.currentAmmo
+            : syncedAmmo[weaponIndex];
 
         return new AmmoInfo
         {
@@ -224,7 +229,10 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         if (ammoState.currentAmmo < slot.ammoSettings.maxAmmo)
         {
             ammoState.currentAmmo++;
-            syncedAmmo[weaponIndex].Value = ammoState.currentAmmo;
+
+            if (weaponIndex < syncedAmmo.Count)
+                syncedAmmo[weaponIndex] = ammoState.currentAmmo;
+
             Debug.Log($"[ProjectileFactory] Projectile returned → granted 1 ammo to {slot.name}. Ammo: {ammoState.currentAmmo}/{slot.ammoSettings.maxAmmo}");
         }
         else
