@@ -452,7 +452,6 @@ GameObject:
   - component: {fileID: 3223559092925386599}
   - component: {fileID: 1432667664924225826}
   - component: {fileID: 7602811718447538566}
-  - component: {fileID: -4588397896624640166}
   m_Layer: 0
   m_Name: TankBase Diff
   m_TagString: Player
@@ -518,7 +517,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 8090840b936a0854db5e41907278b835, type: 2}
-  driveBehaviourMono: {fileID: -4588397896624640166}
+  driveBehaviourMono: {fileID: 3255127945892570634}
 --- !u!114 &3255127945892570634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -701,19 +700,6 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &-4588397896624640166
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3626744771387545982}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3eea2c1c5b3f76d478fa14a643c8e5f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  trackWidth: 1
 --- !u!1 &7209051376469364900
 GameObject:
   m_ObjectHideFlags: 0
