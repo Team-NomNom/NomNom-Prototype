@@ -337,15 +337,15 @@ GameObject:
   - component: {fileID: 8890583054398486639}
   - component: {fileID: 7141739942394076771}
   - component: {fileID: 7969180655179562537}
-  - component: {fileID: 5839633526694083204}
   - component: {fileID: -581433531775519484}
   - component: {fileID: -4267213447083357331}
   - component: {fileID: -7149729850585125886}
   - component: {fileID: -175567762838368166}
   - component: {fileID: -7305766385174354203}
   - component: {fileID: 728660336132141182}
+  - component: {fileID: -362149415550312432}
   m_Layer: 0
-  m_Name: TankBase Arcade
+  m_Name: TankBase Swerve
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -364,6 +364,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 2045805802688438552}
   - {fileID: 7364973459742964175}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -406,21 +407,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19093a1005c3ff344beac22e7f17e9f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  profile: {fileID: 11400000, guid: 4a6df95ca0132034ca0aee30ae168c12, type: 2}
-  driveBehaviourMono: {fileID: 5839633526694083204}
---- !u!114 &5839633526694083204
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6113220541166114118}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fe156194e380414fb5df58163733773, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  trackWidth: 2
+  profile: {fileID: 11400000, guid: e6bcb08d1d9f307429989736ba414cde, type: 2}
+  driveBehaviourMono: {fileID: -362149415550312432}
 --- !u!114 &-581433531775519484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -475,11 +463,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
   healthText: {fileID: 0}
-  visualsRoot: {fileID: 0}
-  invincibilityDuration: 1.5
-  visualsRenderer: {fileID: 0}
-  invincibleColor: {r: 0, g: 1, b: 1, a: 1}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  visualsRoot: {fileID: 1622517077055403872}
+  invincibilityDuration: 2.25
+  visualsRenderer: {fileID: 2264898383668686327}
+  invincibleColor: {r: 1, g: 0.96862745, b: 0.4745098, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
   lowHealthPulseColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!114 &-175567762838368166
 MonoBehaviour:
@@ -494,13 +482,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  simpleProjectilePrefab: {fileID: 0}
-  homingMissilePrefab: {fileID: 0}
-  arcGrenadePrefab: {fileID: 0}
-  simpleConfig: {fileID: 0}
-  homingConfig: {fileID: 0}
-  arcConfig: {fileID: 0}
-  muzzleTransform: {fileID: 0}
+  weaponSlots:
+  - name: Homing
+    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
+    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+    ammoSettings:
+      maxAmmo: 5
+      cooldownBetweenShots: 0.2
+      reloadTimePerShot: 2
+  muzzleTransform: {fileID: 2045805802688438552}
 --- !u!114 &-7305766385174354203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -513,13 +503,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2732ddd4ff59932499ecdaee79648092, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireSimpleKey: 323
-  fireHomingKey: 113
-  fireArcKey: 101
-  fireSimpleAxis: Fire1
-  fireHomingAxis: Fire2
-  fireArcAxis: Fire3
-  movesIndependently: 1
+  weaponInputs:
+  - weaponSlotIndex: 0
+    fireKey: 116
+    fireAxis: 
+  movesIndependently: 0
   turretTransform: {fileID: 0}
   turretRotateSpeed: 100
   turretHorizontalAxis: Mouse X
@@ -570,3 +558,47 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &-362149415550312432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6113220541166114118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c471cb98fe0c38f4894849d511f51960, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxStrafeSpeed: 10
+--- !u!1 &7369380952834894257
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2045805802688438552}
+  m_Layer: 0
+  m_Name: Firing Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2045805802688438552
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7369380952834894257}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.13499999, z: 0.864}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8890583054398486639}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -31,7 +31,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 0.5, z: 1.4}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5945695524619584701}
   m_Father: {fileID: 8070527280569494238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4846307444115395645
@@ -125,7 +126,7 @@ GameObject:
   - component: {fileID: 5649833941178159649}
   - component: {fileID: -3383430330227846038}
   - component: {fileID: -1438642452231642460}
-  - component: {fileID: 5490415046450722088}
+  - component: {fileID: 6901622038723628579}
   m_Layer: 0
   m_Name: TankBase Ack
   m_TagString: Player
@@ -146,8 +147,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 917730380386928514}
   - {fileID: 8126181494927223157}
-  - {fileID: 5945695524619584701}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &6538481813042118860
@@ -290,12 +291,12 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 100
   healthText: {fileID: 0}
-  visualsRoot: {fileID: 0}
-  invincibilityDuration: 1.5
-  visualsRenderer: {fileID: 0}
-  invincibleColor: {r: 0, g: 1, b: 1, a: 1}
+  visualsRoot: {fileID: 978671190198308538}
+  invincibilityDuration: 2.25
+  visualsRenderer: {fileID: 5852039602440921745}
+  invincibleColor: {r: 1, g: 0.96862745, b: 0.4745098, a: 1}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
-  lowHealthPulseColor: {r: 1, g: 0, b: 0, a: 1}
+  lowHealthPulseColor: {r: 1, g: 0.73365813, b: 0.50377357, a: 1}
 --- !u!114 &-3383430330227846038
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -309,13 +310,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  simpleProjectilePrefab: {fileID: 0}
-  homingMissilePrefab: {fileID: 0}
-  arcGrenadePrefab: {fileID: 0}
-  simpleConfig: {fileID: 0}
-  homingConfig: {fileID: 0}
-  arcConfig: {fileID: 0}
-  muzzleTransform: {fileID: 0}
+  weaponSlots:
+  - name: Homing
+    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
+    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+    ammoSettings:
+      maxAmmo: 9
+      cooldownBetweenShots: 0.5
+      reloadTimePerShot: 2
+  muzzleTransform: {fileID: 917730380386928514}
 --- !u!114 &-1438642452231642460
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -328,18 +331,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2732ddd4ff59932499ecdaee79648092, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireSimpleKey: 323
-  fireHomingKey: 113
-  fireArcKey: 101
-  fireSimpleAxis: Fire1
-  fireHomingAxis: Fire2
-  fireArcAxis: Fire3
-  movesIndependently: 1
+  weaponInputs:
+  - weaponSlotIndex: 0
+    fireKey: 116
+    fireAxis: 
+  movesIndependently: 0
   turretTransform: {fileID: 0}
   turretRotateSpeed: 100
   turretHorizontalAxis: Mouse X
   turretVerticalAxis: Mouse Y
---- !u!114 &5490415046450722088
+--- !u!114 &6901622038723628579
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -348,17 +349,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 3118093964844142666}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c17e865faf5ec743aae55b0cf18c24b, type: 3}
+  m_Script: {fileID: 11500000, guid: 2f317def2452a0545a2269c8c542cc28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  simpleProjectilePrefab: {fileID: 0}
-  homingMissilePrefab: {fileID: 0}
-  arcGrenadePrefab: {fileID: 0}
-  simpleConfig: {fileID: 0}
-  homingConfig: {fileID: 0}
-  arcConfig: {fileID: 0}
-  muzzleTransform: {fileID: 0}
+  playerUIPrefab: {fileID: 6409738201929118690, guid: 75791abdb6eb14943bd77d662ddd956c, type: 3}
 --- !u!1 &6172739144347750210
 GameObject:
   m_ObjectHideFlags: 0
@@ -386,12 +381,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6172739144347750210}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.319, z: 0.42}
-  m_LocalScale: {x: 0.3, y: 0.15, z: 0.3}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.638, z: 0.29999998}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 0.21428572}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8070527280569494238}
+  m_Father: {fileID: 8126181494927223157}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7920536906402881978
 MeshFilter:
@@ -467,3 +462,34 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &8612580270670291750
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 917730380386928514}
+  m_Layer: 0
+  m_Name: Firing Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &917730380386928514
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8612580270670291750}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.13499999, z: 0.864}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8070527280569494238}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

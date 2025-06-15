@@ -212,4 +212,11 @@ public class NetworkTankController : NetworkBehaviour
         }
     }
 
+    [ServerRpc]
+    public void SubmitTankChoiceServerRpc(int tankIndex, ServerRpcParams rpcParams = default)
+    {
+        GameManager.Instance?.SetTankChoice(rpcParams.Receive.SenderClientId, tankIndex);
+    }
+
+
 }

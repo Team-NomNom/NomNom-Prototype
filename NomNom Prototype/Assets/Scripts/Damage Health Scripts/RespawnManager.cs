@@ -8,7 +8,7 @@ public class RespawnManager : MonoBehaviour
     [SerializeField] private Transform[] spawnPoints;
     [SerializeField] private float respawnDelay = 3f;
 
-    [Header("Tank Prefab")]
+    [Header("Tank Prefab (default fallback)")]
     [SerializeField] private GameObject tankPrefab;
 
     [Header("Game Manager Reference")]
@@ -19,42 +19,45 @@ public class RespawnManager : MonoBehaviour
     public void RespawnTank(GameObject oldTankObject, ulong ownerClientId)
     {
         Debug.Log($"[RespawnManager] RespawnTank → OwnerClientId: {ownerClientId}");
-
         StartCoroutine(RespawnTankCoroutine(oldTankObject, ownerClientId));
     }
 
     public IEnumerator RespawnTankCoroutine(GameObject tankObject, ulong ownerClientId)
     {
-        // Wait for respawn delay
         yield return new WaitForSeconds(respawnDelay);
 
-        // Pick a spawn point
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
         Debug.Log($"[RespawnManager] RespawnTankCoroutine → Using spawn point: {spawnPoint.position}, rotation Y: {spawnPoint.rotation.eulerAngles.y}");
 
-        // 🚀 Clean up old tank (optional → recommended to avoid "ghost" tanks)
-        if (tankObject != null && tankObject.GetComponent<NetworkObject>() != null && tankObject.GetComponent<NetworkObject>().IsSpawned)
+        if (tankObject != null && tankObject.GetComponent<NetworkObject>()?.IsSpawned == true)
         {
-            tankObject.GetComponent<NetworkObject>().Despawn(true);  // true = destroy GameObject
+            tankObject.GetComponent<NetworkObject>().Despawn(true);
             Debug.Log($"[RespawnManager] Despawned old tank for client {ownerClientId}");
         }
 
-        // Spawn new tank
-        GameObject newTankInstance = Instantiate(tankPrefab, spawnPoint.position, spawnPoint.rotation);
+        // 🧠 Choose tank prefab from GameManager
+        int tankIndex = 0;
+        if (GameManager.Instance.TryGetTankChoice(ownerClientId, out int chosenIndex))
+        {
+            if (chosenIndex >= 0 && chosenIndex < GameManager.Instance.AvailableTankPrefabCount)
+                tankIndex = chosenIndex;
+            else
+                Debug.LogWarning($"[RespawnManager] Invalid tank index {chosenIndex} for client {ownerClientId}, defaulting to 0.");
+        }
+
+        GameObject prefabToUse = GameManager.Instance.GetTankPrefab(tankIndex);
+        GameObject newTankInstance = Instantiate(prefabToUse, spawnPoint.position, spawnPoint.rotation);
         newTankInstance.GetComponent<NetworkObject>().SpawnWithOwnership(ownerClientId);
 
-        // 🚀 Force invincibility ON, then start delayed clear
         var health = newTankInstance.GetComponent<Health>();
         health.ForceSetInvincible(true);
         StartCoroutine(DelayedClearInvincible(health));
 
-        Debug.Log($"[RespawnManager] Spawned tank → NetworkObjectId={newTankInstance.GetComponent<NetworkObject>().NetworkObjectId}, OwnerClientId={newTankInstance.GetComponent<NetworkObject>().OwnerClientId}, IsSpawned={newTankInstance.GetComponent<NetworkObject>().IsSpawned}");
+        Debug.Log($"[RespawnManager] Spawned tank {tankIndex} → NetworkObjectId={newTankInstance.GetComponent<NetworkObject>().NetworkObjectId}, OwnerClientId={newTankInstance.GetComponent<NetworkObject>().OwnerClientId}");
 
-        // Re-register OnDeath for new tank
         GameManager.Instance.RegisterTank(newTankInstance);
 
-        // If this is the local player → assign LocalPlayerFactory → keep Ammo UI correct
         if (ownerClientId == NetworkManager.Singleton.LocalClientId)
         {
             GameManager.LocalPlayerFactory = newTankInstance.GetComponent<ProjectileFactory>();

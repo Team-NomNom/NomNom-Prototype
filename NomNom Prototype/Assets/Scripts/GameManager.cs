@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 public class GameManager : NetworkBehaviour
 {
-    [Header("Tank Prefab")]
-    [SerializeField] private GameObject tankPrefab;
+    [Header("Tank Prefabs")]
+    [SerializeField] private List<GameObject> tankPrefabs;
 
     [Header("Spawn Points")]
     [SerializeField] private List<Transform> spawnPoints;
@@ -17,8 +17,25 @@ public class GameManager : NetworkBehaviour
 
     private RespawnManager respawnManager;
 
-    // Track tanks per client
     private Dictionary<ulong, GameObject> clientTanks = new Dictionary<ulong, GameObject>();
+    private Dictionary<ulong, int> playerTankChoices = new Dictionary<ulong, int>();
+
+    public int AvailableTankPrefabCount => tankPrefabs.Count;
+
+    public GameObject GetTankPrefab(int index)
+    {
+        return (index >= 0 && index < tankPrefabs.Count) ? tankPrefabs[index] : tankPrefabs[0];
+    }
+
+    public bool TryGetTankChoice(ulong clientId, out int index)
+    {
+        return playerTankChoices.TryGetValue(clientId, out index);
+    }
+
+    public void SetTankChoice(ulong clientId, int prefabIndex)
+    {
+        playerTankChoices[clientId] = prefabIndex;
+    }
 
     private void Awake()
     {
@@ -40,8 +57,6 @@ public class GameManager : NetworkBehaviour
 
             // Always spawn host tank explicitly
             SpawnTankForClient(NetworkManager.Singleton.LocalClientId);
-
-            Debug.Log("OMG ITS OMG OMG IGS OMG");
         }
     }
 
@@ -55,15 +70,9 @@ public class GameManager : NetworkBehaviour
 
     private void OnClientConnected(ulong clientId)
     {
-        // Only server spawns tanks
-        if (IsServer)
+        if (IsServer && clientId != NetworkManager.Singleton.LocalClientId)
         {
-            // For host -> we already spawned manually → skip
-            if (clientId != NetworkManager.Singleton.LocalClientId)
-            {
-                Debug.Log($"[LobbyManager] Spawning tank for connected client {clientId}");
-                SpawnTankForClient(clientId);
-            }
+            SpawnTankForClient(clientId);
         }
     }
 
@@ -74,28 +83,29 @@ public class GameManager : NetworkBehaviour
         int spawnIndex = (int)(clientId % (ulong)spawnPoints.Count);
         Transform spawnPoint = spawnPoints[spawnIndex];
 
-        GameObject tankInstance = Instantiate(tankPrefab, spawnPoint.position, spawnPoint.rotation);
-        tankInstance.GetComponent<NetworkObject>().SpawnWithOwnership(clientId);
+        int tankIndex = 0;
+        if (playerTankChoices.TryGetValue(clientId, out int chosenIndex))
+        {
+            if (chosenIndex >= 0 && chosenIndex < tankPrefabs.Count)
+                tankIndex = chosenIndex;
+            else
+                Debug.LogWarning($"Invalid tank index {chosenIndex} for client {clientId}, defaulting to 0.");
+        }
 
-        Debug.Log($"[GameManager] Checking LocalPlayerFactory assignment → clientId={clientId}, LocalClientId={NetworkManager.Singleton.LocalClientId}");
+        GameObject prefabToUse = tankPrefabs[tankIndex];
+        GameObject tankInstance = Instantiate(prefabToUse, spawnPoint.position, spawnPoint.rotation);
+        tankInstance.GetComponent<NetworkObject>().SpawnWithOwnership(clientId);
 
         if (clientId == NetworkManager.Singleton.LocalClientId)
         {
             LocalPlayerFactory = tankInstance.GetComponent<ProjectileFactory>();
-            Debug.Log("[GameManager] LocalPlayerFactory assigned.");
             OnLocalPlayerFactoryAssigned?.Invoke();
         }
 
         RegisterTank(tankInstance);
-
-        // Track this tank per client
-        if (clientTanks.ContainsKey(clientId))
-        {
-            clientTanks.Remove(clientId);
-        }
         clientTanks[clientId] = tankInstance;
 
-        Debug.Log($"Spawned tank for client {clientId} at spawn {spawnIndex}");
+        Debug.Log($"Spawned tank {tankIndex} for client {clientId} at spawn {spawnIndex}");
     }
 
     public void RegisterTank(GameObject tank)
@@ -108,9 +118,6 @@ public class GameManager : NetworkBehaviour
             return;
         }
 
-        Debug.Log($"[GameManager] RegisterTank → Tank={tank.name}, OwnerClientId={tank.GetComponent<NetworkObject>()?.OwnerClientId}");
-
-        // Safe pattern → use OnTankDeath method instead of inline lambda
         health.OnDeath += OnTankDeath;
 
         Debug.Log($"[GameManager] Registered OnDeath for tank {tank.name}, OwnerClientId: {tank.GetComponent<NetworkObject>()?.OwnerClientId}");
@@ -120,18 +127,19 @@ public class GameManager : NetworkBehaviour
     {
         Debug.Log($"[GameManager] OnDeath triggered for tank {h.gameObject.name}, OwnerClientId: {h.OwnerClientId} → calling RespawnTank");
 
-        // Start RespawnTankCoroutine safely
-        respawnManager.StartCoroutine(respawnManager.RespawnTankCoroutine(h.gameObject, h.OwnerClientId));
+        if (respawnManager != null)
+        {
+            respawnManager.StartCoroutine(respawnManager.RespawnTankCoroutine(h.gameObject, h.OwnerClientId));
+        }
     }
 
-    // Cleanly despawn tank for a given client
     public void DespawnTankForClient(ulong clientId)
     {
         if (clientTanks.TryGetValue(clientId, out GameObject tank))
         {
-            if (tank != null && tank.GetComponent<NetworkObject>() != null && tank.GetComponent<NetworkObject>().IsSpawned)
+            if (tank != null && tank.GetComponent<NetworkObject>()?.IsSpawned == true)
             {
-                tank.GetComponent<NetworkObject>().Despawn(true);  // true = destroy GameObject
+                tank.GetComponent<NetworkObject>().Despawn(true);
                 Debug.Log($"[GameManager] Despawned tank for client {clientId}");
             }
 
