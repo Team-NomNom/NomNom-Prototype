@@ -295,7 +295,7 @@ MonoBehaviour:
   invincibilityDuration: 2.25
   visualsRenderer: {fileID: 5852039602440921745}
   invincibleColor: {r: 1, g: 0.96862745, b: 0.4745098, a: 1}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
   lowHealthPulseColor: {r: 1, g: 0.73365813, b: 0.50377357, a: 1}
 --- !u!114 &-3383430330227846038
 MonoBehaviour:
