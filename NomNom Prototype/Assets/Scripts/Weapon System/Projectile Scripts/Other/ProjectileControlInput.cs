@@ -8,12 +8,16 @@ public class ProjectileControlInput : MonoBehaviour
     public class WeaponInputMapping
     {
         public int weaponSlotIndex;
-        public KeyCode fireKey = KeyCode.None;
-        public string fireAxis = "";
+
+        [Tooltip("Keyboard keys that can fire this weapon.")]
+        public List<KeyCode> fireKeys = new List<KeyCode>();
+
+        [Tooltip("Input axis/button names (e.g. 'Fire1', 'JoystickButton0')")]
+        public List<string> fireAxes = new List<string>();
     }
 
     [Header("Weapon Input Mappings")]
-    [Tooltip("Define which key/axis fires which weapon slot.")]
+    [Tooltip("Define which keys/axes fire which weapon slots.")]
     [SerializeField] private List<WeaponInputMapping> weaponInputs = new List<WeaponInputMapping>();
 
     [Header("Turret Rotation")]
@@ -52,11 +56,28 @@ public class ProjectileControlInput : MonoBehaviour
 
             bool firePressed = false;
 
-            if (mapping.fireKey != KeyCode.None && Input.GetKeyDown(mapping.fireKey))
-                firePressed = true;
+            // Check all keyboard keys
+            foreach (var key in mapping.fireKeys)
+            {
+                if (Input.GetKeyDown(key))
+                {
+                    firePressed = true;
+                    break;
+                }
+            }
 
-            if (!string.IsNullOrEmpty(mapping.fireAxis) && Input.GetButtonDown(mapping.fireAxis))
-                firePressed = true;
+            // Check all input axes/buttons
+            if (!firePressed)
+            {
+                foreach (var axis in mapping.fireAxes)
+                {
+                    if (Input.GetButtonDown(axis))
+                    {
+                        firePressed = true;
+                        break;
+                    }
+                }
+            }
 
             if (firePressed)
             {

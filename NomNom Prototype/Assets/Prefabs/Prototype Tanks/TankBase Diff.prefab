@@ -634,11 +634,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponInputs:
   - weaponSlotIndex: 0
-    fireKey: 99
-    fireAxis: 
+    fireKeys: 4b01000043010000
+    fireAxes: []
   - weaponSlotIndex: 1
-    fireKey: 116
-    fireAxis: 
+    fireKeys: 440100004c010000
+    fireAxes: []
   movesIndependently: 0
   turretTransform: {fileID: 7003691086340539106}
   turretRotateSpeed: 100
