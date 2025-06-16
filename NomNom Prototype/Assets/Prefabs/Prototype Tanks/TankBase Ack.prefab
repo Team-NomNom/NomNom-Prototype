@@ -122,11 +122,11 @@ GameObject:
   - component: {fileID: 9108040668127699187}
   - component: {fileID: 2254507095874015559}
   - component: {fileID: 8675282535651911952}
-  - component: {fileID: 2241244043503841731}
+  - component: {fileID: -3383430330227846038}
   - component: {fileID: 6901622038723628579}
   - component: {fileID: 5649833941178159649}
-  - component: {fileID: -3383430330227846038}
   - component: {fileID: -1438642452231642460}
+  - component: {fileID: 2241244043503841731}
   m_Layer: 0
   m_Name: TankBase Ack
   m_TagString: Player
@@ -230,6 +230,84 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &-3383430330227846038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3118093964844142666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c17e865faf5ec743aae55b0cf18c24b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  weaponSlots:
+  - name: Homing
+    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
+    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+    ammoSettings:
+      maxAmmo: 9
+      cooldownBetweenShots: 0.5
+      reloadTimePerShot: 2
+  muzzleTransform: {fileID: 917730380386928514}
+--- !u!114 &6901622038723628579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3118093964844142666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f317def2452a0545a2269c8c542cc28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerUIPrefab: {fileID: 6409738201929118690, guid: 75791abdb6eb14943bd77d662ddd956c, type: 3}
+--- !u!114 &5649833941178159649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3118093964844142666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cbe0d82eef5cee4eb4e93450bcabad5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxHealth: 100
+  healthText: {fileID: 0}
+  visualsRoot: {fileID: 978671190198308538}
+  invincibilityDuration: 2.25
+  visualsRenderer: {fileID: 5852039602440921745}
+  invincibleColor: {r: 1, g: 0.96862745, b: 0.4745098, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
+  lowHealthPulseColor: {r: 1, g: 0.73365813, b: 0.50377357, a: 1}
+--- !u!114 &-1438642452231642460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3118093964844142666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2732ddd4ff59932499ecdaee79648092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponInputs:
+  - weaponSlotIndex: 0
+    fireKey: 116
+    fireAxis: 
+  movesIndependently: 0
+  turretTransform: {fileID: 0}
+  turretRotateSpeed: 100
+  turretHorizontalAxis: Mouse X
+  turretVerticalAxis: Mouse Y
 --- !u!114 &2241244043503841731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,84 +354,6 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &6901622038723628579
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3118093964844142666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f317def2452a0545a2269c8c542cc28, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  playerUIPrefab: {fileID: 6409738201929118690, guid: 75791abdb6eb14943bd77d662ddd956c, type: 3}
---- !u!114 &5649833941178159649
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3118093964844142666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8cbe0d82eef5cee4eb4e93450bcabad5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 100
-  healthText: {fileID: 0}
-  visualsRoot: {fileID: 978671190198308538}
-  invincibilityDuration: 2.25
-  visualsRenderer: {fileID: 5852039602440921745}
-  invincibleColor: {r: 1, g: 0.96862745, b: 0.4745098, a: 1}
-  normalColor: {r: 0, g: 0, b: 0, a: 1}
-  lowHealthPulseColor: {r: 1, g: 0.73365813, b: 0.50377357, a: 1}
---- !u!114 &-3383430330227846038
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3118093964844142666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c17e865faf5ec743aae55b0cf18c24b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  weaponSlots:
-  - name: Homing
-    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
-    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
-    ammoSettings:
-      maxAmmo: 9
-      cooldownBetweenShots: 0.5
-      reloadTimePerShot: 2
-  muzzleTransform: {fileID: 917730380386928514}
---- !u!114 &-1438642452231642460
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3118093964844142666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2732ddd4ff59932499ecdaee79648092, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  weaponInputs:
-  - weaponSlotIndex: 0
-    fireKey: 116
-    fireAxis: 
-  movesIndependently: 0
-  turretTransform: {fileID: 0}
-  turretRotateSpeed: 100
-  turretHorizontalAxis: Mouse X
-  turretVerticalAxis: Mouse Y
 --- !u!1 &6172739144347750210
 GameObject:
   m_ObjectHideFlags: 0
