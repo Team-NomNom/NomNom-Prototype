@@ -577,13 +577,6 @@ MonoBehaviour:
       maxAmmo: 1
       cooldownBetweenShots: 0
       reloadTimePerShot: 4
-  - name: Homing
-    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
-    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
-    ammoSettings:
-      maxAmmo: 5
-      cooldownBetweenShots: 1
-      reloadTimePerShot: 1
   - name: Arc Grenade
     projectilePrefab: {fileID: 1343818377063820803, guid: 934a467abe6a0f34a9a3061bc2591349, type: 3}
     config: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
@@ -644,9 +637,6 @@ MonoBehaviour:
     fireKey: 99
     fireAxis: 
   - weaponSlotIndex: 1
-    fireKey: 120
-    fireAxis: 
-  - weaponSlotIndex: 2
     fireKey: 116
     fireAxis: 
   movesIndependently: 0
