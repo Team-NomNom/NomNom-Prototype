@@ -26,7 +26,7 @@ public class TankSelectionUI : MonoBehaviour
         }
 
         // Optionally, auto-select default tank (index 0)
-        // SelectTank(0);
+        SelectTank(0);
     }
 
     private void SelectTank(int index)
