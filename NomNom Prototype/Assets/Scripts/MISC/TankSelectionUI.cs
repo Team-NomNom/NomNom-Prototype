@@ -4,7 +4,14 @@ using System.Collections.Generic;
 
 public class TankSelectionUI : MonoBehaviour
 {
-    [SerializeField] private List<Button> tankButtons;
+    [System.Serializable]
+    public class TankButtonEntry
+    {
+        public Button button;
+        public Image backgroundImage; // Used for custom color highlighting
+    }
+
+    [SerializeField] private List<TankButtonEntry> tankButtons;
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color normalColor = Color.white;
 
@@ -15,8 +22,11 @@ public class TankSelectionUI : MonoBehaviour
         for (int i = 0; i < tankButtons.Count; i++)
         {
             int index = i; // Capture local for closure
-            tankButtons[i].onClick.AddListener(() => SelectTank(index));
+            tankButtons[i].button.onClick.AddListener(() => SelectTank(index));
         }
+
+        // Optionally, auto-select default tank (index 0)
+        // SelectTank(0);
     }
 
     private void SelectTank(int index)
@@ -25,9 +35,10 @@ public class TankSelectionUI : MonoBehaviour
 
         for (int i = 0; i < tankButtons.Count; i++)
         {
-            var colors = tankButtons[i].colors;
-            colors.normalColor = (i == index) ? selectedColor : normalColor;
-            tankButtons[i].colors = colors;
+            if (tankButtons[i].backgroundImage != null)
+            {
+                tankButtons[i].backgroundImage.color = (i == index) ? selectedColor : normalColor;
+            }
         }
 
         var networkController = FindObjectOfType<NetworkTankController>();
