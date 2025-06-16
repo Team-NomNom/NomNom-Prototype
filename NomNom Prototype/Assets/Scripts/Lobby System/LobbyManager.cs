@@ -343,7 +343,7 @@ public class LobbyManager : MonoBehaviour
 
             UpdateUIState(false);
 
-            // 🚀 Ultimate fix → destroy NetworkManager → force clean state next time
+            // Ultimate fix → destroy NetworkManager → force clean state next time
             Destroy(NetworkManager.Singleton.gameObject);
         }
         catch (Exception e)
@@ -614,7 +614,7 @@ public class LobbyManager : MonoBehaviour
 
         if (NetworkManager.Singleton.IsServer)
         {
-            // 🚀 Host should spawn tank for newly connected clients (but not again for host)
+            // Host should spawn tank for newly connected clients (but not again for host)
             if (clientId != NetworkManager.Singleton.LocalClientId)
             {
                 Debug.Log($"[LobbyManager] Spawning tank for connected client {clientId}");
