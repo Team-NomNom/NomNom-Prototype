@@ -8,18 +8,26 @@ public class TeleportBeaconProjectile : ProjectileBase
     private float beaconLifetime;
     private bool isAnchored = false;
 
-    public void Configure(TeleportBeaconController controller, float lifetime)
-    {
-        ownerController = controller;
-        beaconLifetime = lifetime;
-
-        Debug.Log($"[TeleportBeacon] Configured with lifetime: {beaconLifetime}");
-    }
-
     public override void Initialize(ulong shooterId, GameObject shooterRootObj, IProjectileFactoryUser factoryUser = null, int weaponIndex = -1)
     {
         ownerId.Value = shooterId;
         shooterRoot = shooterRootObj.transform;
+    }
+
+    public override void ApplyConfig(ProjectileConfig cfg)
+    {
+        base.ApplyConfig(cfg); // still clone the config object if needed
+
+        if (cfg != null)
+        {
+            beaconLifetime = cfg.lifetime;
+            Debug.Log($"[TeleportBeacon] Lifetime set from config: {beaconLifetime}");
+        }
+        else
+        {
+            beaconLifetime = 5f; // fallback default
+            Debug.LogWarning("[TeleportBeacon] Config was null. Using default lifetime.");
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -93,4 +101,10 @@ public class TeleportBeaconProjectile : ProjectileBase
     protected override void OnCollisionEnter(Collision collision) { }
 
     protected override bool ShouldSkipTarget(Collider hit) => false;
+
+    // Optional setter for ownerController (if still needed)
+    public void SetController(TeleportBeaconController controller)
+    {
+        ownerController = controller;
+    }
 }

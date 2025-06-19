@@ -369,8 +369,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   beaconPrefab: {fileID: 5360946703021234778, guid: 2e61fb247955c624bb0938e87a39e94e, type: 3}
+  beaconConfig: {fileID: 11400000, guid: ed2e43dd52076244bb4e97013ab7e396, type: 2}
   beaconSpawnPoint: {fileID: 917730380386928514}
-  beaconLifetime: 10
   cooldownDuration: 8
 --- !u!1 &6172739144347750210
 GameObject:
