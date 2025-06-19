@@ -17,11 +17,11 @@ public class TeleportBeaconController : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             TrySpawnBeacon();
         }
-        else if (Input.GetKeyDown(KeyCode.E))
+        else if (Input.GetKeyDown(KeyCode.T))
         {
             TryTeleportToBeacon();
         }
@@ -99,7 +99,7 @@ public class TeleportBeaconController : NetworkBehaviour
         Debug.Log("[TeleportBeaconController] Cooldown ended.");
     }
 
-    // 🔵 Visualize the spawn point in the Scene view
+    // Visualize the spawn point in the Scene view
     private void OnDrawGizmosSelected()
     {
         if (beaconSpawnPoint != null)
