@@ -252,6 +252,13 @@ MonoBehaviour:
       maxAmmo: 9
       cooldownBetweenShots: 0.5
       reloadTimePerShot: 2
+  - name: Homing
+    projectilePrefab: {fileID: 4065035793987674022, guid: 325bc5486b2bfd042acfbb7550815024, type: 3}
+    config: {fileID: 11400000, guid: fdaef374b93c2ce40b9a31e3cde1cd53, type: 2}
+    ammoSettings:
+      maxAmmo: 9
+      cooldownBetweenShots: 0.5
+      reloadTimePerShot: 2
   muzzleTransform: {fileID: 917730380386928514}
 --- !u!114 &6901622038723628579
 MonoBehaviour:
@@ -303,6 +310,9 @@ MonoBehaviour:
   weaponInputs:
   - weaponSlotIndex: 0
     fireKeys: 430100004c01000031000000
+    fireAxes: []
+  - weaponSlotIndex: 1
+    fireKeys: 440100004d01000032000000
     fireAxes: []
   movesIndependently: 0
   turretTransform: {fileID: 0}
