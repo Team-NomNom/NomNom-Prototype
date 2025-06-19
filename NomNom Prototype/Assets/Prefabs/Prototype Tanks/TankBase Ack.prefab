@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 5649833941178159649}
   - component: {fileID: -1438642452231642460}
   - component: {fileID: 2241244043503841731}
+  - component: {fileID: 7046664145516471784}
   m_Layer: 0
   m_Name: TankBase Ack
   m_TagString: Player
@@ -354,6 +355,23 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &7046664145516471784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3118093964844142666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11ec1b5ddae403c499cc508dffc0bf77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  beaconPrefab: {fileID: 5360946703021234778, guid: 2e61fb247955c624bb0938e87a39e94e, type: 3}
+  beaconSpawnPoint: {fileID: 917730380386928514}
+  beaconLifetime: 10
+  cooldownDuration: 8
 --- !u!1 &6172739144347750210
 GameObject:
   m_ObjectHideFlags: 0

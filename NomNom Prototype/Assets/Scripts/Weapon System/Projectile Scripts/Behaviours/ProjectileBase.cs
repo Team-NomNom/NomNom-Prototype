@@ -110,8 +110,14 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
         }
     }
 
-    protected bool ShouldSkipTarget(Collider hit)
+    protected virtual bool ShouldSkipTarget(Collider hit)
     {
+/*        if (shooterRoot == null || config == null)
+        {
+            Debug.LogWarning("[ProjectileBase] shooterRoot or config is null — cannot evaluate skip logic.");
+            return false; // allow hits if unsure
+        }*/
+
         var isShooter = shooterRoot != null && hit.transform.root == shooterRoot.transform;
         Debug.Log($"[Debug] Hit={hit.name}, Root={hit.transform.root.name}, Shooter={shooterRoot?.name}, IsShooter={isShooter}, AffectsOwner={config?.affectsOwner}");
 
