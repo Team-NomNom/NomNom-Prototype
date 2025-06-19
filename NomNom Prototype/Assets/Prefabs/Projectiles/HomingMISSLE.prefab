@@ -225,11 +225,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
-  useArcTrajectory: 0
-  launchAngle: 45
   ownerId:
     m_InternalValue: 0
+  detectionRadius: 15
   turnSpeed: 300
-  targetNetworkObjectId:
-    m_InternalValue: 0
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  visualTransform: {fileID: 0}
