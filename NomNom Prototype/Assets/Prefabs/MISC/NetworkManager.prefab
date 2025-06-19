@@ -11,8 +11,6 @@ GameObject:
   - component: {fileID: 7787752694770069141}
   - component: {fileID: 3914355929568808874}
   - component: {fileID: 7185659304923985205}
-  - component: {fileID: 2893225028492005284}
-  - component: {fileID: 4120234540079745462}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -106,29 +104,3 @@ MonoBehaviour:
     PacketDelayMS: 0
     PacketJitterMS: 0
     PacketDropRate: 0
---- !u!114 &2893225028492005284
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582233499440922244}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d9f11517aa6b1444b58517ae18b8ee3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4120234540079745462
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582233499440922244}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a0cbf6f78ac51e4285d1298c565b3d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ipInputField: {fileID: 0}
-  connectButton: {fileID: 0}

@@ -127,7 +127,7 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
     {
         if (!IsServer)
         {
-            Debug.LogWarning("[ProjectileBase] NotifyFactoryProjectileReturned called on client — ignoring");
+            Debug.LogWarning("[ProjectileBase] NotifyFactoryProjectileReturned called on client - ignoring");
             return;
         }
 
