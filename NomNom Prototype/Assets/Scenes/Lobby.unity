@@ -7618,11 +7618,11 @@ RectTransform:
   - {fileID: 1654854096}
   m_Father: {fileID: 1622893037}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -177.59}
-  m_SizeDelta: {x: 200, y: 40}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: -170}
+  m_SizeDelta: {x: 712, y: 400}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1925172256
 MonoBehaviour:
   m_ObjectHideFlags: 0
