@@ -145,5 +145,9 @@ public class TankController : MonoBehaviour
         }
     }
 
+    public void ClearInput()
+    {
+        latestInput = new DriveInput { forward = 0f, strafe = 0f, turn = 0f };
+    }
 
 }

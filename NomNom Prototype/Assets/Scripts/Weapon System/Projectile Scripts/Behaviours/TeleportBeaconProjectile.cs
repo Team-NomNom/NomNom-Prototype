@@ -82,10 +82,35 @@ public class TeleportBeaconProjectile : ProjectileBase
             return;
         }
 
-        Debug.Log($"[TeleportBeacon] Shooter was at: {shooterRoot.position}");
-        Debug.Log($"[TeleportBeacon] Beacon position: {transform.position}");
+        Vector3 teleportTarget = transform.position + Vector3.up * 1.5f;
+        Rigidbody rb = shooterRoot.GetComponent<Rigidbody>();
 
-        shooterRoot.position = transform.position + Vector3.up * 1.5f;
+        if (rb != null)
+        {
+            bool wasKinematic = rb.isKinematic;
+
+            // Temporarily disable kinematic to reset motion
+            if (wasKinematic)
+                rb.isKinematic = false;
+
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.MovePosition(teleportTarget);
+
+            // Optionally restore kinematic state if needed
+            if (wasKinematic)
+                rb.isKinematic = true;
+        }
+        else
+        {
+            shooterRoot.position = teleportTarget;
+        }
+
+        var tank = shooterRoot.GetComponent<TankController>();
+        if (tank != null)
+        {
+            tank.ClearInput(); // wipe stored drive input buffer
+        }
 
         if (ownerController != null)
         {
@@ -94,6 +119,7 @@ public class TeleportBeaconProjectile : ProjectileBase
 
         GetComponent<NetworkObject>().Despawn();
     }
+
 
     // Override defaults to disable damage/impact logic
     protected override void OnHit(Collider other) { }
