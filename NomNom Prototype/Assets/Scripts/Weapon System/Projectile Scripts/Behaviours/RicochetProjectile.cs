@@ -1,10 +1,14 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
-public class SimpleProjectile : ProjectileBase
+public class RicochetProjectile : ProjectileBase
 {
     [SerializeField] private PhysicsMaterial bounceMaterial;
     [SerializeField] private float damageMultiplier = 1.0f;
+    [SerializeField] private float rotationX = 0f;
+    [SerializeField] private float rotationZ = 0f;
+
+    private bool lockRotation = true;
     private float hitDamage;
     // Inherits all behavior from ProjectileBase
     // Add debug logging to confirm it uses updated base
@@ -28,6 +32,7 @@ public class SimpleProjectile : ProjectileBase
     protected virtual void OnCollisionEnter(Collision collision)
     {
         rb.linearVelocity = transform.forward * config.speed;
+        
         if (!IsServer) return;
 
         if (ShouldSkipTarget(collision.collider)) return;
@@ -39,5 +44,14 @@ public class SimpleProjectile : ProjectileBase
         }
 
         hitDamage *= damageMultiplier;
+    }
+
+    private void LateUpdate()
+    {
+        if (lockRotation)
+        {
+            float currentY = transform.eulerAngles.y;
+            transform.rotation = Quaternion.Euler(rotationX, currentY, rotationZ);
+        }
     }
 }
