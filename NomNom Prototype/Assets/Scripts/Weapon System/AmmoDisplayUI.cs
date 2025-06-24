@@ -12,9 +12,9 @@ public class AmmoDisplayUI : MonoBehaviour
     [SerializeField] private Transform weaponSlotsParentContainer; // Vertical Layout Group
 
     private ProjectileFactory projectileFactory;
+    private TeleportBeaconController teleportController;
 
-    // Internal tracking
-    private List<List<Image>> barImagesPerSlot = new List<List<Image>>();
+    private List<List<Image>> barImagesPerSlot = new();
 
     private void OnEnable()
     {
@@ -29,6 +29,12 @@ public class AmmoDisplayUI : MonoBehaviour
     private void HandleLocalPlayerFactoryAssigned()
     {
         SetProjectileFactory(GameManager.LocalPlayerFactory);
+
+        var factoryGO = GameManager.LocalPlayerFactory?.gameObject;
+        if (factoryGO != null)
+        {
+            teleportController = factoryGO.GetComponentInParent<TeleportBeaconController>();
+        }
     }
 
     public void SetProjectileFactory(ProjectileFactory factory)
@@ -39,97 +45,64 @@ public class AmmoDisplayUI : MonoBehaviour
 
     private void RebuildWeaponSlots()
     {
-        // Clear existing weapon slot containers
         foreach (Transform child in weaponSlotsParentContainer)
-        {
             Destroy(child.gameObject);
-        }
 
         barImagesPerSlot.Clear();
 
         if (projectileFactory == null) return;
 
-        // For each weapon slot
-        for (int weaponSlotIndex = 0; weaponSlotIndex < projectileFactory.weaponSlots.Count; weaponSlotIndex++)
+        for (int i = 0; i < projectileFactory.weaponSlots.Count; i++)
         {
-            var weaponSlot = projectileFactory.weaponSlots[weaponSlotIndex];
+            var slot = projectileFactory.weaponSlots[i];
 
-            // Instantiate WeaponSlotContainer
-            GameObject slotContainerGO = Instantiate(weaponSlotContainerPrefab, weaponSlotsParentContainer);
-            slotContainerGO.name = $"WeaponSlot{weaponSlotIndex}_Container";
+            GameObject slotGO = Instantiate(weaponSlotContainerPrefab, weaponSlotsParentContainer);
+            slotGO.name = $"WeaponSlot{i}_Container";
 
-            // List to track bar images for this slot
-            List<Image> barImages = new List<Image>();
+            List<Image> bars = new();
+            int barCount = slot.IsTeleportBeacon ? 1 : slot.ammoSettings.maxAmmo;
 
-            int maxAmmo = weaponSlot.ammoSettings.maxAmmo;
-
-            // Instantiate BarImages
-            for (int i = 0; i < maxAmmo; i++)
+            for (int j = 0; j < barCount; j++)
             {
-                GameObject barObj = Instantiate(barImagePrefab, slotContainerGO.transform);
-                Image barImage = barObj.GetComponent<Image>();
+                GameObject barObj = Instantiate(barImagePrefab, slotGO.transform);
+                Image barImg = barObj.GetComponent<Image>();
+                if (barImg == null) continue;
 
-                if (barImage == null)
-                {
-                    Debug.LogError("[AmmoDisplayUI] BarImagePrefab is missing an Image component!");
-                    continue;
-                }
-
-                barImage.fillAmount = 1.0f; // full by default
-                barImages.Add(barImage);
+                barImg.fillAmount = 1.0f;
+                bars.Add(barImg);
             }
 
-            barImagesPerSlot.Add(barImages);
+            barImagesPerSlot.Add(bars);
         }
     }
 
     private void Update()
     {
-        if (projectileFactory == null)
-        {
-            Debug.Log("[AmmoDisplayUI] Update → projectileFactory is null → skipping.");
-            return;
-        }
+        if (projectileFactory == null) return;
 
-        // Debug.Log("[AmmoDisplayUI] Update running.");
-
-        for (int slotIndex = 0; slotIndex < projectileFactory.weaponSlots.Count; slotIndex++)
+        for (int i = 0; i < projectileFactory.weaponSlots.Count; i++)
         {
-            if (slotIndex >= barImagesPerSlot.Count)
+            if (i >= barImagesPerSlot.Count) continue;
+
+            var slot = projectileFactory.weaponSlots[i];
+            var bars = barImagesPerSlot[i];
+
+            if (slot.IsTeleportBeacon && teleportController != null)
             {
-                Debug.LogWarning($"[AmmoDisplayUI] SlotIndex {slotIndex} has no corresponding BarImages list → skipping.");
-                continue;
+                float fill = 1f - Mathf.Clamp01(teleportController.CooldownRemaining / teleportController.CooldownDuration);
+                bars[0].fillAmount = fill;
             }
-
-            var ammoInfo = projectileFactory.GetAmmoInfo(slotIndex);
-
-            // Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → currentAmmo={ammoInfo.currentAmmo}, maxAmmo={ammoInfo.maxAmmo}, reloadProgress={ammoInfo.reloadProgress}");
-
-            var barImages = barImagesPerSlot[slotIndex];
-
-            for (int i = 0; i < barImages.Count; i++)
+            else
             {
-                float targetFill = 0f;
-
-                if (i < ammoInfo.currentAmmo)
+                var info = projectileFactory.GetAmmoInfo(i);
+                for (int j = 0; j < bars.Count; j++)
                 {
-                    targetFill = 1.0f; // Full ammo bar
+                    float targetFill = 0f;
+                    if (j < info.currentAmmo) targetFill = 1f;
+                    else if (j == info.currentAmmo) targetFill = info.reloadProgress;
+                    bars[j].fillAmount = targetFill;
                 }
-                else if (i == ammoInfo.currentAmmo)
-                {
-                    targetFill = ammoInfo.reloadProgress; // Currently reloading bar
-                }
-                else
-                {
-                    targetFill = 0.0f; // Empty bar
-                }
-
-                // Log per-bar fill (optional → can comment out if spammy)
-                // Debug.Log($"[AmmoDisplayUI] Slot {slotIndex} → Bar {i} → targetFill={targetFill}");
-
-                barImages[i].fillAmount = targetFill;
             }
         }
     }
-
 }

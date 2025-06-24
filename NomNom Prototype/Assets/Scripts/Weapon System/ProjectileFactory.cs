@@ -33,6 +33,8 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         public GameObject projectilePrefab;
         public ProjectileConfig config;
         public WeaponAmmoSettings ammoSettings = new WeaponAmmoSettings();
+        public bool IsTeleportBeacon = false; 
+
 
         [System.NonSerialized] public AmmoState ammoState = new AmmoState();
     }
@@ -44,7 +46,6 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         public float reloadProgress;
     }
 
-    // Synced ammo + reload progress
     private NetworkList<int> syncedAmmo = new NetworkList<int>();
     private NetworkList<float> syncedReloadProgress = new NetworkList<float>();
 
@@ -62,7 +63,7 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             foreach (var slot in weaponSlots)
             {
                 syncedAmmo.Add(slot.ammoSettings.maxAmmo);
-                syncedReloadProgress.Add(1.0f); // fully loaded
+                syncedReloadProgress.Add(1.0f);
             }
         }
     }
@@ -133,7 +134,6 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
             if (index < syncedAmmo.Count) syncedAmmo[index] = ammoState.currentAmmo;
         }
 
-        // Always update reload progress
         if (index < syncedReloadProgress.Count)
         {
             syncedReloadProgress[index] = Mathf.Clamp01(ammoState.reloadTimer / settings.reloadTimePerShot);
@@ -150,7 +150,7 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
 
         if (ammoState.currentAmmo <= 0)
         {
-            Debug.LogWarning($"[ProjectileFactory] Cannot spawn projectile — no ammo on server.");
+            Debug.LogWarning("[ProjectileFactory] Cannot spawn projectile — no ammo on server.");
             return;
         }
 
@@ -248,7 +248,7 @@ public class ProjectileFactory : NetworkBehaviour, IProjectileFactoryUser
         }
         else
         {
-            Debug.Log($"[ProjectileFactory] Ammo already full — no ammo added.");
+            Debug.Log("[ProjectileFactory] Ammo already full — no ammo added.");
         }
     }
 }

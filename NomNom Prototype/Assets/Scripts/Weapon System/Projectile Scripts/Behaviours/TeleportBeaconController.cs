@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 public class TeleportBeaconController : NetworkBehaviour
 {
@@ -11,6 +12,10 @@ public class TeleportBeaconController : NetworkBehaviour
 
     private TeleportBeaconProjectile activeBeacon;
     private bool isOnCooldown = false;
+    private float cooldownRemaining = 0f;
+
+    public float CooldownDuration => cooldownDuration;
+    public float CooldownRemaining => cooldownRemaining;
 
     private void Update()
     {
@@ -90,11 +95,20 @@ public class TeleportBeaconController : NetworkBehaviour
         StartCoroutine(CooldownRoutine());
     }
 
-    private System.Collections.IEnumerator CooldownRoutine()
+    private IEnumerator CooldownRoutine()
     {
         isOnCooldown = true;
-        yield return new WaitForSeconds(cooldownDuration);
+        cooldownRemaining = cooldownDuration;
+
+        while (cooldownRemaining > 0f)
+        {
+            cooldownRemaining -= Time.deltaTime;
+            yield return null;
+        }
+
         isOnCooldown = false;
+        cooldownRemaining = 0f;
+
         Debug.Log("[TeleportBeaconController] Cooldown complete.");
     }
 }

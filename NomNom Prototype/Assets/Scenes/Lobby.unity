@@ -5311,6 +5311,7 @@ MonoBehaviour:
   weaponSlotContainerPrefab: {fileID: 1710674256475920177, guid: 7204a88829d58de46bab151858702671, type: 3}
   barImagePrefab: {fileID: 6363152831987626528, guid: ded31ff87a81781449a78cc68024fa35, type: 3}
   weaponSlotsParentContainer: {fileID: 1608465061}
+  teleportCooldownBar: {fileID: 810849957015242316, guid: ded31ff87a81781449a78cc68024fa35, type: 3}
 --- !u!1 &1450281952
 GameObject:
   m_ObjectHideFlags: 0
