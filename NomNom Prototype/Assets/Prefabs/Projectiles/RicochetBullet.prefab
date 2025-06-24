@@ -228,4 +228,9 @@ MonoBehaviour:
   ownerId:
     m_InternalValue: 0
   bounceMaterial: {fileID: 13400000, guid: ed3c0a1fc3d7a234c99d2247d30ff119, type: 2}
-  speedMultiplier: 10
+  initialDamage: 10
+  damageFalloffPerBounce: 0.8
+  rotationX: 0
+  rotationZ: 0
+  lifetimeMode: 1
+  maxBounces: 3

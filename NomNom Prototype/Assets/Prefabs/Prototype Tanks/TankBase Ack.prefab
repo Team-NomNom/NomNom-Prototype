@@ -253,7 +253,7 @@ MonoBehaviour:
       cooldownBetweenShots: 0.5
       reloadTimePerShot: 2
     IsTeleportBeacon: 0
-  - name: Homing
+  - name: Ricochet
     projectilePrefab: {fileID: 4065035793987674022, guid: 325bc5486b2bfd042acfbb7550815024, type: 3}
     config: {fileID: 11400000, guid: fdaef374b93c2ce40b9a31e3cde1cd53, type: 2}
     ammoSettings:
