@@ -26,6 +26,10 @@ public class RicochetProjectile : ProjectileBase
     private bool lockRotation = true;
     private float currentDamage;
 
+    private float bounceCooldown = 0.05f; // Minimum time between valid bounces
+    private float lastBounceTime = -999f; // Initialized to long ago
+
+
     private void Start()
     {
         Debug.Log("[Ricochet] Initialized with base behavior");
@@ -53,12 +57,15 @@ public class RicochetProjectile : ProjectileBase
 
         if (!IsServer) return;
 
+        // Prevent multiple bounces in same frame or close succession
+        if (Time.time - lastBounceTime < bounceCooldown) return;
+        lastBounceTime = Time.time;
+
         if (ShouldSkipTarget(collision.collider)) return;
 
         ContactPoint contact = collision.GetContact(0);
         SpawnSparkEffectClientRpc(contact.point, contact.normal);
 
-        // If we hit a damageable target, apply damage and despawn
         if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
             dmg.TakeDamage(currentDamage);
@@ -66,7 +73,6 @@ public class RicochetProjectile : ProjectileBase
             return;
         }
 
-        // Otherwise, treat this as a valid ricochet bounce
         currentDamage *= damageFalloffPerBounce;
         currentBounces++;
 
@@ -77,6 +83,7 @@ public class RicochetProjectile : ProjectileBase
             GetComponent<NetworkObject>().Despawn();
         }
     }
+
 
 
     private void Update()

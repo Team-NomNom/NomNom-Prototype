@@ -577,6 +577,7 @@ MonoBehaviour:
       maxAmmo: 1
       cooldownBetweenShots: 0
       reloadTimePerShot: 4
+    IsTeleportBeacon: 0
   - name: Arc Grenade
     projectilePrefab: {fileID: 1343818377063820803, guid: 934a467abe6a0f34a9a3061bc2591349, type: 3}
     config: {fileID: 11400000, guid: 40e759af637433c448b259cba796b430, type: 2}
@@ -584,6 +585,7 @@ MonoBehaviour:
       maxAmmo: 4
       cooldownBetweenShots: 0.2
       reloadTimePerShot: 1
+    IsTeleportBeacon: 0
   muzzleTransform: {fileID: 7003691086340539106}
 --- !u!114 &6357561973925527749
 MonoBehaviour:
@@ -612,7 +614,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 100
+  maxHealth: 125
   healthText: {fileID: 0}
   visualsRoot: {fileID: 437274649785054083}
   invincibilityDuration: 2.25
