@@ -21,12 +21,12 @@ public class TeleportBeaconController : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (Input.GetKeyDown(KeyCode.Z) && !isOnCooldown && activeBeacon == null)
+        if ((Input.GetKeyDown(KeyCode.Z) || Input.GetKeyDown(KeyCode.JoystickButton8)) && !isOnCooldown && activeBeacon == null)
         {
             TrySpawnBeacon();
         }
 
-        if (Input.GetKeyDown(KeyCode.C) && activeBeacon != null)
+        if ((Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.JoystickButton9)) && activeBeacon != null)
         {
             TryTeleportToBeacon();
         }

@@ -322,7 +322,7 @@ MonoBehaviour:
     fireKeys: 430100004c01000031000000
     fireAxes: []
   - weaponSlotIndex: 1
-    fireKeys: 440100004d01000032000000
+    fireKeys: 440100004b01000032000000
     fireAxes: []
   movesIndependently: 0
   turretTransform: {fileID: 0}
