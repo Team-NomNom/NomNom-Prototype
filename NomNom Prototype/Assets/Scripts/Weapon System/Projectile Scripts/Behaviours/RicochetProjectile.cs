@@ -4,29 +4,27 @@ using UnityEngine;
 
 public class RicochetProjectile : ProjectileBase
 {
-    [Header("Physics")]
+    [Header("Bounce Settings")]
     [SerializeField] private PhysicsMaterial bounceMaterial;
-    [SerializeField] private float rotationX = 0f;
-    [SerializeField] private float rotationZ = 0f;
-    [SerializeField] private bool lockRotation = true;
-
-    [Header("Damage Settings")]
     [SerializeField] private float initialDamage = 10f;
     [SerializeField] private float damageFalloffPerBounce = 0.8f;
+    [SerializeField] private float rotationX = 0f;
+    [SerializeField] private float rotationZ = 0f;
 
     public enum LifetimeMode { MaxLifetime, MaxBounces, Either }
-    [Header("Lifetime Control")]
+
+    [Header("Lifetime Settings")]
     [SerializeField] private LifetimeMode lifetimeMode = LifetimeMode.MaxLifetime;
     [SerializeField] private float maxLifetime = 5f;
     [SerializeField] private int maxBounces = 3;
 
-    [Header("Bounce Cooldown")]
-    [SerializeField] private float bounceCooldownTime = 0.1f;
+    [Header("Visuals")]
+    [SerializeField] private GameObject sparkEffectPrefab;
 
-    private float lifetimeTimer = 0f;
     private int currentBounces = 0;
+    private float lifetimeTimer = 0f;
+    private bool lockRotation = true;
     private float currentDamage;
-    private float lastBounceTime = -1f;
 
     private void Start()
     {
@@ -47,7 +45,6 @@ public class RicochetProjectile : ProjectileBase
         currentDamage = config.damage > 0f ? config.damage : initialDamage;
         lifetimeTimer = 0f;
         currentBounces = 0;
-        lastBounceTime = -bounceCooldownTime;
     }
 
     protected override void OnCollisionEnter(Collision collision)
@@ -57,14 +54,8 @@ public class RicochetProjectile : ProjectileBase
         if (!IsServer) return;
         if (ShouldSkipTarget(collision.collider)) return;
 
-        float timeSinceLastBounce = Time.time - lastBounceTime;
-        if (timeSinceLastBounce < bounceCooldownTime)
-        {
-            Debug.Log($"[Ricochet] Ignored bounce (cooldown: {timeSinceLastBounce:F3}s)");
-            return;
-        }
-
-        lastBounceTime = Time.time;
+        ContactPoint contact = collision.GetContact(0);
+        SpawnSparkEffectClientRpc(contact.point, contact.normal);
 
         if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
@@ -76,11 +67,8 @@ public class RicochetProjectile : ProjectileBase
         currentDamage *= damageFalloffPerBounce;
         currentBounces++;
 
-        Debug.Log($"[Ricochet] Bounce #{currentBounces} off {collision.collider.name} → Damage now {currentDamage:F2}");
-
         if (ShouldDespawn())
         {
-            Debug.Log("[Ricochet] Despawning due to bounce/lifetime condition.");
             GetComponent<NetworkObject>().Despawn();
         }
     }
@@ -93,7 +81,6 @@ public class RicochetProjectile : ProjectileBase
 
         if (ShouldDespawn())
         {
-            Debug.Log("[Ricochet] Despawning due to lifetime condition.");
             GetComponent<NetworkObject>().Despawn();
         }
     }
@@ -111,6 +98,16 @@ public class RicochetProjectile : ProjectileBase
             default:
                 return false;
         }
+    }
+
+    [ClientRpc]
+    private void SpawnSparkEffectClientRpc(Vector3 position, Vector3 normal)
+    {
+        if (sparkEffectPrefab == null) return;
+
+        Quaternion rot = Quaternion.LookRotation(normal);
+        GameObject spark = Instantiate(sparkEffectPrefab, position, rot);
+        Destroy(spark, 1f);
     }
 
     private void LateUpdate()
