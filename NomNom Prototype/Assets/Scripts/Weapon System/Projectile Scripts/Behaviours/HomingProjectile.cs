@@ -81,11 +81,11 @@ public class HomingProjectile : ProjectileBase
         if (bestTarget != null)
         {
             currentTarget = bestTarget;
-            Debug.Log($"[HomingMissile] Acquired target: {currentTarget.name}");
+            // Debug.Log($"[HomingMissile] Acquired target: {currentTarget.name}");
         }
         else
         {
-            Debug.Log("[HomingMissile] No valid enemy targets found.");
+            // Debug.Log("[HomingMissile] No valid enemy targets found.");
         }
     }
 

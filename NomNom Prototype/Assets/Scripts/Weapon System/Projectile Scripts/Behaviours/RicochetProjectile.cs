@@ -52,11 +52,13 @@ public class RicochetProjectile : ProjectileBase
         rb.linearVelocity = transform.forward * config.speed;
 
         if (!IsServer) return;
+
         if (ShouldSkipTarget(collision.collider)) return;
 
         ContactPoint contact = collision.GetContact(0);
         SpawnSparkEffectClientRpc(contact.point, contact.normal);
 
+        // If we hit a damageable target, apply damage and despawn
         if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
             dmg.TakeDamage(currentDamage);
@@ -64,14 +66,18 @@ public class RicochetProjectile : ProjectileBase
             return;
         }
 
+        // Otherwise, treat this as a valid ricochet bounce
         currentDamage *= damageFalloffPerBounce;
         currentBounces++;
+
+        Debug.Log($"[Ricochet] Bounce #{currentBounces} | Damage now: {currentDamage}");
 
         if (ShouldDespawn())
         {
             GetComponent<NetworkObject>().Despawn();
         }
     }
+
 
     private void Update()
     {
