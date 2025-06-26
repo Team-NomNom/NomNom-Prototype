@@ -232,7 +232,8 @@ MonoBehaviour:
   damageFalloffPerBounce: 0.8
   rotationX: 0
   rotationZ: 0
-  lifetimeMode: 1
+  lifetimeMode: 2
   maxLifetime: 5
   maxBounces: 3
   sparkEffectPrefab: {fileID: 5071059780552649386, guid: fe6a2cbf7e6f7cd41a90dab926c87118, type: 3}
+  despawnEffectPrefab: {fileID: 5071059780552649386, guid: ef7e4b241c0409641b9d305092d858e4, type: 3}

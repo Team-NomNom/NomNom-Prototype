@@ -20,15 +20,13 @@ public class RicochetProjectile : ProjectileBase
 
     [Header("Visuals")]
     [SerializeField] private GameObject sparkEffectPrefab;
+    [SerializeField] private GameObject despawnEffectPrefab; // 🔥 NEW
 
     private int currentBounces = 0;
     private float lifetimeTimer = 0f;
     private bool lockRotation = true;
     private float currentDamage;
-
-    private float bounceCooldown = 0.05f; // Minimum time between valid bounces
-    private float lastBounceTime = -999f; // Initialized to long ago
-
+    private float lastBounceTime = -10f;
 
     private void Start()
     {
@@ -40,9 +38,7 @@ public class RicochetProjectile : ProjectileBase
         if (bounceMaterial != null)
         {
             foreach (var col in GetComponentsInChildren<Collider>())
-            {
                 col.material = bounceMaterial;
-            }
         }
 
         rb.linearVelocity = transform.forward * config.speed;
@@ -56,12 +52,11 @@ public class RicochetProjectile : ProjectileBase
         rb.linearVelocity = transform.forward * config.speed;
 
         if (!IsServer) return;
-
-        // Prevent multiple bounces in same frame or close succession
-        if (Time.time - lastBounceTime < bounceCooldown) return;
-        lastBounceTime = Time.time;
-
         if (ShouldSkipTarget(collision.collider)) return;
+
+        // Prevent rapid multiple bounces
+        if (Time.time - lastBounceTime < 0.05f) return;
+        lastBounceTime = Time.time;
 
         ContactPoint contact = collision.GetContact(0);
         SpawnSparkEffectClientRpc(contact.point, contact.normal);
@@ -69,7 +64,7 @@ public class RicochetProjectile : ProjectileBase
         if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
             dmg.TakeDamage(currentDamage);
-            GetComponent<NetworkObject>().Despawn();
+            TriggerDespawn();
             return;
         }
 
@@ -79,12 +74,8 @@ public class RicochetProjectile : ProjectileBase
         Debug.Log($"[Ricochet] Bounce #{currentBounces} | Damage now: {currentDamage}");
 
         if (ShouldDespawn())
-        {
-            GetComponent<NetworkObject>().Despawn();
-        }
+            TriggerDespawn();
     }
-
-
 
     private void Update()
     {
@@ -93,9 +84,7 @@ public class RicochetProjectile : ProjectileBase
         lifetimeTimer += Time.deltaTime;
 
         if (ShouldDespawn())
-        {
-            GetComponent<NetworkObject>().Despawn();
-        }
+            TriggerDespawn();
     }
 
     private bool ShouldDespawn()
@@ -113,14 +102,29 @@ public class RicochetProjectile : ProjectileBase
         }
     }
 
+    private void TriggerDespawn()
+    {
+        if (!IsServer) return;
+
+        SpawnDespawnEffectClientRpc(transform.position);
+        GetComponent<NetworkObject>().Despawn();
+    }
+
     [ClientRpc]
     private void SpawnSparkEffectClientRpc(Vector3 position, Vector3 normal)
     {
         if (sparkEffectPrefab == null) return;
-
         Quaternion rot = Quaternion.LookRotation(normal);
         GameObject spark = Instantiate(sparkEffectPrefab, position, rot);
         Destroy(spark, 1f);
+    }
+
+    [ClientRpc]
+    private void SpawnDespawnEffectClientRpc(Vector3 position)
+    {
+        if (despawnEffectPrefab == null) return;
+        GameObject fx = Instantiate(despawnEffectPrefab, position, Quaternion.identity);
+        Destroy(fx, 1f);
     }
 
     private void LateUpdate()
