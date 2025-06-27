@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 15dc64efd629779469a2cb5d5057f0e4, type: 2}
+  - {fileID: 2100000, guid: 484c052429fb9294aa57858421716894, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -228,7 +228,7 @@ MonoBehaviour:
   ownerId:
     m_InternalValue: 0
   detectionRadius: 15
-  turnSpeed: 300
+  turnSpeed: 150
   targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295

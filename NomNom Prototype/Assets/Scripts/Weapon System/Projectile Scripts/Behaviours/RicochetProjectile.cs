@@ -20,7 +20,8 @@ public class RicochetProjectile : ProjectileBase
 
     [Header("Visuals")]
     [SerializeField] private GameObject sparkEffectPrefab;
-    [SerializeField] private GameObject despawnEffectPrefab; // 🔥 NEW
+    [SerializeField] private GameObject despawnEffectPrefab;
+    [SerializeField] private GameObject muzzleFlashPrefab;
 
     private int currentBounces = 0;
     private float lifetimeTimer = 0f;
@@ -126,6 +127,16 @@ public class RicochetProjectile : ProjectileBase
         GameObject fx = Instantiate(despawnEffectPrefab, position, Quaternion.identity);
         Destroy(fx, 1f);
     }
+
+    [ClientRpc]
+    private void SpawnMuzzleFlashClientRpc()
+    {
+        if (muzzleFlashPrefab == null) return;
+
+        GameObject flash = Instantiate(muzzleFlashPrefab, transform.position, transform.rotation);
+        Destroy(flash, 1f);
+    }
+
 
     private void LateUpdate()
     {

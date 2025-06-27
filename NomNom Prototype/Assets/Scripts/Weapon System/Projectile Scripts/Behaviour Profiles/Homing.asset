@@ -12,13 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2a1ab8741dd89140b894c86d6671493, type: 3}
   m_Name: Homing
   m_EditorClassIdentifier: 
-  speed: 20
+  speed: 16
   damage: 30
   lifetime: 5
+  affectsOwner: 0
   hitEffectPrefab: {fileID: 0}
-  explosionEffectPrefab: {fileID: 0}
-  explosionRadius: 0
-  directHitMultiplier: 1
-  damageableLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295

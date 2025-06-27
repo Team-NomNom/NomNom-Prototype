@@ -77,8 +77,8 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.15
-  m_PreviewTimeScale: 1
+  m_Time: 0.13
+  m_PreviewTimeScale: 0
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -386,3 +386,4 @@ MonoBehaviour:
   maxBounces: 3
   sparkEffectPrefab: {fileID: 5071059780552649386, guid: fe6a2cbf7e6f7cd41a90dab926c87118, type: 3}
   despawnEffectPrefab: {fileID: 5071059780552649386, guid: ef7e4b241c0409641b9d305092d858e4, type: 3}
+  muzzleFlashPrefab: {fileID: 0}
