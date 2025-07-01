@@ -10,6 +10,7 @@ public class NetworkTankController : NetworkBehaviour
 
     [Header("Player UI Prefab")]
     public GameObject playerUIPrefab;
+    public GameObject worldHealthUIPrefab;
 
     private GameObject playerUIInstance;
     private Text respawnCountdownText;
@@ -33,25 +34,26 @@ public class NetworkTankController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
+        // Disable local TankController logic on non-server instances
         if (!IsServer)
             localTank.enabled = false;
 
+        // Server-side: reset health on fresh spawn
         if (IsServer)
         {
             var health = GetComponent<Health>();
             if (health != null)
-            {
                 health.ResetHealth();
-                Debug.Log($"[NetworkTankController] ResetHealth called on server for tank {gameObject.name}");
-            }
         }
 
+        // Owner-only setup (UI, camera, events, etc.)
         if (IsOwner)
         {
+            // Expose this tank’s ProjectileFactory to the GameManager
             GameManager.LocalPlayerFactory = GetComponent<ProjectileFactory>();
             GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
-            Debug.Log("[NetworkTankController] Assigned LocalPlayerFactory (OnNetworkSpawn, IsOwner).");
 
+            // Camera follow / override main camera
             if (mainCamFollow != null)
             {
                 mainCamFollow.target = transform;
@@ -60,35 +62,56 @@ public class NetworkTankController : NetworkBehaviour
                 mainCamFollow.ForceSnap();
             }
 
-            var other = Camera.main;
-            if (other != null && (mainCamFollow == null || other != mainCamFollow.GetComponent<Camera>()))
-                other.enabled = false;
+            // Disable any other main camera
+            var otherCam = Camera.main;
+            if (otherCam != null &&
+                (mainCamFollow == null || otherCam != mainCamFollow.GetComponent<Camera>()))
+            {
+                otherCam.enabled = false;
+            }
 
+            // HUD-based player UI (numeric health text, respawn text)
             if (playerUIPrefab != null)
             {
                 playerUIInstance = Instantiate(playerUIPrefab);
 
-                GameObject inLobbyPanel = GameObject.Find("InLobbyPanel");
-                if (inLobbyPanel != null)
-                    playerUIInstance.transform.SetParent(inLobbyPanel.transform, false);
+                // Correct parent → prefab becomes child of InLobbyPanel (or Canvas)
+                Transform uiParent =
+                    GameObject.Find("InLobbyPanel")?.transform ??
+                    GameObject.Find("Canvas")?.transform;
+
+                if (uiParent != null)
+                    playerUIInstance.transform.SetParent(uiParent, false);
                 else
-                {
-                    GameObject canvas = GameObject.Find("Canvas");
-                    if (canvas != null)
-                        playerUIInstance.transform.SetParent(canvas.transform, false);
-                }
+                    Debug.LogWarning("[NetworkTankController] No InLobbyPanel or Canvas found; " +
+                                     "player UI anchored at root.");
 
                 var health = GetComponent<Health>();
+
+                // Numeric health text hookup
                 var sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
                 if (sceneHealthText != null)
                     health.SetHealthText(sceneHealthText);
 
-                respawnCountdownText = playerUIInstance.transform.Find("RespawnCountdownText")?.GetComponent<Text>();
+                // Respawn countdown text reference
+                respawnCountdownText =
+                    playerUIInstance.transform.Find("RespawnCountdownText")?.GetComponent<Text>();
                 if (respawnCountdownText != null)
                     respawnCountdownText.gameObject.SetActive(false);
             }
 
-            // Subscribe to OnDeath (once)
+            // World-space circular dial above the tank
+            if (worldHealthUIPrefab != null)
+            {
+                var worldUIObj = Instantiate(worldHealthUIPrefab); // root-level (or parent to transform)
+                var worldUI = worldUIObj.GetComponent<WorldHealthUI>();
+                var health = GetComponent<Health>();
+
+                if (worldUI != null && health != null)
+                    worldUI.Init(health, transform); // binds, follows, billboards
+            }
+
+            // Subscribe to tank death event once
             var localHealth = GetComponent<Health>();
             if (localHealth != null && !hasSubscribedToDeath)
             {
@@ -96,6 +119,7 @@ public class NetworkTankController : NetworkBehaviour
                 hasSubscribedToDeath = true;
             }
 
+            // Enable movement next frame & clear any countdown
             StartCoroutine(EnableMovementAfterSpawn());
 
             if (respawnCountdownText != null)
@@ -109,6 +133,7 @@ public class NetworkTankController : NetworkBehaviour
             }
         }
     }
+
 
     private IEnumerator EnableMovementAfterSpawn()
     {

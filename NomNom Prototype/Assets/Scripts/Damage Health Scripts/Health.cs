@@ -23,6 +23,7 @@ public class Health : NetworkBehaviour, IDamagable
 
     [Header("Optional UI")]
     [SerializeField] private Text healthText;
+    [SerializeField] private Image radialHealthImage;
 
     [Header("Optional Visuals Root")]
     [SerializeField] private GameObject visualsRoot;
@@ -201,11 +202,22 @@ public class Health : NetworkBehaviour, IDamagable
             int max = Mathf.RoundToInt(maxHealth);
             healthText.text = isDead ? "DEAD" : $"{cur}/{max}";
         }
+
+        if (radialHealthImage != null)
+        {
+            radialHealthImage.fillAmount = currentHealth.Value / maxHealth;
+        }
     }
 
     public void SetHealthText(Text text)
     {
         healthText = text;
+        OnHealthChanged(currentHealth.Value, currentHealth.Value);
+    }
+
+    public void SetRadialImage(Image image)
+    {
+        radialHealthImage = image;
         OnHealthChanged(currentHealth.Value, currentHealth.Value);
     }
     #endregion

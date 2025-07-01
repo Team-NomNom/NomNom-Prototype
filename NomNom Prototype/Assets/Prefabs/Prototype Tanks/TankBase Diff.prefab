@@ -601,6 +601,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   playerUIPrefab: {fileID: 6409738201929118690, guid: 75791abdb6eb14943bd77d662ddd956c, type: 3}
+  worldHealthUIPrefab: {fileID: 2626731850015195159, guid: e559ee1026fd342418e8c65a2d432e79, type: 3}
 --- !u!114 &3223559092925386599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -615,7 +616,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 125
+  enableRegen: 1
+  regenRate: 5
+  regenDelay: 3
   healthText: {fileID: 0}
+  radialHealthImage: {fileID: 0}
   visualsRoot: {fileID: 437274649785054083}
   invincibilityDuration: 2.25
   visualsRenderer: {fileID: 383720627698554095}
