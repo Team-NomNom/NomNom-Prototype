@@ -5,13 +5,21 @@ using System.Collections;
 
 public class Health : NetworkBehaviour, IDamagable
 {
+    #region Inspector
     [Header("Health Settings")]
     [SerializeField] private float maxHealth = 100f;
     private NetworkVariable<float> currentHealth = new NetworkVariable<float>(
         100f,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
+        NetworkVariableWritePermission.Server);
+
+    [Header("Regeneration")]
+    [Tooltip("Tick health regeneration?")]
+    [SerializeField] private bool enableRegen = true;
+    [Tooltip("Health points regenerated per second once the delay has passed")]
+    [SerializeField] private float regenRate = 5f;
+    [Tooltip("Seconds after last damage taken before regeneration starts")]
+    [SerializeField] private float regenDelay = 3f;
 
     [Header("Optional UI")]
     [SerializeField] private Text healthText;
@@ -24,8 +32,7 @@ public class Health : NetworkBehaviour, IDamagable
     private NetworkVariable<bool> isInvincible = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
+        NetworkVariableWritePermission.Server);
     public bool IsInvincible => isInvincible.Value;
     public float InvincibilityDuration => invincibilityDuration;
 
@@ -34,25 +41,27 @@ public class Health : NetworkBehaviour, IDamagable
     [SerializeField] private Color invincibleColor = Color.cyan;
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color lowHealthPulseColor = Color.red;
+    #endregion
 
+    #region Private state
     private Material cachedMaterial;
-
-    public event System.Action<Health> OnDeath;
-
     private bool isDead = false;
+    private float lastDamageTime = -Mathf.Infinity;
+    private NetworkTankController cachedTankController;
+    #endregion
+
+    #region Public API & Events
     public bool IsAlive => !isDead;
     public float MaxHealth => maxHealth;
+    public event System.Action<Health> OnDeath;
+    #endregion
 
-    private NetworkTankController cachedTankController;
-
+    #region Unity Lifecycle
     private void Awake()
     {
         currentHealth.Value = maxHealth;
-
         if (visualsRenderer != null)
-        {
             cachedMaterial = visualsRenderer.material;
-        }
     }
 
     public override void OnNetworkSpawn()
@@ -63,13 +72,9 @@ public class Health : NetworkBehaviour, IDamagable
         isInvincible.OnValueChanged += OnInvincibleChanged;
 
         if (IsServer)
-        {
             cachedTankController = GetComponent<NetworkTankController>();
-        }
 
         OnHealthChanged(0f, currentHealth.Value);
-
-        Debug.Log($"[Health] OnNetworkSpawn → isInvincible initial value = {isInvincible.Value}, OwnerClientId = {OwnerClientId}");
     }
 
     private void OnDestroy()
@@ -80,38 +85,12 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void Update()
     {
-        if (cachedMaterial != null)
-        {
-            if (IsInvincible)
-            {
-                float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
-                Color pulseColor = invincibleColor * pulse;
-                pulseColor.a = 1f;
-
-                cachedMaterial.color = pulseColor;
-                cachedMaterial.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
-            }
-            else
-            {
-                float healthPercent = currentHealth.Value / maxHealth;
-                if (healthPercent < 0.3f)
-                {
-                    float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
-                    Color pulseColor = lowHealthPulseColor * pulse;
-                    pulseColor.a = 1f;
-
-                    cachedMaterial.color = pulseColor;
-                    cachedMaterial.SetColor("_EmissionColor", lowHealthPulseColor * pulse * 2f);
-                }
-                else
-                {
-                    cachedMaterial.color = normalColor;
-                    cachedMaterial.SetColor("_EmissionColor", Color.black);
-                }
-            }
-        }
+        HandleVisuals();
+        ServerRegenerationTick();
     }
+    #endregion
 
+    #region Damage / Healing
     public void TakeDamage(float damage)
     {
         if (!IsServer)
@@ -121,24 +100,26 @@ public class Health : NetworkBehaviour, IDamagable
         }
 
         if (isDead || isInvincible.Value) return;
+        if (damage <= 0f) return;
 
-        Debug.Log($"[Health] TakeDamage({damage}) on tank {gameObject.name}, currentHealth={currentHealth.Value}");
+        lastDamageTime = Time.time;
 
-        currentHealth.Value -= damage;
-        currentHealth.Value = Mathf.Clamp(currentHealth.Value, 0f, maxHealth);
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value - damage, 0f, maxHealth);
 
         if (currentHealth.Value <= 0f)
-        {
             Die();
-        }
+    }
+
+    public void Heal(float amount)
+    {
+        if (!IsServer || isDead || amount <= 0f) return;
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value + amount, 0f, maxHealth);
     }
 
     private void Die()
     {
         if (isDead) return;
         isDead = true;
-
-        Debug.Log($"[Health] Die() called for tank {gameObject.name}, OwnerClientId={OwnerClientId}");
 
         OnDeath?.Invoke(this);
 
@@ -147,45 +128,99 @@ public class Health : NetworkBehaviour, IDamagable
         else
             gameObject.SetActive(false);
 
-        // Trigger respawn countdown on client
+        // Trigger respawn countdown on owner client
         if (IsServer && cachedTankController != null)
         {
             float delay = FindObjectOfType<RespawnManager>()?.RespawnDelay ?? 3f;
             cachedTankController.ShowRespawnCountdownClientRpc(delay);
         }
     }
+    #endregion
 
-    public void ResetHealth()
+    #region Regeneration
+    private void ServerRegenerationTick()
     {
-        currentHealth.Value = maxHealth;
-        isDead = false;
+        if (!IsServer) return;
+        if (!enableRegen) return;
+        if (isDead || currentHealth.Value >= maxHealth) return;
+        if (Time.time - lastDamageTime < regenDelay) return;
 
-        if (visualsRoot != null)
-            visualsRoot.SetActive(true);
-        else
-            gameObject.SetActive(true);
+        float healAmount = regenRate * Time.deltaTime;
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value + healAmount, 0f, maxHealth);
     }
+    #endregion
 
+    #region Invulnerability helpers
     public void ForceSetInvincible(bool value)
     {
+        if (!IsServer) return;
         isInvincible.Value = value;
     }
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        // Visual feedback is handled in Update
+        // visuals handled each frame in Update
+    }
+    #endregion
+
+    #region Visuals & UI
+    private void HandleVisuals()
+    {
+        if (cachedMaterial == null) return;
+
+        if (IsInvincible)
+        {
+            float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
+            Color pulseColor = invincibleColor * pulse; pulseColor.a = 1f;
+            cachedMaterial.color = pulseColor;
+            cachedMaterial.SetColor("_EmissionColor", invincibleColor * pulse * 2f);
+        }
+        else
+        {
+            float healthPercent = currentHealth.Value / maxHealth;
+            if (healthPercent < 0.3f)
+            {
+                float pulse = Mathf.PingPong(Time.time * 4f, 0.5f) + 0.5f;
+                Color pulseColor = lowHealthPulseColor * pulse; pulseColor.a = 1f;
+                cachedMaterial.color = pulseColor;
+                cachedMaterial.SetColor("_EmissionColor", lowHealthPulseColor * pulse * 2f);
+            }
+            else
+            {
+                cachedMaterial.color = normalColor;
+                cachedMaterial.SetColor("_EmissionColor", Color.black);
+            }
+        }
     }
 
     private void OnHealthChanged(float oldValue, float newValue)
     {
         if (healthText != null)
         {
-            healthText.text = isDead ? "DEAD" : $"{currentHealth.Value}/{maxHealth}";
+            int cur = Mathf.RoundToInt(currentHealth.Value);
+            int max = Mathf.RoundToInt(maxHealth);
+            healthText.text = isDead ? "DEAD" : $"{cur}/{max}";
         }
     }
 
     public void SetHealthText(Text text)
     {
         healthText = text;
+        OnHealthChanged(currentHealth.Value, currentHealth.Value);
     }
+    #endregion
+
+    #region Utility
+    public void ResetHealth()
+    {
+        currentHealth.Value = maxHealth;
+        isDead = false;
+        lastDamageTime = -Mathf.Infinity;
+
+        if (visualsRoot != null)
+            visualsRoot.SetActive(true);
+        else
+            gameObject.SetActive(true);
+    }
+    #endregion
 }

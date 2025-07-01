@@ -4903,7 +4903,7 @@ GameObject:
   - component: {fileID: 8308722467939188457}
   - component: {fileID: 5467184184804614385}
   m_Layer: 0
-  m_Name: Burst SFX EC 1
+  m_Name: Ricochet BurstVFX EC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
