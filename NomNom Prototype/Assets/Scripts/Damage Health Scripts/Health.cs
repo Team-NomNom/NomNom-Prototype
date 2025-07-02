@@ -21,6 +21,10 @@ public class Health : NetworkBehaviour, IDamagable
     [Tooltip("Seconds after last damage taken before regeneration starts")]
     [SerializeField] private float regenDelay = 3f;
 
+    [Header("Regen Visuals")]
+    [Tooltip("Optional particle system that plays while the tank is regenerating health.")]
+    [SerializeField] private ParticleSystem regenEffect;
+
     [Header("Optional UI")]
     [SerializeField] private Text healthText;
     [SerializeField] private Image radialHealthImage;
@@ -63,6 +67,8 @@ public class Health : NetworkBehaviour, IDamagable
         currentHealth.Value = maxHealth;
         if (visualsRenderer != null)
             cachedMaterial = visualsRenderer.material;
+        // Ensure regen particles are off at start
+        regenEffect?.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     public override void OnNetworkSpawn()
@@ -87,6 +93,7 @@ public class Health : NetworkBehaviour, IDamagable
     private void Update()
     {
         HandleVisuals();
+        UpdateRegenEffect();
         ServerRegenerationTick();
     }
     #endregion
@@ -124,6 +131,8 @@ public class Health : NetworkBehaviour, IDamagable
 
         OnDeath?.Invoke(this);
 
+        regenEffect?.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
         if (visualsRoot != null)
             visualsRoot.SetActive(false);
         else
@@ -149,6 +158,22 @@ public class Health : NetworkBehaviour, IDamagable
         float healAmount = regenRate * Time.deltaTime;
         currentHealth.Value = Mathf.Clamp(currentHealth.Value + healAmount, 0f, maxHealth);
     }
+
+    private bool IsRegenerating()
+    {
+        return enableRegen && !isDead && !IsInvincible && currentHealth.Value < maxHealth && (Time.time - lastDamageTime) >= regenDelay;
+    }
+
+    private void UpdateRegenEffect()
+    {
+        if (regenEffect == null) return;
+
+        bool shouldPlay = IsRegenerating();
+        if (shouldPlay && !regenEffect.isPlaying)
+            regenEffect.Play();
+        else if (!shouldPlay && regenEffect.isPlaying)
+            regenEffect.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+    }
     #endregion
 
     #region Invulnerability helpers
@@ -160,7 +185,7 @@ public class Health : NetworkBehaviour, IDamagable
 
     private void OnInvincibleChanged(bool oldValue, bool newValue)
     {
-        // visuals handled each frame in Update
+        // visuals handled in Update
     }
     #endregion
 
@@ -233,6 +258,9 @@ public class Health : NetworkBehaviour, IDamagable
             visualsRoot.SetActive(true);
         else
             gameObject.SetActive(true);
+
+        // Clear & stop regen effect at spawn
+        regenEffect?.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
     #endregion
 }
