@@ -43,7 +43,7 @@ Material:
     - _alpha: 0.8
     - _foamScale: 33
     - _maskScale: 0.16
-    - _refractionOpacity: 0.8
+    - _refractionOpacity: 1
     - _refractionStrength: 0.1
     - _speed: 0.87
     m_Colors:
