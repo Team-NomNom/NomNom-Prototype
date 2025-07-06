@@ -2,21 +2,31 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Sand C
   m_Shader: {fileID: 4800000, guid: 716c15a732bdc4bc68fb7203d5c33fc4, type: 3}
-  m_ShaderKeywords: _APPLYFOG_ON _KEYWORD0_LAMBERT _MODULATESTRENGTHBYDISTANCE_ON
-    _SUNSPECBOTH_BOTH _SUNSPECINSHADOW_ON _SUNSPECULARSOURCE_SANDNORMAL _USEDISTANCEMASK_ON
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _APPLYFOG_ON
+  - _KEYWORD0_LAMBERT
+  - _MODULATESTRENGTHBYDISTANCE_ON
+  - _SUNSPECBOTH_BOTH
+  - _SUNSPECINSHADOW_ON
+  - _SUNSPECULARSOURCE_SANDNORMAL
+  - _USEDISTANCEMASK_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -84,6 +94,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _ApplyFog: 1
     - _CameraAffectsGlitterPosition: 0.001
@@ -168,3 +179,6 @@ Material:
     - _Vector0: {r: 1, g: 1, b: 1, a: 0}
     - _Vector1: {r: 1.5, g: 0.5, b: 0, a: 0}
     - _shadowcolor: {r: 0.764151, g: 0.65988404, b: 0.5803222, a: 0}
+    - shadowIntensity: {r: 0.5, g: 0.5, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
