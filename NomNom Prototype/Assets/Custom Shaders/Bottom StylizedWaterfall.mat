@@ -45,7 +45,7 @@ Material:
     - _maskScale: 0.16
     - _refractionOpacity: 1
     - _refractionStrength: 0.1
-    - _speed: 0.87
+    - _speed: 0.872
     m_Colors:
     - _Color: {r: 0.22469918, g: 0.52856773, b: 0.78867924, a: 1}
   m_BuildTextureStacks: []
