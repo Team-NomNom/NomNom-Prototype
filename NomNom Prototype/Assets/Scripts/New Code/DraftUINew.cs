@@ -2,17 +2,26 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 
+/// <summary>
+/// Draft UI:   • shows team banner
+///             • enforces unique-per-team tank locking
+///             • spawns lightweight preview models
+/// </summary>
 public class DraftUINew : MonoBehaviour
 {
     public static DraftUINew Instance { get; private set; }
 
-    [Header("Refs")]
+    // ──────────────  UI REFS  ────────────────────────────────────────────────
+    [Header("Root / Main")]
     [SerializeField] private GameObject rootPanel;
     [SerializeField] private Button lockInButton;
     [SerializeField] private Image teamBanner;
 
-    [Header("Tank Buttons (order matches prefabs)")]
-    [SerializeField] private List<Button> tankButtons;
+    [Header("Tank Buttons  (order MUST match both prefab lists)")]
+    [SerializeField] private List<Button> tankButtons;        // assign in Inspector
+    [SerializeField] private List<GameObject> tankPreviewPrefabs; // NEW: model-only prefabs
+
+    [Header("Highlight Colors")]
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color normalColor = Color.white;
 
@@ -20,71 +29,76 @@ public class DraftUINew : MonoBehaviour
     [SerializeField] private Color team0Color = Color.cyan;
     [SerializeField] private Color team1Color = Color.red;
 
+    // ──────────────  STATE  ─────────────────────────────────────────────────
     private int chosen = -1;
     private bool locked = false;
 
+    // ──────────────  UNITY  ────────────────────────────────────────────────
     private void Awake()
     {
         Instance = this;
         rootPanel.SetActive(false);
 
+        // Hook up each button → TryPick(idx)
         for (int i = 0; i < tankButtons.Count; i++)
         {
             int idx = i;
             tankButtons[i].onClick.AddListener(() => TryPick(idx));
         }
+
         lockInButton.onClick.AddListener(LockIn);
         lockInButton.interactable = false;
     }
 
-    // ───────── Public API  (called from GameManagerNew RPCs)
+    // ──────────────  CALLED FROM GameManager via RPCs  ──────────────────────
     public void Show()
     {
         rootPanel.SetActive(true);
         ResetPanel();
+        TankPreviewNew.Instance?.ClearPreview();
     }
-    public void Hide() => rootPanel.SetActive(false);
+
+    public void Hide()
+    {
+        rootPanel.SetActive(false);
+        TankPreviewNew.Instance?.ClearPreview();
+    }
 
     public void SetTeam(int id)
     {
-        if (teamBanner != null)
-            teamBanner.color = id == 0 ? team0Color : team1Color;
+        teamBanner.color = id == 0 ? team0Color : team1Color;
     }
 
-    /// Called when server says a tank became taken/free in my team
+    /// Server broadcast whenever a teammate takes OR frees a tank index
     public void UpdateTaken(int idx, bool isTaken)
     {
         if (idx < 0 || idx >= tankButtons.Count) return;
 
-        tankButtons[idx].interactable = !isTaken;
+        // Disable button for teammates who didn't pick this tank
+        if (isTaken && idx != chosen)
+            tankButtons[idx].interactable = false;
 
-        // If my current choice was just taken by teammate, unselect it
-        if (isTaken && chosen == idx && !locked)
+        // If a teammate frees it, re-enable
+        if (!isTaken)
+            tankButtons[idx].interactable = true;
+
+        // *** DO NOT clear preview if this is my own choice ***
+        if (isTaken && idx == chosen && !locked)
         {
-            chosen = -1;
-            Highlight();
-            lockInButton.interactable = false;
+            // keep my preview; nothing to do
         }
     }
 
-    /// Called only on client that was rejected
-    public void OnSelectionRejected(int idx)
-    {
-        if (chosen == idx && !locked)
-        {
-            chosen = -1;
-            Highlight();
-            lockInButton.interactable = false;
-        }
-        Debug.Log("[DraftUI] Pick rejected - teammate already took that tank.");
-    }
 
-    // ───────── Internals
+    // ──────────────  INTERNALS  ─────────────────────────────────────────────
     private void ResetPanel()
     {
         locked = false;
         chosen = -1;
-        foreach (var btn in tankButtons) btn.interactable = true;
+
+        foreach (var btn in tankButtons)
+            btn.interactable = true;
+
         Highlight();
         lockInButton.interactable = false;
     }
@@ -93,11 +107,19 @@ public class DraftUINew : MonoBehaviour
     {
         if (locked || !tankButtons[idx].interactable) return;
 
-        GameManagerNew.Instance?.RequestTankSelectServerRpc(idx);
-        // assume optimistic; will revert if rejected
+        // 1. Local optimistic UI
         chosen = idx;
         Highlight();
         lockInButton.interactable = true;
+
+        // 2. Show preview (model-only prefab)
+        if (idx < tankPreviewPrefabs.Count && tankPreviewPrefabs[idx] != null)
+            TankPreviewNew.Instance?.ShowTankPreview(tankPreviewPrefabs[idx]);
+        else
+            Debug.LogWarning($"[DraftUI] No preview prefab for index {idx}");
+
+        // 3. Notify server for uniqueness check & record
+        GameManagerNew.Instance?.RequestTankSelectServerRpc(idx);
     }
 
     private void Highlight()
@@ -113,8 +135,27 @@ public class DraftUINew : MonoBehaviour
     private void LockIn()
     {
         if (locked || chosen < 0) return;
+
         locked = true;
         lockInButton.interactable = false;
         GameManagerNew.Instance?.AllPlayersLockedInServerRpc();
     }
+
+    /// <summary>
+    /// Called only on the client whose pick was rejected because a
+    /// teammate locked the same tank first.
+    /// </summary>
+    public void OnSelectionRejected(int idx)
+    {
+        if (chosen == idx && !locked)
+        {
+            chosen = -1;
+            Highlight();                         // refresh button colours
+            lockInButton.interactable = false;   // must pick again
+            TankPreviewNew.Instance?.ClearPreview();
+        }
+
+        Debug.Log("[DraftUI] Pick rejected – teammate already locked that tank.");
+    }
+
 }
