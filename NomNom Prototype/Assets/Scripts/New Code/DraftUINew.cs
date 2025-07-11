@@ -3,24 +3,18 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Unity.Netcode;
 
-/// <summary>
-/// Draft UI:   • shows team banner
-///             • enforces unique-per-team tank locking
-///             • spawns lightweight preview models
-/// </summary>
 public class DraftUINew : MonoBehaviour
 {
     public static DraftUINew Instance { get; private set; }
 
-    // ──────────────  UI REFS  ────────────────────────────────────────────────
     [Header("Root / Main")]
     [SerializeField] private GameObject rootPanel;
     [SerializeField] private Button lockInButton;
     [SerializeField] private Image teamBanner;
 
-    [Header("Tank Buttons  (order MUST match both prefab lists)")]
-    [SerializeField] private List<Button> tankButtons;        // assign in Inspector
-    [SerializeField] private List<GameObject> tankPreviewPrefabs; // NEW: model-only prefabs
+    [Header("Tank Buttons (order MUST match both prefab lists)")]
+    [SerializeField] private List<Button> tankButtons;
+    [SerializeField] private List<GameObject> tankPreviewPrefabs;
 
     [Header("Highlight Colors")]
     [SerializeField] private Color selectedColor = Color.yellow;
@@ -30,17 +24,20 @@ public class DraftUINew : MonoBehaviour
     [SerializeField] private Color team0Color = Color.cyan;
     [SerializeField] private Color team1Color = Color.red;
 
-    // ──────────────  STATE  ─────────────────────────────────────────────────
+    [Header("Draft Timer UI")]
+    [SerializeField] private Text draftTimerText;
+
     private int chosen = -1;
     private bool locked = false;
 
-    // ──────────────  UNITY  ────────────────────────────────────────────────
+    private float timeRemaining = 0f;
+    private bool isDraftTimerActive = false;
+
     private void Awake()
     {
         Instance = this;
         rootPanel.SetActive(false);
 
-        // Hook up each button → TryPick(idx)
         for (int i = 0; i < tankButtons.Count; i++)
         {
             int idx = i;
@@ -49,20 +46,56 @@ public class DraftUINew : MonoBehaviour
 
         lockInButton.onClick.AddListener(LockIn);
         lockInButton.interactable = false;
+
+        if (draftTimerText != null)
+            draftTimerText.text = "";
     }
 
-    // ──────────────  CALLED FROM GameManager via RPCs  ──────────────────────
+    private void Update()
+    {
+        if (!isDraftTimerActive || draftTimerText == null) return;
+
+        timeRemaining -= Time.deltaTime;
+        timeRemaining = Mathf.Max(0, timeRemaining);
+        draftTimerText.text = $"{timeRemaining:F1}s";
+
+        if (timeRemaining <= 0)
+        {
+            isDraftTimerActive = false;
+        }
+    }
+
+    public void StartTimer(float duration)
+    {
+        timeRemaining = duration;
+        isDraftTimerActive = true;
+        if (draftTimerText != null)
+            draftTimerText.gameObject.SetActive(true);
+    }
+
+    public void StopTimer()
+    {
+        isDraftTimerActive = false;
+        if (draftTimerText != null)
+        {
+            draftTimerText.text = "";
+            draftTimerText.gameObject.SetActive(false);
+        }
+    }
+
     public void Show()
     {
         rootPanel.SetActive(true);
         ResetPanel();
         TankPreviewNew.Instance?.ClearPreview();
+        StartTimer(GameManagerNew.Instance != null ? GameManagerNew.Instance.DraftDuration : 30f);
     }
 
     public void Hide()
     {
         rootPanel.SetActive(false);
         TankPreviewNew.Instance?.ClearPreview();
+        StopTimer();
     }
 
     public void SetTeam(int id)
@@ -70,28 +103,17 @@ public class DraftUINew : MonoBehaviour
         teamBanner.color = id == 0 ? team0Color : team1Color;
     }
 
-    /// Server broadcast whenever a teammate takes OR frees a tank index
     public void UpdateTaken(int idx, bool isTaken)
     {
         if (idx < 0 || idx >= tankButtons.Count) return;
 
-        // Disable button for teammates who didn't pick this tank
         if (isTaken && idx != chosen)
             tankButtons[idx].interactable = false;
 
-        // If a teammate frees it, re-enable
         if (!isTaken)
             tankButtons[idx].interactable = true;
-
-        // *** DO NOT clear preview if this is my own choice ***
-        if (isTaken && idx == chosen && !locked)
-        {
-            // keep my preview; nothing to do
-        }
     }
 
-
-    // ──────────────  INTERNALS  ─────────────────────────────────────────────
     private void ResetPanel()
     {
         locked = false;
@@ -108,18 +130,15 @@ public class DraftUINew : MonoBehaviour
     {
         if (locked || !tankButtons[idx].interactable) return;
 
-        // 1. Local optimistic UI
         chosen = idx;
         Highlight();
         lockInButton.interactable = true;
 
-        // 2. Show preview (model-only prefab)
         if (idx < tankPreviewPrefabs.Count && tankPreviewPrefabs[idx] != null)
             TankPreviewNew.Instance?.ShowTankPreview(tankPreviewPrefabs[idx]);
         else
             Debug.LogWarning($"[DraftUI] No preview prefab for index {idx}");
 
-        // 3. Notify server for uniqueness check & record
         GameManagerNew.Instance?.RequestTankSelectServerRpc(idx);
     }
 
@@ -142,17 +161,13 @@ public class DraftUINew : MonoBehaviour
         GameManagerNew.Instance?.AllPlayersLockedInServerRpc();
     }
 
-    /// <summary>
-    /// Called only on the client whose pick was rejected because a
-    /// teammate locked the same tank first.
-    /// </summary>
     public void OnSelectionRejected(int idx)
     {
         if (chosen == idx && !locked)
         {
             chosen = -1;
-            Highlight();                         // refresh button colours
-            lockInButton.interactable = false;   // must pick again
+            Highlight();
+            lockInButton.interactable = false;
             TankPreviewNew.Instance?.ClearPreview();
         }
 
@@ -165,6 +180,4 @@ public class DraftUINew : MonoBehaviour
         if (clientId != NetworkManager.Singleton.LocalClientId) return -1;
         return chosen;
     }
-
-
 }

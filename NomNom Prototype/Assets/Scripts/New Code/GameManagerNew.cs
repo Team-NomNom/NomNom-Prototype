@@ -12,6 +12,7 @@ public class GameManagerNew : NetworkBehaviour
 
     [Header("Draft Settings")]
     [SerializeField] private float draftDuration = 30f;
+    public float DraftDuration => draftDuration;
 
     [Header("Tank Prefabs (Selection Order)")]
     [SerializeField] private List<GameObject> tankPrefabs = new();
