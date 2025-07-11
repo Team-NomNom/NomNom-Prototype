@@ -145,22 +145,80 @@ public class GameManagerNew : NetworkBehaviour
         if (CurrentGameState.Value != GameState.Draft) return;
         if (draftTimerCo != null) StopCoroutine(draftTimerCo);
 
+        Debug.Log("[GameManager] Starting match...");
+
+        // ───────── Auto-assign tanks to unready players ─────────
+        foreach (var cid in NetworkManager.ConnectedClientsIds)
+        {
+            if (selectedTankByClient.ContainsKey(cid)) continue;
+
+            int fallback = TryUseCurrentSelection(cid);
+
+            if (fallback == -1) fallback = PickRandomAvailableTank(cid);
+
+            selectedTankByClient[cid] = fallback;
+
+            Debug.Log($"[AutoPick] Assigned tank {fallback} to player {cid}");
+        }
+
+        // ───────── Spawn Tanks ─────────
         CurrentGameState.Value = GameState.InGame;
         DraftUIHideClientRpc();
 
         foreach (var cid in NetworkManager.ConnectedClientsIds)
         {
-            int tankIdx = selectedTankByClient.TryGetValue(cid, out var idx) ? idx : 0;
+            int tankIdx = selectedTankByClient[cid];
             int team = teamByClient[cid];
 
-            var pool = team == 0 ? team0Spawns : team1Spawns;
-            if (pool.Count == 0) { Debug.LogError($"No spawns for team {team}!"); continue; }
-
-            Transform spawn = pool[(int)(cid % (ulong)pool.Count)];
-            var tank = Instantiate(tankPrefabs[tankIdx], spawn.position, spawn.rotation);
+            Vector3 spawnPos = TeamSpawnManagerNew.Instance.GetSpawnPoint(team);
+            var tank = Instantiate(tankPrefabs[tankIdx], spawnPos, Quaternion.identity);
             tank.GetComponent<NetworkObject>().SpawnWithOwnership(cid);
         }
+
+        Debug.Log("[GameManager] Match started.");
     }
+
+    /// Try to keep their *current preview selection* if still valid.
+    /// Returns -1 if invalid or unknown.
+    private int TryUseCurrentSelection(ulong clientId)
+    {
+        // Ask UI what the player was last hovering on
+        if (DraftUINew.Instance == null) return -1;
+
+        int chosen = DraftUINew.Instance.GetLastSelectionForClient(clientId);
+        if (chosen < 0) return -1;
+
+        int team = teamByClient[clientId];
+
+        // Check if any teammate already locked it
+        bool taken = selectedTankByClient.Any(kvp =>
+            teamByClient[kvp.Key] == team && kvp.Value == chosen);
+
+        return taken ? -1 : chosen;
+    }
+
+    private int PickRandomAvailableTank(ulong clientId)
+    {
+        int myTeam = teamByClient[clientId];
+        var all = Enumerable.Range(0, tankPrefabs.Count).ToList();
+
+        var taken = selectedTankByClient
+            .Where(kvp => teamByClient[kvp.Key] == myTeam)
+            .Select(kvp => kvp.Value)
+            .ToHashSet();
+
+        var available = all.Except(taken).ToList();
+
+        if (available.Count == 0)
+        {
+            Debug.LogWarning($"[AutoPick] No tanks left for team {myTeam}, fallback to 0.");
+            return 0;
+        }
+
+        return available[Random.Range(0, available.Count)];
+    }
+
+
 
     // ───────── Client RPCs
     [ClientRpc] private void DraftUIShowClientRpc() => DraftUINew.Instance?.Show();

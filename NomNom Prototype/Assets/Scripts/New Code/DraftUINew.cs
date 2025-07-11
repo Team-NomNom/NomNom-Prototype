@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Unity.Netcode;
 
 /// <summary>
 /// Draft UI:   • shows team banner
@@ -157,5 +158,13 @@ public class DraftUINew : MonoBehaviour
 
         Debug.Log("[DraftUI] Pick rejected – teammate already locked that tank.");
     }
+
+    public int GetLastSelectionForClient(ulong clientId)
+    {
+        if (!NetworkManager.Singleton || !NetworkManager.Singleton.IsClient) return -1;
+        if (clientId != NetworkManager.Singleton.LocalClientId) return -1;
+        return chosen;
+    }
+
 
 }
