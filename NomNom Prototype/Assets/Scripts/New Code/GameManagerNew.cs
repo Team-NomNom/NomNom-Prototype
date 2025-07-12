@@ -234,6 +234,12 @@ public class GameManagerNew : NetworkBehaviour
         deaths[victimId] = deaths.GetValueOrDefault(victimId) + 1;
 
         KillFeedClientRpc(GetPlayerName(killerId), GetPlayerName(victimId));
+
+        // NEW — broadcast full scoreboard
+        var ids = kills.Keys.Union(deaths.Keys).ToArray();
+        var kArr = ids.Select(id => kills.GetValueOrDefault(id)).ToArray();
+        var dArr = ids.Select(id => deaths.GetValueOrDefault(id)).ToArray();
+        ScoreUpdateClientRpc(ids, kArr, dArr);
     }
 
     private string GetPlayerName(ulong cid)
@@ -247,6 +253,15 @@ public class GameManagerNew : NetworkBehaviour
     {
         KillFeedUI.Instance?.PushEntry(killerName, victimName);
     }
+
+    [ClientRpc]
+    private void ScoreUpdateClientRpc(ulong[] clientIds, int[] killVals, int[] deathVals)
+    {
+        if (ScoreboardUI.Instance == null) return;
+        for (int i = 0; i < clientIds.Length; i++)
+            ScoreboardUI.Instance.SetScore(clientIds[i], killVals[i], deathVals[i]);
+    }
+
 
 
     [ClientRpc] private void DraftUIShowClientRpc() => DraftUINew.Instance?.Show();
