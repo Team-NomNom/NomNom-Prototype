@@ -17,13 +17,12 @@ public class NetworkTankController : NetworkBehaviour
     private Coroutine respawnCountdownCoroutine;
 
     private bool isReadyToSendMovement = false;
-    private bool hasSubscribedToDeath = false; // Prevent double-subscription
 
     private void Awake()
     {
         localTank = GetComponent<TankController>();
         if (localTank == null)
-            Debug.LogError("NetworkTankController requires a TankController component on the same GameObject.");
+            Debug.LogError("NetworkTankController requires a TankController component.");
 
         var camGO = GameObject.Find("LocalCamera");
         if (camGO != null)
@@ -34,26 +33,20 @@ public class NetworkTankController : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        // Disable local TankController logic on non-server instances
         if (!IsServer)
             localTank.enabled = false;
 
-        // Server-side: reset health on fresh spawn
         if (IsServer)
         {
             var health = GetComponent<Health>();
-            if (health != null)
-                health.ResetHealth();
+            health?.ResetHealth();
         }
 
-        // Owner-only setup (UI, camera, events, etc.)
         if (IsOwner)
         {
-            // Expose this tank’s ProjectileFactory to the GameManager
-            GameManager.LocalPlayerFactory = GetComponent<ProjectileFactory>();
-            GameManager.OnLocalPlayerFactoryAssigned?.Invoke();
+            GameManagerNew.LocalPlayerFactory = GetComponent<ProjectileFactory>();
+            GameManagerNew.OnLocalPlayerFactoryAssigned?.Invoke();
 
-            // Camera follow / override main camera
             if (mainCamFollow != null)
             {
                 mainCamFollow.target = transform;
@@ -62,64 +55,43 @@ public class NetworkTankController : NetworkBehaviour
                 mainCamFollow.ForceSnap();
             }
 
-            // Disable any other main camera
             var otherCam = Camera.main;
-            if (otherCam != null &&
-                (mainCamFollow == null || otherCam != mainCamFollow.GetComponent<Camera>()))
-            {
+            if (otherCam != null && (mainCamFollow == null || otherCam != mainCamFollow.GetComponent<Camera>()))
                 otherCam.enabled = false;
-            }
 
-            // HUD-based player UI (numeric health text, respawn text)
             if (playerUIPrefab != null)
             {
                 playerUIInstance = Instantiate(playerUIPrefab);
 
-                // Correct parent → prefab becomes child of InLobbyPanel (or Canvas)
                 Transform uiParent =
                     GameObject.Find("InLobbyPanel")?.transform ??
                     GameObject.Find("Canvas")?.transform;
 
                 if (uiParent != null)
                     playerUIInstance.transform.SetParent(uiParent, false);
-                else
-                    Debug.LogWarning("[NetworkTankController] No InLobbyPanel or Canvas found; " +
-                                     "player UI anchored at root.");
 
                 var health = GetComponent<Health>();
 
-                // Numeric health text hookup
                 var sceneHealthText = playerUIInstance.GetComponentInChildren<Text>(true);
                 if (sceneHealthText != null)
-                    health.SetHealthText(sceneHealthText);
+                    health?.SetHealthText(sceneHealthText);
 
-                // Respawn countdown text reference
-                respawnCountdownText =
-                    playerUIInstance.transform.Find("RespawnCountdownText")?.GetComponent<Text>();
+                respawnCountdownText = playerUIInstance.transform.Find("RespawnCountdownText")?.GetComponent<Text>();
                 if (respawnCountdownText != null)
                     respawnCountdownText.gameObject.SetActive(false);
             }
 
-            // World-space circular dial above the tank
             if (worldHealthUIPrefab != null)
             {
-                var worldUIObj = Instantiate(worldHealthUIPrefab); // root-level (or parent to transform)
+                var worldUIObj = Instantiate(worldHealthUIPrefab);
                 var worldUI = worldUIObj.GetComponent<WorldHealthUI>();
                 var health = GetComponent<Health>();
 
                 if (worldUI != null && health != null)
-                    worldUI.Init(health, transform); // binds, follows, billboards
+                    worldUI.Init(health, transform);
             }
 
-            // Subscribe to tank death event once
-            var localHealth = GetComponent<Health>();
-            if (localHealth != null && !hasSubscribedToDeath)
-            {
-                localHealth.OnDeath += OnTankDeath;
-                hasSubscribedToDeath = true;
-            }
-
-            // Enable movement next frame & clear any countdown
+            // No death subscription needed anymore — handled server-side
             StartCoroutine(EnableMovementAfterSpawn());
 
             if (respawnCountdownText != null)
@@ -133,7 +105,6 @@ public class NetworkTankController : NetworkBehaviour
             }
         }
     }
-
 
     private IEnumerator EnableMovementAfterSpawn()
     {
@@ -173,52 +144,13 @@ public class NetworkTankController : NetworkBehaviour
     private void DebugKillTankServerRpc(ServerRpcParams rpcParams = default)
     {
         var health = GetComponent<Health>();
-        if (health != null)
-            health.TakeDamage(health.MaxHealth);
+        health?.TakeDamage(health.MaxHealth);
     }
 
     private void OnDestroy()
     {
         if (IsOwner && playerUIInstance != null)
             Destroy(playerUIInstance);
-
-        var health = GetComponent<Health>();
-        if (health != null && hasSubscribedToDeath)
-        {
-            health.OnDeath -= OnTankDeath;
-            hasSubscribedToDeath = false;
-        }
-    }
-
-    private void OnTankDeath(Health health)
-    {
-        if (respawnCountdownText != null)
-        {
-            respawnCountdownText.gameObject.SetActive(true);
-
-            if (respawnCountdownCoroutine != null)
-                StopCoroutine(respawnCountdownCoroutine);
-
-            RespawnManager respawnManager = FindObjectOfType<RespawnManager>();
-            float respawnDelay = respawnManager != null ? respawnManager.RespawnDelay : 3f;
-
-            respawnCountdownCoroutine = StartCoroutine(RespawnCountdownCoroutine(respawnDelay));
-        }
-    }
-
-    private IEnumerator RespawnCountdownCoroutine(float duration)
-    {
-        float timer = duration;
-
-        while (timer > 0f)
-        {
-            respawnCountdownText.text = $"{Mathf.CeilToInt(timer)}";
-            yield return null;
-            timer -= Time.deltaTime;
-        }
-
-        respawnCountdownText.text = "";
-        yield return null;
     }
 
     [ClientRpc]
@@ -237,11 +169,18 @@ public class NetworkTankController : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    public void SubmitTankChoiceServerRpc(int tankIndex, ServerRpcParams rpcParams = default)
+    private IEnumerator RespawnCountdownCoroutine(float duration)
     {
-        GameManager.Instance?.SetTankChoice(rpcParams.Receive.SenderClientId, tankIndex);
+        float timer = duration;
+
+        while (timer > 0f)
+        {
+            respawnCountdownText.text = $"{Mathf.CeilToInt(timer)}";
+            yield return null;
+            timer -= Time.deltaTime;
+        }
+
+        respawnCountdownText.text = "";
+        yield return null;
     }
-
-
 }

@@ -141,8 +141,10 @@ public class Health : NetworkBehaviour, IDamagable
         // Trigger respawn countdown on owner client
         if (IsServer && cachedTankController != null)
         {
-            float delay = FindObjectOfType<RespawnManager>()?.RespawnDelay ?? 3f;
+            float delay = RespawnManagerNew.Instance?.RespawnDelay ?? 3f;
             cachedTankController.ShowRespawnCountdownClientRpc(delay);
+            // RespawnManagerNew.Instance?.RespawnTank(gameObject, OwnerClientId);
+
         }
     }
     #endregion

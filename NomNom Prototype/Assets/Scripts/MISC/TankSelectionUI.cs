@@ -75,7 +75,7 @@ public class TankSelectionUI : MonoBehaviour
         var networkController = FindObjectOfType<NetworkTankController>();
         if (networkController != null && networkController.IsOwner)
         {
-            networkController.SubmitTankChoiceServerRpc(index);
+            GameManagerNew.Instance?.RequestTankSelectServerRpc(index);
             Debug.Log($"[TankSelectionUI] Selected tank index: {index}");
         }
     }
