@@ -16,11 +16,14 @@ public class KillFeedUI : MonoBehaviour
 
     void Awake() => Instance = this;
 
-    public void PushEntry(string killer, string victim)
+    public void PushEntry(string killer, string victim, bool isSuicide)
     {
         var go = Instantiate(entryPrefab, entriesRoot);
         var txt = go.GetComponent<Text>();
-        txt.text = $"<color=#F9E79F>{killer}</color> ➜ <color=#F1948A>{victim}</color>";
+        txt.text = isSuicide
+    ? $"<color=#F1948A>{victim}</color> <color=#AAAAAA> Alt F4ed</color>"
+    : $"<color=#F9E79F>{killer}</color> ➜ <color=#F1948A>{victim}</color>";
+
 
         live.Enqueue(go);
         if (live.Count > maxEntries) Destroy(live.Dequeue());

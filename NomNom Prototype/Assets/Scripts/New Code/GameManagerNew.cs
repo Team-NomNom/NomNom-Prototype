@@ -228,19 +228,28 @@ public class GameManagerNew : NetworkBehaviour
 
     public void RegisterKill(ulong killerId, ulong victimId)
     {
-        if (killerId == ulong.MaxValue || killerId == victimId) return;
+        bool isSuicide = (killerId == victimId) || (killerId == ulong.MaxValue);
 
-        kills[killerId] = kills.GetValueOrDefault(killerId) + 1;
+        // Update deaths for the victim every time
         deaths[victimId] = deaths.GetValueOrDefault(victimId) + 1;
 
-        KillFeedClientRpc(GetPlayerName(killerId), GetPlayerName(victimId));
+        // Only award a kill if it’s not a suicide
+        if (!isSuicide && killerId != ulong.MaxValue)
+            kills[killerId] = kills.GetValueOrDefault(killerId) + 1;
 
-        // NEW — broadcast full scoreboard
+        // —— broadcast to UI ——
+        KillFeedClientRpc(
+            GetPlayerName(isSuicide ? victimId : killerId),
+            GetPlayerName(victimId),
+            isSuicide);
+
+        // —— update scoreboard ——
         var ids = kills.Keys.Union(deaths.Keys).ToArray();
         var kArr = ids.Select(id => kills.GetValueOrDefault(id)).ToArray();
         var dArr = ids.Select(id => deaths.GetValueOrDefault(id)).ToArray();
         ScoreUpdateClientRpc(ids, kArr, dArr);
     }
+
 
     private string GetPlayerName(ulong cid)
     {
@@ -249,10 +258,11 @@ public class GameManagerNew : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void KillFeedClientRpc(string killerName, string victimName)
+    private void KillFeedClientRpc(string killerName, string victimName, bool isSuicide)
     {
-        KillFeedUI.Instance?.PushEntry(killerName, victimName);
+        KillFeedUI.Instance?.PushEntry(killerName, victimName, isSuicide);
     }
+
 
     [ClientRpc]
     private void ScoreUpdateClientRpc(ulong[] clientIds, int[] killVals, int[] deathVals)
