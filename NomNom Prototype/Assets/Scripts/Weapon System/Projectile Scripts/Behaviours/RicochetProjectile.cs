@@ -64,7 +64,7 @@ public class RicochetProjectile : ProjectileBase
 
         if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
-            dmg.TakeDamage(currentDamage);
+            dmg.TakeDamage(currentDamage, ownerId.Value);
             TriggerDespawn();
             return;
         }

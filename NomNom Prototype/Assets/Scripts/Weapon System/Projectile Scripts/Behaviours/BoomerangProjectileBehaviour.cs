@@ -93,7 +93,7 @@ public class BoomerangProjectileBehaviour : ProjectileBase
         if (other.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
             Debug.Log($"[BoomerangProjectile] {gameObject.name} applied {config.damage} damage to {other.name}");
-            dmg.TakeDamage(config.damage);
+            dmg.TakeDamage(config.damage, ownerId.Value);
 
             if (config.hitEffectPrefab != null)
             {

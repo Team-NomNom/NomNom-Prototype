@@ -34,6 +34,10 @@ public class GameManagerNew : NetworkBehaviour
     private Dictionary<ulong, GameObject> tankByClient = new();
     private Coroutine draftTimerCo;
 
+    private readonly Dictionary<ulong, int> kills = new();
+    private readonly Dictionary<ulong, int> deaths = new();
+
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -221,6 +225,29 @@ public class GameManagerNew : NetworkBehaviour
             return tankPrefabs[idx];
         return null;
     }
+
+    public void RegisterKill(ulong killerId, ulong victimId)
+    {
+        if (killerId == ulong.MaxValue || killerId == victimId) return;
+
+        kills[killerId] = kills.GetValueOrDefault(killerId) + 1;
+        deaths[victimId] = deaths.GetValueOrDefault(victimId) + 1;
+
+        KillFeedClientRpc(GetPlayerName(killerId), GetPlayerName(victimId));
+    }
+
+    private string GetPlayerName(ulong cid)
+    {
+        // Replace with your actual player-name lookup if you have one.
+        return $"Player {cid}";
+    }
+
+    [ClientRpc]
+    private void KillFeedClientRpc(string killerName, string victimName)
+    {
+        KillFeedUI.Instance?.PushEntry(killerName, victimName);
+    }
+
 
     [ClientRpc] private void DraftUIShowClientRpc() => DraftUINew.Instance?.Show();
     [ClientRpc] private void DraftUIHideClientRpc() => DraftUINew.Instance?.Hide();

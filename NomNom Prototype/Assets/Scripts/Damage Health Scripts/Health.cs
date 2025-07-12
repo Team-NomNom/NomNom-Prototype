@@ -13,6 +13,13 @@ public class Health : NetworkBehaviour, IDamagable
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    // Who last hit me (server authoritative)
+    private NetworkVariable<ulong> lastDamagerId = new(
+        ulong.MaxValue,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+
     [Header("Regeneration")]
     [Tooltip("Tick health regeneration?")]
     [SerializeField] private bool enableRegen = true;
@@ -99,24 +106,20 @@ public class Health : NetworkBehaviour, IDamagable
     #endregion
 
     #region Damage / Healing
-    public void TakeDamage(float damage)
+    // Legacy call – forward attackerId=unknown
+    public void TakeDamage(float dmg) => TakeDamage(dmg, ulong.MaxValue);
+
+    public void TakeDamage(float dmg, ulong attackerId = ulong.MaxValue)
     {
-        if (!IsServer)
-        {
-            Debug.LogWarning($"[Health] TakeDamage ignored → not server! OwnerClientId={OwnerClientId}");
-            return;
-        }
+        if (!IsServer || isDead || IsInvincible || dmg <= 0f) return;
 
-        if (isDead || isInvincible.Value) return;
-        if (damage <= 0f) return;
-
+        lastDamagerId.Value = attackerId;      // NEW
         lastDamageTime = Time.time;
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value - dmg, 0f, maxHealth);
 
-        currentHealth.Value = Mathf.Clamp(currentHealth.Value - damage, 0f, maxHealth);
-
-        if (currentHealth.Value <= 0f)
-            Die();
+        if (currentHealth.Value <= 0f) Die();
     }
+
 
     public void Heal(float amount)
     {
@@ -128,6 +131,10 @@ public class Health : NetworkBehaviour, IDamagable
     {
         if (isDead) return;
         isDead = true;
+
+        if (IsServer)
+            GameManagerNew.Instance?.RegisterKill(lastDamagerId.Value, OwnerClientId);
+
 
         OnDeath?.Invoke(this);
 

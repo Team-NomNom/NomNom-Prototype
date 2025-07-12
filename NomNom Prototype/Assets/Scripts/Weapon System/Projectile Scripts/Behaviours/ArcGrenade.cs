@@ -35,7 +35,7 @@ public class ArcGrenade : ProjectileBase
 
         if (collision.collider.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
-            dmg.TakeDamage(config.damage * 0.2f);
+            dmg.TakeDamage(config.damage * 0.2f, ownerId.Value);
         }
 
         bounceCount++;
@@ -56,7 +56,7 @@ public class ArcGrenade : ProjectileBase
 
             if (hit.GetComponentInParent<IDamagable>() is IDamagable dmg)
             {
-                dmg.TakeDamage(config.damage);
+                dmg.TakeDamage(config.damage, ownerId.Value);
             }
         }
 

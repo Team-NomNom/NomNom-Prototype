@@ -108,7 +108,7 @@ public class HomingProjectile : ProjectileBase
 
         if (other.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
-            dmg.TakeDamage(config.damage);
+            dmg.TakeDamage(config.damage, ownerId.Value);
         }
 
         if (config.hitEffectPrefab)

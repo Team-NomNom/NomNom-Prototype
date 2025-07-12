@@ -102,7 +102,7 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
         if (other.GetComponentInParent<IDamagable>() is IDamagable dmg)
         {
             Debug.Log($"[ProjectileBase] {gameObject.name} applied {config.damage} damage to {other.name}");
-            dmg.TakeDamage(config.damage);
+            dmg.TakeDamage(config.damage, ownerId.Value);
         }
         else
         {
