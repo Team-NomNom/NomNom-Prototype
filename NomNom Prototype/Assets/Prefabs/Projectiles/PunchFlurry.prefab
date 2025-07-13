@@ -231,7 +231,7 @@ MonoBehaviour:
   punchCount: 4
   punchInterval: 0.15
   damagePerPunch: 8
-  punchVfxPrefab: {fileID: 0}
+  punchVfxPrefab: {fileID: 2761616085997336247, guid: a49bd25d622b01140ac46cda2c8ad4a5, type: 3}
 --- !u!1 &1962786222552434340
 GameObject:
   m_ObjectHideFlags: 0

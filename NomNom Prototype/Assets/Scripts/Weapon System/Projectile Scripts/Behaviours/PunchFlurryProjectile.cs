@@ -4,34 +4,36 @@ using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
-/// El-Primo-style 4-hit melee flurry. Spawns no moving body; uses
-/// four rapid box-overlaps to apply damage at close range.
+/// El-Primo-style 4-hit melee combo that follows the shooter’s movement.
 /// </summary>
 [RequireComponent(typeof(NetworkObject), typeof(Rigidbody))]
 public class PunchFlurryProjectile : ProjectileBase
 {
     [Header("Punch Geometry")]
     [SerializeField] private Vector3 hitBoxSize = new(1.8f, 1.4f, 1.2f);
-    [SerializeField] private float reach = 1.8f;   // distance forward
+    [SerializeField] private float reach = 1.8f;   // centre of box from shooter
 
     [Header("Flurry Settings")]
     [SerializeField] private int punchCount = 4;
     [SerializeField] private float punchInterval = 0.15f;
-    [SerializeField] private float damagePerPunch = 6f;  // 4×6 = 24 total
+    [SerializeField] private float damagePerPunch = 6f;
 
-    [Header("Visuals (optional)")]
-    [SerializeField] private GameObject punchVfxPrefab;    // spawn per punch
+    [Header("Visuals")]
+    [SerializeField] private GameObject punchVfxPrefab;
 
-    /* ─── internal ─── */
     private readonly Dictionary<Collider, float> lastHitTime = new();
 
+    /* ═════════════════ INITIALISE ═════════════════ */
     protected override void InitializeMotion()
     {
-        rb.linearVelocity = Vector3.zero;  // no travel
-        if (IsServer) StartCoroutine(PunchCoroutine());
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+
+        if (IsServer)
+            StartCoroutine(PunchCoroutine());
     }
 
-    /* ===== punch loop ===== */
+    /* ═════════════════ MAIN LOOP ═════════════════ */
     private IEnumerator PunchCoroutine()
     {
         for (int i = 0; i < punchCount; i++)
@@ -40,16 +42,22 @@ public class PunchFlurryProjectile : ProjectileBase
             yield return new WaitForSeconds(punchInterval);
         }
 
-        if (IsServer) GetComponent<NetworkObject>().Despawn();
+        if (IsServer)
+            GetComponent<NetworkObject>().Despawn();
     }
 
+    /* ═════════════════ SINGLE PUNCH ═════════════════ */
     private void DoSinglePunch()
     {
-        Vector3 center = transform.position + transform.forward * reach * 0.5f;
+        if (shooterRoot == null) return;   // safety
+
+        Vector3 center = shooterRoot.position + shooterRoot.forward * reach * 0.5f;
+        Quaternion rot = shooterRoot.rotation;
+
         Collider[] hits = Physics.OverlapBox(
             center,
             hitBoxSize * 0.5f,
-            transform.rotation,
+            rot,
             ~0,
             QueryTriggerInteraction.Ignore);
 
@@ -57,8 +65,7 @@ public class PunchFlurryProjectile : ProjectileBase
         {
             if (ShouldSkipTarget(col)) continue;
 
-            // prevent duplicate damage if collider lingers between punches
-            if (!lastHitTime.TryGetValue(col, out float last) ||
+            if (!lastHitTime.TryGetValue(col, out var last) ||
                 Time.time - last >= punchInterval - 0.01f)
             {
                 lastHitTime[col] = Time.time;
@@ -68,25 +75,32 @@ public class PunchFlurryProjectile : ProjectileBase
             }
         }
 
-        if (punchVfxPrefab != null)
-            SpawnPunchVfxClientRpc(center);
+        SpawnPunchVFX(center, rot);
     }
 
-    /* ===== optional VFX RPC (one-shot, cheap) ===== */
-    [ClientRpc]
-    private void SpawnPunchVfxClientRpc(Vector3 pos)
+    /* ═════════════════ VFX (client-side) ═════════════════ */
+    private void SpawnPunchVFX(Vector3 pos, Quaternion rot)
     {
         if (punchVfxPrefab == null) return;
-        var fx = Instantiate(punchVfxPrefab, pos, transform.rotation);
+        SpawnPunchVfxClientRpc(pos, rot);
+    }
+
+    [ClientRpc]
+    private void SpawnPunchVfxClientRpc(Vector3 pos, Quaternion rot)
+    {
+        if (punchVfxPrefab == null) return;
+        var fx = Instantiate(punchVfxPrefab, pos, rot);
         Destroy(fx, 1f);
     }
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
+        if (shooterRoot == null) return;
+
         Gizmos.color = new Color(1f, 0.3f, 0f, 0.25f);
-        Vector3 center = transform.position + transform.forward * reach * 0.5f;
-        Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, hitBoxSize);
+        Vector3 center = shooterRoot.position + shooterRoot.forward * reach * 0.5f;
+        Gizmos.matrix = Matrix4x4.TRS(center, shooterRoot.rotation, hitBoxSize);
         Gizmos.DrawCube(Vector3.zero, Vector3.one);
     }
 #endif
