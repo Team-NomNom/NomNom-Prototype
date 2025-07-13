@@ -205,12 +205,14 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   ownerId:
     m_InternalValue: 0
-  segmentCount: 3
-  segmentSpacing: 1.5
-  segmentSize: {x: 0.63, y: 1.2, z: 1.2}
+  rowCount: 3
+  rowSpacing: 1.5
+  puffSpacing: 1.5
+  puffSize: {x: 1.2, y: 1.2, z: 1.2}
+  driftSpeed: 2
   tickInterval: 0.33
-  lingerTime: 1
-  puffVfxPrefab: {fileID: 0}
+  puffLifetime: 1
+  puffVfxPrefab: {fileID: 7428925990173767249, guid: 98cff33eae6a212409d92a0db86f2578, type: 3}
 --- !u!135 &3847547887805445222
 SphereCollider:
   m_ObjectHideFlags: 0
