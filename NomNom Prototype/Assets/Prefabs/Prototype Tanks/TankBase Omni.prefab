@@ -381,12 +381,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   weaponSlots:
-  - name: Homing
-    projectilePrefab: {fileID: 4065035793987674022, guid: 20760d98aede06945b435b0a3295de6b, type: 3}
-    config: {fileID: 11400000, guid: cb6d30e7b627eea4e98215ca97102ec3, type: 2}
+  - name: MistyCloud
+    projectilePrefab: {fileID: 1343818377063820803, guid: b022139e713651f45983bcf7be76f366, type: 3}
+    config: {fileID: 11400000, guid: 40b1a00a62dda0c429cd86c964ea1bb5, type: 2}
     ammoSettings:
-      maxAmmo: 5
-      cooldownBetweenShots: 0.2
+      maxAmmo: 3
+      cooldownBetweenShots: 1.2
+      reloadTimePerShot: 2.5
+    IsTeleportBeacon: 0
+  - name: PunchFlurry
+    projectilePrefab: {fileID: 1343818377063820803, guid: 47e5a8156bba0b542a593bb71ac3f263, type: 3}
+    config: {fileID: 11400000, guid: f70b504e4dfbc9a468b04d3a068bfdd9, type: 2}
+    ammoSettings:
+      maxAmmo: 4
+      cooldownBetweenShots: 0.9
       reloadTimePerShot: 2
     IsTeleportBeacon: 0
   muzzleTransform: {fileID: 2045805802688438552}
@@ -405,6 +413,9 @@ MonoBehaviour:
   weaponInputs:
   - weaponSlotIndex: 0
     fireKeys: 430100004c01000031000000
+    fireAxes: []
+  - weaponSlotIndex: 1
+    fireKeys: 440100004b01000032000000
     fireAxes: []
   movesIndependently: 0
   turretTransform: {fileID: 0}
