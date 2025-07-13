@@ -16,4 +16,5 @@ MonoBehaviour:
   damage: 40
   lifetime: 5
   affectsOwner: 1
+  affectsAllies: 1
   hitEffectPrefab: {fileID: 0}

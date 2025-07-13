@@ -59,17 +59,23 @@ public class HomingProjectile : ProjectileBase
 
         foreach (var hit in hits)
         {
-            // Must have a NetworkTankController in parent
             var tank = hit.GetComponentInParent<NetworkTankController>();
             if (tank == null) continue;
 
-            // Skip self (owner of projectile)
+            // ——— 1.  Skip the shooter itself ———————————————
             if (shooterRoot != null && tank.transform.root == shooterRoot.transform.root)
                 continue;
 
-            // skip dead tanks or non-players
-            // if (!tank.IsAlive) continue;
+            // ——— 2.  Skip same-team tanks ———
+            if (GameManagerNew.Instance != null)
+            {
+                int shooterTeam = GameManagerNew.Instance.GetTeam(ownerId.Value);
+                int targetTeam = GameManagerNew.Instance.GetTeam(tank.OwnerClientId);
+                if (shooterTeam == targetTeam)                  // <<<  new line
+                    continue;                                   // teammates are ignored
+            }
 
+            // ——— 3.  Pick the closest remaining tank ———
             float distance = Vector3.Distance(transform.position, tank.transform.position);
             if (distance < closestDistance)
             {
@@ -78,16 +84,9 @@ public class HomingProjectile : ProjectileBase
             }
         }
 
-        if (bestTarget != null)
-        {
-            currentTarget = bestTarget;
-            // Debug.Log($"[HomingMissile] Acquired target: {currentTarget.name}");
-        }
-        else
-        {
-            // Debug.Log("[HomingMissile] No valid enemy targets found.");
-        }
+        currentTarget = bestTarget;
     }
+
 
 
     protected override void OnCollisionEnter(Collision collision)

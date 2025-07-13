@@ -112,22 +112,34 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
 
     protected virtual bool ShouldSkipTarget(Collider hit)
     {
-/*        if (shooterRoot == null || config == null)
-        {
-            Debug.LogWarning("[ProjectileBase] shooterRoot or config is null — cannot evaluate skip logic.");
-            return false; // allow hits if unsure
-        }*/
-
-        var isShooter = shooterRoot != null && hit.transform.root == shooterRoot.transform;
-        Debug.Log($"[Debug] Hit={hit.name}, Root={hit.transform.root.name}, Shooter={shooterRoot?.name}, IsShooter={isShooter}, AffectsOwner={config?.affectsOwner}");
-
+        // ── 1 · Skip self unless allowed ───────────────────────────────
+        bool isShooter = shooterRoot != null &&
+                         hit.transform.root == shooterRoot.transform;
         if (isShooter && !config.affectsOwner)
-        {
-            Debug.Log("[Debug] Skipping damage to self.");
             return true;
+
+        // ── 2 · Skip allies unless allowed ─────────────────────────────
+        if (!config.affectsAllies)
+        {
+            var tank = hit.GetComponentInParent<NetworkTankController>();
+            if (tank != null)
+            {
+                int shooterTeam = GameManagerNew.Instance != null
+                    ? GameManagerNew.Instance.GetTeam(ownerId.Value)
+                    : -1;
+                int targetTeam = GameManagerNew.Instance != null
+                    ? GameManagerNew.Instance.GetTeam(tank.OwnerClientId)
+                    : -2;
+
+                if (shooterTeam >= 0 && shooterTeam == targetTeam)
+                    return true;                     // same team ⇒ no damage
+            }
         }
+
+        // ── 3 · Otherwise hit is valid ────────────────────────────────
         return false;
     }
+
 
     protected void NotifyFactoryProjectileReturned()
     {
