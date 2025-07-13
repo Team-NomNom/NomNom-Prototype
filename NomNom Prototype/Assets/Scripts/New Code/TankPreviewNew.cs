@@ -31,20 +31,20 @@ public class TankPreviewNew : MonoBehaviour
 
     public void ShowTankPreview(GameObject tankPrefab)
     {
-        // ─── 1. Clean any previous preview ─────────────────────────────
+        // ----- Clean any previous preview --------------
         if (currentPreview != null)
             Destroy(currentPreview);
 
         if (tankPrefab == null) return;
 
-        // ─── 2. Instantiate as child of the anchor ─────────────────────
+        // -------- Instantiate as child of the anchor --------------
         currentPreview = Instantiate(tankPrefab, previewAnchor);
         StartCoroutine(DebugTraceSpawn(currentPreview));
         currentPreview.transform.localPosition = Vector3.zero;
         currentPreview.transform.localRotation = Quaternion.identity;
         currentPreview.transform.localScale = Vector3.one;
 
-        // ─── 3. Strip networking + physics ─────────────────────────────
+        // ----- Strip networking + physics --------------
         foreach (var no in currentPreview.GetComponentsInChildren<Unity.Netcode.NetworkObject>())
             Destroy(no);
         foreach (var nb in currentPreview.GetComponentsInChildren<Unity.Netcode.NetworkBehaviour>())
@@ -52,12 +52,12 @@ public class TankPreviewNew : MonoBehaviour
         foreach (var col in currentPreview.GetComponentsInChildren<Collider>())
             Destroy(col);
 
-        // ─── 4. Put everything on the preview layer ────────────────────
+        // ─── Put everything on the preview layer --------------
         int previewLayerIndex = LayerMaskToLayer(previewLayer);
         SetLayerRecursively(currentPreview, previewLayerIndex);
         Debug.Log($"[Preview] Applied preview layer = {previewLayerIndex} to {currentPreview.name}");
 
-        // ─── 5. Auto-position camera ───────────────────────────────────
+        // --- Auto-position camera --------------
         Camera cam = GetComponentInChildren<Camera>(true);
         if (cam != null)
         {

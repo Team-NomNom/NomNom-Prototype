@@ -43,7 +43,7 @@ public class HomingProjectile : ProjectileBase
             Vector3 newDir = Vector3.RotateTowards(rb.linearVelocity.normalized, toTarget, turnSpeed * Time.fixedDeltaTime, 0f);
             rb.linearVelocity = newDir * config.speed;
 
-            // Optional: rotate visuals toward direction
+            // Rotate visuals toward direction
             if (visualTransform != null)
                 visualTransform.rotation = Quaternion.LookRotation(newDir);
             else
@@ -62,20 +62,20 @@ public class HomingProjectile : ProjectileBase
             var tank = hit.GetComponentInParent<NetworkTankController>();
             if (tank == null) continue;
 
-            // ——— 1.  Skip the shooter itself ———————————————
+            // -------------- Skip the shooter itself --------------
             if (shooterRoot != null && tank.transform.root == shooterRoot.transform.root)
                 continue;
 
-            // ——— 2.  Skip same-team tanks ———
+            // -------------- Skip same-team tanks --------------
             if (GameManagerNew.Instance != null)
             {
                 int shooterTeam = GameManagerNew.Instance.GetTeam(ownerId.Value);
                 int targetTeam = GameManagerNew.Instance.GetTeam(tank.OwnerClientId);
-                if (shooterTeam == targetTeam)                  // <<<  new line
+                if (shooterTeam == targetTeam)                  
                     continue;                                   // teammates are ignored
             }
 
-            // ——— 3.  Pick the closest remaining tank ———
+            // -------------- Pick the closest remaining tank --------------
             float distance = Vector3.Distance(transform.position, tank.transform.position);
             if (distance < closestDistance)
             {

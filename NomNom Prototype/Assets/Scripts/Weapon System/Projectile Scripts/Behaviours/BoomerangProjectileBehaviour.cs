@@ -48,7 +48,7 @@ public class BoomerangProjectileBehaviour : ProjectileBase
             Vector3 toShooter = (shooterRoot.position - transform.position).normalized;
             rb.linearVelocity = toShooter * config.speed * returnSpeedMultiplier;
 
-            // ✅ Flip fix: rotate visual instead of Rigidbody if provided
+            // Flip fix: rotate visual instead of Rigidbody if provided
             Quaternion desiredRotation = Quaternion.LookRotation(toShooter);
             if (visualTransform != null)
             {

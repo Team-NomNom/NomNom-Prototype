@@ -112,13 +112,13 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
 
     protected virtual bool ShouldSkipTarget(Collider hit)
     {
-        // ── 1 · Skip self unless allowed ───────────────────────────────
+        // -- Skip self unless allowed --------------
         bool isShooter = shooterRoot != null &&
                          hit.transform.root == shooterRoot.transform;
         if (isShooter && !config.affectsOwner)
             return true;
 
-        // ── 2 · Skip allies unless allowed ─────────────────────────────
+        // ----- Skip allies unless allowed --------------
         if (!config.affectsAllies)
         {
             var tank = hit.GetComponentInParent<NetworkTankController>();
@@ -136,7 +136,7 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
             }
         }
 
-        // ── 3 · Otherwise hit is valid ────────────────────────────────
+        // ----- Otherwise hit is valid --------------
         return false;
     }
 

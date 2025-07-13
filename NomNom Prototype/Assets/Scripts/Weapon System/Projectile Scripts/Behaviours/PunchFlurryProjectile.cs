@@ -23,7 +23,7 @@ public class PunchFlurryProjectile : ProjectileBase
 
     private readonly Dictionary<Collider, float> lastHitTime = new();
 
-    /* ═════════════════ INITIALISE ═════════════════ */
+    /* -------------- INITIALISE -------------- */
     protected override void InitializeMotion()
     {
         rb.isKinematic = true;
@@ -33,7 +33,7 @@ public class PunchFlurryProjectile : ProjectileBase
             StartCoroutine(PunchCoroutine());
     }
 
-    /* ═════════════════ MAIN LOOP ═════════════════ */
+    /* -------------- MAIN LOOP -------------- */
     private IEnumerator PunchCoroutine()
     {
         for (int i = 0; i < punchCount; i++)
@@ -46,7 +46,7 @@ public class PunchFlurryProjectile : ProjectileBase
             GetComponent<NetworkObject>().Despawn();
     }
 
-    /* ═════════════════ SINGLE PUNCH ═════════════════ */
+    /* -------------- SINGLE PUNCH -------------- */
     private void DoSinglePunch()
     {
         if (shooterRoot == null) return;   // safety
@@ -78,7 +78,7 @@ public class PunchFlurryProjectile : ProjectileBase
         SpawnPunchVFX(center, rot);
     }
 
-    /* ═════════════════ VFX (client-side) ═════════════════ */
+    /* -------------- VFX (client-side) -------------- */
     private void SpawnPunchVFX(Vector3 pos, Quaternion rot)
     {
         if (punchVfxPrefab == null) return;

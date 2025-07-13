@@ -13,6 +13,6 @@ public class ProjectileConfig : ScriptableObject
     public bool affectsOwner = false;
 
     [Tooltip("Can this projectile hurt players on the same team?")]
-    public bool affectsAllies = false;          // ✅ NEW
+    public bool affectsAllies = false;          
     public GameObject hitEffectPrefab;
 }

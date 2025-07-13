@@ -33,7 +33,7 @@ public class ScoreboardUI : MonoBehaviour
         {
             var go = Instantiate(rowPrefab, tableRoot);
             var texts = go.GetComponentsInChildren<Text>();
-            var entry = (go: go, name: texts[0], kill: texts[1], death: texts[2]);  // ✅ named
+            var entry = (go: go, name: texts[0], kill: texts[1], death: texts[2]);  
             rows[clientId] = entry;
 
             entry.name.text = $"Player {clientId}";   // replace later with name lookup
