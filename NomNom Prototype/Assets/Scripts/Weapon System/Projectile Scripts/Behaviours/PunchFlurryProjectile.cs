@@ -100,7 +100,7 @@ public class PunchFlurryProjectile : ProjectileBase
 
         Gizmos.color = new Color(1f, 0.3f, 0f, 0.25f);
         Vector3 center = shooterRoot.position + shooterRoot.forward * reach * 0.5f;
-        Gizmos.matrix = Matrix4x4.TRS(center, shooterRoot.rotation, hitBoxSize);
+        Gizmos.matrix = Matrix4x4.TRS(center, shooterRoot.rotation, hitBoxSize); // #LinearAlgebra Om's so cool
         Gizmos.DrawCube(Vector3.zero, Vector3.one);
     }
 #endif
