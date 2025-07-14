@@ -1,8 +1,10 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;                           // for ToArray()
 using Unity.Netcode;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(NetworkObject))]
 public abstract class ProjectileBase : NetworkBehaviour, IProjectile
 {
     protected Rigidbody rb;
@@ -11,33 +13,41 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
     protected IProjectileFactoryUser factoryUser;
     protected int weaponIndex = -1;
 
-    protected ulong factoryObjectId = 0;
+    protected ulong factoryObjectId;
 
     public NetworkVariable<ulong> ownerId = new(0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
-    public virtual void Initialize(ulong shooterId, GameObject shooterRootObj, IProjectileFactoryUser factoryUser = null, int weaponIndex = -1)
+    /* ═════════ INITIALISE ═════════ */
+
+    public virtual void Initialize(ulong shooterId, GameObject shooterRootObj,
+                                   IProjectileFactoryUser factoryUser = null,
+                                   int weaponIndex = -1)
     {
         ownerId.Value = shooterId;
         shooterRoot = shooterRootObj.transform;
         this.factoryUser = factoryUser;
         this.weaponIndex = weaponIndex;
 
-        if (factoryUser is NetworkBehaviour netBehaviour)
-            factoryObjectId = netBehaviour.NetworkObject.NetworkObjectId;
-        else
-            Debug.LogWarning("[ProjectileBase] Could not assign factoryObjectId!");
+        if (factoryUser is NetworkBehaviour nb)
+            factoryObjectId = nb.NetworkObject.NetworkObjectId;
     }
 
-    public virtual void ApplyConfig(ProjectileConfig cfg)
-    {
+    public virtual void ApplyConfig(ProjectileConfig cfg) =>
         config = Instantiate(cfg);
-    }
 
     public override void OnNetworkSpawn()
     {
         rb = GetComponent<Rigidbody>();
+
+        /* ─── Guarantee server ownership ─── */
+        if (!IsServer && IsOwner)
+            SubmitOwnershipServerRpc();          // transfer to server
+
+        /* ─── Clients: run visuals only ─── */
+        if (!IsServer)
+            rb.isKinematic = true;
 
         if (IsServer)
         {
@@ -46,134 +56,90 @@ public abstract class ProjectileBase : NetworkBehaviour, IProjectile
         }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void SubmitOwnershipServerRpc(ServerRpcParams _ = default) { /* noop */ }
+
     private IEnumerator WaitAndInitializeMotion()
     {
-        while (config == null)
-            yield return null;
-
+        while (config == null) yield return null;
         InitializeMotion();
     }
 
     protected virtual void InitializeMotion()
     {
         if (config == null) return;
-        Vector3 shooterVelocity = Vector3.zero;
 
-        if (shooterRoot != null && shooterRoot.TryGetComponent<Rigidbody>(out var shooterRb))
+        Vector3 inheritVel = Vector3.zero;
+        if (shooterRoot != null &&
+            shooterRoot.TryGetComponent(out Rigidbody shooterRb))
         {
-            shooterVelocity = shooterRb.linearVelocity;
+            inheritVel = shooterRb.linearVelocity;
         }
-
-        rb.linearVelocity = shooterVelocity + transform.forward * config.speed;
+        rb.linearVelocity = inheritVel + transform.forward * config.speed;
     }
 
     private IEnumerator DestroyAfterLifetime()
     {
-        while (config == null)
-            yield return null;
-
+        while (config == null) yield return null;
         yield return new WaitForSeconds(config.lifetime);
-
-        if (IsServer)
-        {
-            OnLifetimeExpired();
-            GetComponent<NetworkObject>().Despawn();
-        }
+        if (IsServer) { OnLifetimeExpired(); NetworkObject.Despawn(); }
     }
 
     protected virtual void OnLifetimeExpired() { }
 
-    protected virtual void OnCollisionEnter(Collision collision)
+    /* ═════════ Collision / Damage ═════════ */
+
+    protected virtual void OnCollisionEnter(Collision col)
     {
         if (!IsServer) return;
+        if (ShouldSkipTarget(col.collider)) return;
 
-        Debug.Log($"[ProjectileBase] OnCollisionEnter: {name} hit {collision.collider.name}");
-
-        if (ShouldSkipTarget(collision.collider)) return;
-
-        OnHit(collision.collider);
-        GetComponent<NetworkObject>().Despawn();
+        OnHit(col.collider);
+        NetworkObject.Despawn();
     }
 
     protected virtual void OnHit(Collider other)
     {
         if (ShouldSkipTarget(other)) return;
-
-        if (other.GetComponentInParent<IDamagable>() is IDamagable dmg)
-        {
-            Debug.Log($"[ProjectileBase] {gameObject.name} applied {config.damage} damage to {other.name}");
+        if (other.GetComponentInParent<IDamagable>() is { } dmg)
             dmg.TakeDamage(config.damage, ownerId.Value);
-        }
-        else
-        {
-            Debug.LogWarning($"[ProjectileBase] {gameObject.name} hit {other.name} but no IDamagable found.");
-        }
     }
+
+    /* ═════════ Hit Filtering ═════════ */
 
     protected virtual bool ShouldSkipTarget(Collider hit)
     {
-        // -- Skip self unless allowed --------------
+        /* --- Self-damage flag --- */
         bool isShooter = shooterRoot != null &&
                          hit.transform.root == shooterRoot.transform;
-        if (isShooter && !config.affectsOwner)
-            return true;
+        if (isShooter && !config.affectsOwner) return true;
 
-        // ----- Skip allies unless allowed --------------
-        if (!config.affectsAllies)
+        /* --- Ally fire flag --- */
+        if (!config.affectsAllies && GameManagerNew.Instance != null)
         {
             var tank = hit.GetComponentInParent<NetworkTankController>();
             if (tank != null)
             {
-                int shooterTeam = GameManagerNew.Instance != null
-                    ? GameManagerNew.Instance.GetTeam(ownerId.Value)
-                    : -1;
-                int targetTeam = GameManagerNew.Instance != null
-                    ? GameManagerNew.Instance.GetTeam(tank.OwnerClientId)
-                    : -2;
-
-                if (shooterTeam >= 0 && shooterTeam == targetTeam)
-                    return true;                     // same team ⇒ no damage
+                int shooterTeam = GameManagerNew.Instance.GetTeam(ownerId.Value);
+                int targetTeam = GameManagerNew.Instance.GetTeam(tank.OwnerClientId);
+                if (shooterTeam == targetTeam) return true;
             }
         }
-
-        // ----- Otherwise hit is valid --------------
         return false;
     }
 
+    /* ═════════ Notify factory (boomerang, etc.) ═════════ */
 
     protected void NotifyFactoryProjectileReturned()
     {
-        if (!IsServer)
-        {
-            Debug.LogWarning("[ProjectileBase] NotifyFactoryProjectileReturned called on client - ignoring");
-            return;
-        }
+        if (!IsServer) return;
+        if (factoryObjectId == 0) return;
 
-        Debug.Log($"[ProjectileBase] Notifying factory (ObjectId: {factoryObjectId}) for weaponIndex={weaponIndex}");
-
-        if (factoryObjectId == 0)
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects
+            .TryGetValue(factoryObjectId, out var obj) &&
+            obj.TryGetComponent<IProjectileFactoryUser>(out var fac))
         {
-            Debug.LogWarning("[ProjectileBase] FactoryObjectId is 0 → not set?");
-            return;
-        }
-
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(factoryObjectId, out var netObj))
-        {
-            Debug.Log("[ProjectileBase] Found factory NetworkObject!");
-
-            if (netObj.TryGetComponent<IProjectileFactoryUser>(out var factory))
-            {
-                factory.OnProjectileReturned(weaponIndex);
-                Debug.Log("[ProjectileBase] Successfully called OnProjectileReturned!");
-            }
-            else
-            {
-                Debug.LogWarning("[ProjectileBase] NetworkObject has no IProjectileFactoryUser!");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("[ProjectileBase] Could not find NetworkObject by factoryObjectId!");
+            fac.OnProjectileReturned(weaponIndex);
         }
     }
 }

@@ -3,34 +3,27 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Emz-style spray: 3 forward rows (1-2-3 puffs) that drift outward,
-/// ticking damage while enemies remain inside the cloud.
-/// </summary>
 [RequireComponent(typeof(Rigidbody), typeof(NetworkObject))]
 public class MistingCloudProjectile : ProjectileBase
 {
-    /* ───────────── Geometry ───────────── */
+    /* Geometry -------------------------------------------------- */
     [Header("Row & Puff Layout")]
-    [SerializeField] private int rowCount = 3;          // rows: 1,2,3
-    [SerializeField] private float rowSpacing = 1.5f;       // distance between rows
-    [SerializeField] private float puffSpacing = 1.5f;       // left/right gap in a row
+    [SerializeField] private int rowCount = 3;
+    [SerializeField] private float rowSpacing = 1.5f;
+    [SerializeField] private float puffSpacing = 1.5f;
     [SerializeField] private Vector3 puffSize = new(1.2f, 1.2f, 1.2f);
 
-    /* ───────────── Drift ───────────── */
+    /* Drift / lifetime ----------------------------------------- */
     [Header("Drift")]
-    [SerializeField] private float driftSpeed = 2f;            // metres per second
-
-    /* ───────────── Damage Tick ───────────── */
+    [SerializeField] private float driftSpeed = 2f;
     [Header("Damage Tick")]
     [SerializeField] private float tickInterval = 0.33f;
-    [SerializeField] private float puffLifetime = 1.0f;        // how long each puff lasts
+    [SerializeField] private float puffLifetime = 1f;
 
-    /* ───────────── Visuals ───────────── */
+    /* Visuals --------------------------------------------------- */
     [Header("Visuals (optional)")]
     [SerializeField] private GameObject puffVfxPrefab;
 
-    /* ───────────── Internals ───────────── */
     private struct Puff { public Vector3 basePos; }
     private readonly List<Puff> puffs = new();
     private readonly Dictionary<Collider, float> lastHit = new();
@@ -38,11 +31,11 @@ public class MistingCloudProjectile : ProjectileBase
     private float spawnTime;
     private Vector3 forwardDir;
 
-    /* ═════════════════ Initialization ═════════════════ */
+    /* ===== Initialisation ===== */
     protected override void InitializeMotion()
     {
-        rb.linearVelocity = Vector3.zero;      // spray stays attached logically
-        forwardDir = transform.forward; // snapshot shooter’s facing dir
+        rb.linearVelocity = Vector3.zero;
+        forwardDir = transform.forward;
         BuildSprayGeometry();
         spawnTime = Time.time;
 
@@ -53,26 +46,27 @@ public class MistingCloudProjectile : ProjectileBase
         }
     }
 
-    /* ═════════════════ Geometry helpers ═════════════════ */
+    /* ---- geometry ---- */
     private void BuildSprayGeometry()
     {
         for (int row = 0; row < rowCount; row++)
         {
-            int puffsThisRow = row + 1;                   // 1-2-3
-            float forward = rowSpacing * (row + 1);    // metres ahead
+            int puffInRow = row + 1;
+            float fwd = rowSpacing * (row + 1);
 
-            for (int i = 0; i < puffsThisRow; i++)
+            for (int i = 0; i < puffInRow; i++)
             {
-                // Center each row (indices −1…0…+1, etc.)
-                float offsetIdx = i - (puffsThisRow - 1) / 2f;
-                float lateral = offsetIdx * puffSpacing;
+                float lateralIdx = i - (puffInRow - 1) / 2f;
+                float lateral = lateralIdx * puffSpacing;
 
-                Vector3 worldPos = transform.position
-                                   + forwardDir * forward
-                                   + transform.right * lateral;
+                Vector3 pos = transform.position +
+                              forwardDir * fwd +
+                              transform.right * lateral;
 
-                puffs.Add(new Puff { basePos = worldPos });
-                SpawnPuffVfx(worldPos);
+                puffs.Add(new Puff { basePos = pos });
+
+                /* Visuals only once from server */
+                if (IsServer) SpawnPuffVfx(pos);
             }
         }
     }
@@ -80,14 +74,21 @@ public class MistingCloudProjectile : ProjectileBase
     private void SpawnPuffVfx(Vector3 pos)
     {
         if (puffVfxPrefab == null) return;
-        var vfx = Instantiate(puffVfxPrefab, pos, transform.rotation);
-        Destroy(vfx, puffLifetime);
+        SpawnPuffVfxClientRpc(pos, transform.rotation);
     }
 
-    /* ═════════════════ Damage logic ═════════════════ */
+    [ClientRpc]
+    private void SpawnPuffVfxClientRpc(Vector3 pos, Quaternion rot)
+    {
+        if (puffVfxPrefab == null) return;
+        var fx = Instantiate(puffVfxPrefab, pos, rot);
+        Destroy(fx, puffLifetime);
+    }
+
+    /* ---- Damage ---- */
     private IEnumerator DamageTickCoroutine()
     {
-        float elapsed = 0f;
+        float elapsed = 0;
         while (elapsed < puffLifetime)
         {
             DealDamageOnce();
@@ -102,59 +103,32 @@ public class MistingCloudProjectile : ProjectileBase
 
         foreach (var puff in puffs)
         {
-            Vector3 center = puff.basePos + forwardDir * drift;
+            Vector3 centre = puff.basePos + forwardDir * drift;
 
-            Collider[] hits = Physics.OverlapBox(
-                center, puffSize / 2f, transform.rotation,
+            var hits = Physics.OverlapBox(
+                centre, puffSize * 0.5f, transform.rotation,
                 ~0, QueryTriggerInteraction.Ignore);
 
             foreach (var col in hits)
             {
                 if (ShouldSkipTarget(col)) continue;
 
-                // throttle per-collider ticks
                 if (!lastHit.TryGetValue(col, out var last) ||
                     Time.time - last >= tickInterval - 0.01f)
                 {
                     lastHit[col] = Time.time;
 
-                    if (col.GetComponentInParent<IDamagable>() is IDamagable dmg)
+                    if (col.GetComponentInParent<IDamagable>() is { } dmg)
                         dmg.TakeDamage(config.damage, ownerId.Value);
                 }
             }
         }
     }
 
-    /* ═════════════════ Lifetime & despawn ═════════════════ */
-    private IEnumerator LifetimeCoroutine(float seconds)
+    /* ---- Lifetime ---- */
+    private IEnumerator LifetimeCoroutine(float secs)
     {
-        yield return new WaitForSeconds(seconds);
-        if (IsServer) GetComponent<NetworkObject>().Despawn();
+        yield return new WaitForSeconds(secs);
+        if (IsServer) NetworkObject.Despawn();
     }
-
-    /* ═════════════════ Gizmos (editor) ═════════════════ */
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = new Color(0.5f, 0.8f, 1f, 0.15f);
-        float drift = Application.isPlaying ? driftSpeed * (Time.time - spawnTime) : 0f;
-        Vector3 dir = Application.isPlaying ? forwardDir : transform.forward;
-
-        for (int row = 0; row < rowCount; row++)
-        {
-            int puffsThisRow = row + 1;
-            float fwd = rowSpacing * (row + 1);
-
-            for (int i = 0; i < puffsThisRow; i++)
-            {
-                float idx = i - (puffsThisRow - 1) / 2f;
-                float lateral = idx * puffSpacing;
-                Vector3 center = transform.position + dir * (fwd + drift) + transform.right * lateral;
-
-                Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, puffSize);
-                Gizmos.DrawCube(Vector3.zero, Vector3.one);
-            }
-        }
-    }
-#endif
 }
