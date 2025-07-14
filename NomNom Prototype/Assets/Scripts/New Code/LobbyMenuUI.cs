@@ -72,7 +72,7 @@ public class LobbyMenuUI : MonoBehaviour
         };
 
         svc.OnPingUpdated += ms => pingTxt.text =
-            ms < 0 ? "Ping: -" : $"Ping: {ms:0} ms";
+            ms < 0 ? "Ping: -" : $"{ms:0} ms";
 
         svc.OnError += msg => errorTxt.text = msg;
     }
