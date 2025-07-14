@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Unity.Services.Lobbies.Models;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 
 public class LobbyMenuUI : MonoBehaviour
 {
@@ -13,10 +14,11 @@ public class LobbyMenuUI : MonoBehaviour
     [SerializeField] private InputField codeField;
     [SerializeField] private Button joinCodeBtn;
     [SerializeField] private Button leaveBtn;
+    [SerializeField] private Button startGameBtn;      // NEW
 
     [Header("Server List")]
-    [SerializeField] private Transform listContent;          // ScrollView Content
-    [SerializeField] private GameObject serverEntryPrefab;    // Prefab with Name/Players/Join
+    [SerializeField] private Transform listContent;
+    [SerializeField] private GameObject serverEntryPrefab;
 
     [Header("Status Texts")]
     [SerializeField] private Text lobbyCodeTxt;
@@ -29,11 +31,15 @@ public class LobbyMenuUI : MonoBehaviour
     {
         bootstrap = FindObjectOfType<NetworkBootstrapNew>();
 
+        /* Button wiring */
         hostPublicBtn.onClick.AddListener(() => bootstrap.HostPublic());
         hostPrivateBtn.onClick.AddListener(() => bootstrap.HostPrivate());
         refreshBtn.onClick.AddListener(() => bootstrap.RefreshServers());
         joinCodeBtn.onClick.AddListener(() => bootstrap.JoinByCode(codeField.text.Trim()));
         leaveBtn.onClick.AddListener(() => bootstrap.LeaveLobby());
+        startGameBtn.onClick.AddListener(() => bootstrap.BeginMatch());
+
+        startGameBtn.gameObject.SetActive(false);          // hidden by default
     }
 
     private void OnEnable() => StartCoroutine(SubscribeOnceReady());
@@ -46,7 +52,15 @@ public class LobbyMenuUI : MonoBehaviour
         var svc = LobbyService.Instance;
 
         svc.OnServerListRefreshed += BuildServerList;
-        svc.OnJoinedLobby += lobby => lobbyCodeTxt.text = lobby.LobbyCode;
+
+        svc.OnJoinedLobby += lobby =>
+        {
+            lobbyCodeTxt.text = lobby.LobbyCode;
+
+            bool iAmHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
+            startGameBtn.gameObject.SetActive(iAmHost);
+        };
+
         svc.OnLeftLobby += () =>
         {
             lobbyCodeTxt.text = "";
@@ -54,8 +68,12 @@ public class LobbyMenuUI : MonoBehaviour
             errorTxt.text = "";
             ClearList();
             listContent.gameObject.SetActive(false);
+            startGameBtn.gameObject.SetActive(false);
         };
-        svc.OnPingUpdated += ms => pingTxt.text = ms < 0 ? "Ping: -" : $"{ms:0} ms";
+
+        svc.OnPingUpdated += ms => pingTxt.text =
+            ms < 0 ? "Ping: -" : $"Ping: {ms:0} ms";
+
         svc.OnError += msg => errorTxt.text = msg;
     }
 
@@ -81,6 +99,7 @@ public class LobbyMenuUI : MonoBehaviour
 
     private void ClearList()
     {
-        foreach (Transform c in listContent) Destroy(c.gameObject);
+        foreach (Transform c in listContent)
+            Destroy(c.gameObject);
     }
 }

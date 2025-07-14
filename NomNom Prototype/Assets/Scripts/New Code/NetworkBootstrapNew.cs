@@ -3,34 +3,51 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 
 /// <summary>
-/// Small facade that the UI talks to.
-/// – Ensures a NetworkManager prefab exists (with UnityTransport)
-/// – Delegates create / join / refresh to LobbyService
-/// – Starts Host / Client once LobbyService sets Relay data
+/// Small facade the UI talks to.
+/// – Ensures NetworkManager prefab exists
+/// – Delegates lobby actions to LobbyService
+/// – Starts Host / Client when LobbyService finishes wiring Relay
+/// – Hosts can click “Start Game” to load the gameplay scene for everyone.
 /// </summary>
 public class NetworkBootstrapNew : MonoBehaviour
 {
-    [Header("Reference to a prefab that contains NetworkManager + UnityTransport")]
+    [Header("Prefab with NetworkManager + UnityTransport")]
     [SerializeField] private GameObject networkManagerPrefab;
 
     private void Awake()
     {
-        // Guarantee LobbyService singleton exists early.
+        // Guarantee LobbyService singleton exists
         if (LobbyService.Instance == null)
             new GameObject("LobbyService").AddComponent<LobbyService>();
     }
 
     /* ───────────── UI entry points ───────────── */
 
-    public async void HostPublic() { EnsureNetworkManager(); await LobbyService.Instance.HostAsync(isPrivate: false); }
-    public async void HostPrivate() { EnsureNetworkManager(); await LobbyService.Instance.HostAsync(isPrivate: true); }
+    public async void HostPublic() { EnsureNetworkManager(); await LobbyService.Instance.HostAsync(false); }
+    public async void HostPrivate() { EnsureNetworkManager(); await LobbyService.Instance.HostAsync(true); }
     public async void JoinByCode(string code) { EnsureNetworkManager(); await LobbyService.Instance.JoinByCodeAsync(code); }
     public async void RefreshServers() => await LobbyService.Instance.RefreshPublicListAsync();
     public async void LeaveLobby() => await LobbyService.Instance.LeaveAsync();
 
-    /* ───────────── called BY LobbyService ─────────────
-       LobbyService sets Relay data, then invokes these
-       methods (it fetches NetworkBootstrapNew via FindObjectOfType). */
+    /* ───────────── Begin Match (host only) ───────────── */
+
+    public void BeginMatch()
+    {
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsHost)
+        {
+            Debug.LogWarning("[Bootstrap] Only the host can start the match.");
+            return;
+        }
+
+        string gameSceneName = "TestGameScene";   // <-- change if your gameplay scene has a different name
+        NetworkManager.Singleton.SceneManager.LoadScene(
+            gameSceneName,
+            UnityEngine.SceneManagement.LoadSceneMode.Single);
+
+        Debug.Log("[Bootstrap] Host loading Game scene for all clients.");
+    }
+
+    /* ───────────── called BY LobbyService ───────────── */
 
     public void StartHost()
     {
@@ -44,24 +61,8 @@ public class NetworkBootstrapNew : MonoBehaviour
     {
         EnsureNetworkManager();
         NetworkManager.Singleton.StartClient();
-
-        /* Subscribe once – remove on cleanup */
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        Debug.Log("[Bootstrap] Client started.");
     }
-
-    private void OnClientDisconnected(ulong clientId)
-    {
-        /* Only care about OUR OWN disconnect (i.e., host shut down) */
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-        {
-            Debug.Log("[Bootstrap] Disconnected from host – returning to menu.");
-            LobbyService.Instance?.HandleDisconnectFromHost();
-
-            /* Unhook to avoid double-fire after we recreate NetworkManager */
-            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
-        }
-    }
-
 
     /* ───────────── helper ───────────── */
 
@@ -71,7 +72,7 @@ public class NetworkBootstrapNew : MonoBehaviour
 
         if (networkManagerPrefab == null)
         {
-            Debug.LogError("[Bootstrap] NetworkManager prefab reference is missing!");
+            Debug.LogError("[Bootstrap] NetworkManager prefab reference missing!");
             return;
         }
 
