@@ -1,29 +1,22 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using Unity.Services.Authentication;
 using Unity.Services.Core;
+using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
-using Unity.Networking.Transport.Relay; // transport relay helpers
 using Unity.Services.Relay.Models;
 using Unity.Netcode;
+using System.Linq;  
 using Unity.Netcode.Transports.UTP;
+using Unity.Networking.Transport.Relay;     // RelayServerData
 
-/// <summary>
-/// Pure logic wrapper for Unity Lobby + Relay.
-/// - Creates / joins / leaves lobbies
-/// - Exposes C# events for UI
-/// - Sets Relay data, then calls NetworkBootstrapNew.StartHost/Client().
-/// </summary>
 public class LobbyService : MonoBehaviour
 {
-    /* --------------- singleton --------------- */
+    /* ───────── singleton ───────── */
     public static LobbyService Instance { get; private set; }
 
     private void Awake()
@@ -33,25 +26,24 @@ public class LobbyService : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    /* --------------- public events --------------- */
+    /* ───────── events ───────── */
     public event Action<List<Lobby>> OnServerListRefreshed;
-    public event Action<Lobby> OnJoinedLobby;
+    public event Action<Lobby> OnJoinedLobby;   // also fires on lobby update
     public event Action OnLeftLobby;
-    public event Action<string> OnError;             // simple error channel
     public event Action<float> OnPingUpdated;
+    public event Action<string> OnError;
 
-    /* --------------- config --------------- */
+    /* ───────── config ───────── */
     [SerializeField] private int maxPlayers = 4;
     [SerializeField] private float pollInterval = 3f;
     [SerializeField] private float heartbeatInterval = 15f;
 
-    /* --------------- state --------------- */
+    /* ───────── state ───────── */
     private Lobby lobby;
-    private Coroutine pollCo, heartbeatCo, pingCo;
+    private Coroutine heartbeatCo, pollCo, pingCo;
 
-    /* --------------- public API --------------- */
+    /* ═════════ PUBLIC API ═════════ */
 
-    /// <summary>Create a Host lobby.  isPrivate = true hides the lobby from the public list.</summary>
     public async Task HostAsync(bool isPrivate = false)
     {
         try
@@ -82,20 +74,32 @@ public class LobbyService : MonoBehaviour
         catch (Exception e) { ReportError(e); }
     }
 
-    /// <summary>Join a private lobby by exact code.</summary>
-    public async Task JoinByCodeAsync(string code)
+    /// <summary>Accepts either a 6-char join-code **or** a full lobbyId GUID.</summary>
+    public async Task JoinByCodeAsync(string key)
     {
         try
         {
             await EnsureServicesSignedIn();
 
-            lobby = await Lobbies.Instance.JoinLobbyByCodeAsync(
-                code, new JoinLobbyByCodeOptions { Player = CreatePlayerData() });
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Join key is empty!");
 
-            string joinCode = lobby.Data["Relay"].Value;
-            JoinAllocation joinAlloc = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            // Decide whether it's a code (6 chars) or an Id
+            if (key.Length == 6)
+            {
+                lobby = await Lobbies.Instance.JoinLobbyByCodeAsync(
+                    key, new JoinLobbyByCodeOptions { Player = CreatePlayerData() });
+            }
+            else
+            {
+                lobby = await Lobbies.Instance.JoinLobbyByIdAsync(
+                    key, new JoinLobbyByIdOptions { Player = CreatePlayerData() });
+            }
 
-            SetRelayDataClient(joinAlloc);
+            string relayJoinCode = lobby.Data["Relay"].Value;
+            JoinAllocation join = await RelayService.Instance.JoinAllocationAsync(relayJoinCode);
+
+            SetRelayDataClient(join);
 
             FindObjectOfType<NetworkBootstrapNew>().StartClient();
             StartCoroutines();
@@ -104,39 +108,37 @@ public class LobbyService : MonoBehaviour
         catch (Exception e) { ReportError(e); }
     }
 
-    /// <summary>Fetch all public lobbies (IsPrivate == false).</summary>
     public async Task RefreshPublicListAsync()
     {
         try
         {
             await EnsureServicesSignedIn();
 
-            var lobbies = await Lobbies.Instance.QueryLobbiesAsync
-            (
+            var list = await Lobbies.Instance.QueryLobbiesAsync(
                 new QueryLobbiesOptions
                 {
                     Filters = new List<QueryFilter> {
-                        new QueryFilter(
-                            field: QueryFilter.FieldOptions.IsLocked,
-                            op:    QueryFilter.OpOptions.EQ,
-                            value: "0")
+            // show only unlocked, public lobbies
+            new QueryFilter(QueryFilter.FieldOptions.IsLocked, "0", QueryFilter.OpOptions.EQ)
                     }
                 });
-            OnServerListRefreshed?.Invoke(lobbies.Results);
+
+
+            OnServerListRefreshed?.Invoke(list.Results);
         }
         catch (Exception e) { ReportError(e); }
     }
 
-    /// <summary>Leave or delete the current lobby and shut down Netcode.</summary>
+
     public async Task LeaveAsync()
     {
         try
         {
             if (lobby != null)
             {
-                if (NetworkManager.Singleton.IsHost)
+                if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost)
                     await Lobbies.Instance.DeleteLobbyAsync(lobby.Id);
-                else
+                else if (lobby != null)
                     await Lobbies.Instance.RemovePlayerAsync(
                         lobby.Id, AuthenticationService.Instance.PlayerId);
             }
@@ -145,11 +147,40 @@ public class LobbyService : MonoBehaviour
 
         lobby = null;
         StopCoroutines();
-        if (NetworkManager.Singleton != null) NetworkManager.Singleton.Shutdown();
+
+        /* full Netcode cleanup */
+        if (NetworkManager.Singleton != null)
+        {
+            foreach (var obj in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList.ToArray())
+                obj.Despawn(true);
+
+            NetworkManager.Singleton.Shutdown();
+            Destroy(NetworkManager.Singleton.gameObject);
+        }
+
         OnLeftLobby?.Invoke();
     }
 
-    /* --------------- internal helpers --------------- */
+    /// <summary>
+    /// Called by clients when their connection to the host drops.
+    /// Cleans up Netcode and fires OnLeftLobby so the UI resets.
+    /// </summary>
+    public void HandleDisconnectFromHost()
+    {
+        lobby = null;
+        StopCoroutines();
+
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.Shutdown();
+            Destroy(NetworkManager.Singleton.gameObject);
+        }
+
+        OnLeftLobby?.Invoke();
+    }
+
+
+    /* ═════════ INTERNAL HELPERS ═════════ */
 
     private async Task EnsureServicesSignedIn()
     {
@@ -164,6 +195,7 @@ public class LobbyService : MonoBehaviour
     {
         string name = PlayerPrefs.GetString("PlayerName",
                        "Player_" + UnityEngine.Random.Range(1000, 9999));
+
         return new Player
         {
             Data = new Dictionary<string, PlayerDataObject> {
@@ -178,20 +210,20 @@ public class LobbyService : MonoBehaviour
         var utp = NetworkManager.Singleton.GetComponent<UnityTransport>();
         utp.SetRelayServerData(new RelayServerData(alloc, "dtls"));
     }
+
     private void SetRelayDataClient(JoinAllocation join)
     {
         var utp = NetworkManager.Singleton.GetComponent<UnityTransport>();
         utp.SetRelayServerData(new RelayServerData(join, "dtls"));
     }
 
-    /* --------------- error wrapper --------------- */
     private void ReportError(Exception e)
     {
         Debug.LogError(e);
         OnError?.Invoke(e.Message);
     }
 
-    /* --------------- heartbeat, poll, ping coroutines --------------- */
+    /* ═════════ COROUTINES ═════════ */
 
     private void StartCoroutines()
     {
@@ -229,11 +261,7 @@ public class LobbyService : MonoBehaviour
             if (task.Status == TaskStatus.RanToCompletion)
             {
                 lobby = task.Result;
-                OnJoinedLobby?.Invoke(lobby);   // reuse event as "lobby updated"
-            }
-            else if (task.IsFaulted)
-            {
-                ReportError(task.Exception);
+                OnJoinedLobby?.Invoke(lobby);
             }
             yield return new WaitForSeconds(pollInterval);
         }
@@ -241,13 +269,22 @@ public class LobbyService : MonoBehaviour
 
     private IEnumerator PingLoop()
     {
-        var utp = NetworkManager.Singleton.GetComponent<UnityTransport>();
         while (true)
         {
-            ulong target = NetworkManager.Singleton.IsHost
-                         ? NetworkManager.Singleton.LocalClientId
-                         : NetworkManager.ServerClientId;
-            OnPingUpdated?.Invoke(utp.GetCurrentRtt(target));
+            if (NetworkManager.Singleton == null)
+            {
+                OnPingUpdated?.Invoke(-1);
+                yield break;
+            }
+
+            var utp = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            if (utp != null)
+            {
+                ulong target = NetworkManager.Singleton.IsHost
+                             ? NetworkManager.Singleton.LocalClientId
+                             : NetworkManager.ServerClientId;
+                OnPingUpdated?.Invoke(utp.GetCurrentRtt(target));
+            }
             yield return new WaitForSeconds(0.5f);
         }
     }

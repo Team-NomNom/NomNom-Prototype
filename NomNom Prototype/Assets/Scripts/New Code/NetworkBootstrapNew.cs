@@ -44,8 +44,24 @@ public class NetworkBootstrapNew : MonoBehaviour
     {
         EnsureNetworkManager();
         NetworkManager.Singleton.StartClient();
-        Debug.Log("[Bootstrap] Client started.");
+
+        /* Subscribe once – remove on cleanup */
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
     }
+
+    private void OnClientDisconnected(ulong clientId)
+    {
+        /* Only care about OUR OWN disconnect (i.e., host shut down) */
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.Log("[Bootstrap] Disconnected from host – returning to menu.");
+            LobbyService.Instance?.HandleDisconnectFromHost();
+
+            /* Unhook to avoid double-fire after we recreate NetworkManager */
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
+        }
+    }
+
 
     /* ───────────── helper ───────────── */
 
